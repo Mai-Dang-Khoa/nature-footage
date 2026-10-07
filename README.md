@@ -14,7 +14,7 @@ index.html  style.css  script.js
 videos.json         danh sách clip
 site.json           thông tin chung: tên, email, link, collections, use case, analytics...
 assets/thumbs/      thumbnail
-assets/previews/    video preview + hero.mp4
+assets/previews/    video preview (clip featured đầu tiên cũng là video nền hero)
 assets/free/        file mẫu miễn phí
 assets/bts/         ảnh "Behind the scene"
 assets/og.png       ảnh chia sẻ mạng xã hội (1200x630)
@@ -25,7 +25,53 @@ tools/sync-fallback.py  đồng bộ JSON vào index.html (chỉ cần cho file:
 
 Hero (video) → Featured (6 clip) → Perfect for (lọc theo mục đích) → Collections → Full collection (lọc, tìm, Show more) → Stats/As used in (chỉ hiện khi có dữ liệu thật) → Free sample → Behind the scene → FAQ → About/Contact → CTA cuối.
 
-Mọi nút mua dùng màu nhấn vàng duy nhất (`--buy` trong `style.css`). Đừng dùng màu này cho thứ khác.
+Màu nhấn `--accent` chỉ dùng cho: nút mua, nút "Browse Collection" ở hero và viền focus. Đừng dùng cho thứ khác.
+
+## Thiết kế: design tokens
+
+Mọi màu, cỡ chữ, khoảng cách, bo góc, thời gian chuyển động nằm ở đầu `style.css` (khối `:root`). Sửa ở đó là cả trang đổi theo, không cần tìm từng chỗ.
+
+| Nhóm | Token | Ghi chú |
+|---|---|---|
+| Màu | `--bg`, `--surface`, `--surface-2` | Nền gần đen ngả xanh lục; mỗi lớp bề mặt sáng hơn 1 bậc. |
+| | `--text`, `--text-muted` | Chữ chính / chữ phụ (đạt ≥ 4.5:1 trên nền). |
+| | `--border`, `--border-strong`, `--scrim`, `--glass` | Viền, lớp phủ tối, nền mờ. |
+| | `--accent`, `--accent-hover`, `--accent-ink` | Màu nhấn duy nhất + màu chữ đặt trên nó. |
+| Chữ | `--font-display`, `--font-ui` | Fraunces (tiêu đề), Inter (nội dung). |
+| | `--fs-hero`, `--fs-h2`, `--fs-h3`, `--fs-lede`, `--fs-body`, `--fs-small`, `--fs-caption`, `--fs-micro` | Thang cỡ chữ dùng `clamp()`. |
+| Khoảng cách | `--s-1` … `--s-7` | 4 / 8 / 16 / 24 / 40 / 64 / 96px. `--space-section` = khoảng cách giữa các section. |
+| Hình khối | `--r-sm`, `--r-md`, `--r-lg`, `--r-pill`, `--tap`, `--tap-lg` | Bo góc, kích thước vùng bấm tối thiểu. |
+| Chuyển động | `--dur-fast`, `--dur-modal`, `--dur-reveal`, `--dur-hero-zoom`, `--stagger-hero`, `--stagger-card`, `--ease-out`, `--ease-in-out` | Thời gian và easing. |
+
+### Đổi màu nhấn
+
+Sửa 3 dòng trong `:root`:
+
+```css
+--accent: #e8b464;        /* màu nút */
+--accent-hover: #f2c47c;  /* sáng hơn 1 chút khi rê chuột */
+--accent-ink: #1a1308;    /* chữ trên nút: phải đạt tương phản ≥ 4.5:1 với --accent */
+```
+
+Ví dụ xanh lá: `--accent: #9fd27a; --accent-hover: #b3e091; --accent-ink: #0d1a06;`.
+Kiểm tra tương phản tại https://webaim.org/resources/contrastchecker/.
+
+### Đổi font
+
+1. Chọn font trên Google Fonts (tối đa 2 họ để trang nhẹ).
+2. Trong `index.html`, thay URL Google Fonts ở **cả 2 chỗ** (thẻ `<link rel="preload">` và trong `<noscript>`).
+3. Trong `index.html`, sửa tên font trong đoạn script `fontsGo` (ví dụ `"300 1em Fraunces"`). Script này chờ font tải xong rồi mới hiện chữ hero, để chữ không bị nhảy.
+4. Trong `style.css`, sửa `--font-display` và `--font-ui`.
+
+### Thay video nền hero
+
+- Video hero tự lấy `preview` của **clip đầu tiên có `"featured": true`** trong `videos.json`. Muốn đổi video: đưa clip bạn muốn lên đầu danh sách featured.
+- Ảnh tĩnh (poster) hiện ngay khi mở trang: dùng `poster` (hoặc `thumbnail`) của clip đó. Để ảnh hiện nhanh nhất, sửa luôn đường dẫn trong `index.html` ở 2 chỗ: thẻ `<link rel="preload" as="image" ...>` và `<img id="hero-poster" ...>`.
+- Video chỉ tải sau khi trang load xong. Không tải khi: người dùng bật giảm chuyển động (reduced motion), bật Data Saver, hoặc mạng chậm (2G/3G). Khi đó chỉ hiện poster.
+- File chưa có hoặc trình duyệt không phát được: trang giữ nguyên poster.
+- Nên dùng clip quay chậm, ít chi tiết nhỏ ở nửa dưới (chỗ đặt chữ), file dưới 5MB.
+
+Ảnh trước/sau khi nâng cấp giao diện nằm trong `docs/screenshots/`.
 
 ## Thêm clip mới (videos.json)
 
@@ -112,7 +158,7 @@ ffmpeg -ss 2 -i input_4k.mp4 -frames:v 1 -vf "scale=640:-2" -q:v 4 assets/thumbs
 ffmpeg -i input_4k.mp4 -t 8 -vf "scale=1280:-2" -c:v libx264 -crf 26 -an -movflags +faststart assets/free/free-sample-720p.mp4
 ```
 
-File vẫn lớn: tăng `-crf` (30–32), giảm `scale` (960) hoặc cắt ngắn (`-t 8`). `hero.mp4` nên dưới 5MB.
+File vẫn lớn: tăng `-crf` (30–32), giảm `scale` (960) hoặc cắt ngắn (`-t 8`). Preview dùng làm video hero nên dưới 5MB.
 
 ## Bật GitHub Pages
 
@@ -124,11 +170,11 @@ File vẫn lớn: tăng `-crf` (30–32), giảm `scale` (960) hoặc cắt ng�
 
 - [ ] `site.json`: `email`, `ownerName`, `adobeStockProfileUrl`, `social` (thay mọi `[YOUR_...]`).
 - [ ] `videos.json`: thay 6 clip mẫu, `stockUrl` thật cho từng clip, xoá `"sample": true`.
-- [ ] `assets/thumbs/`, `assets/previews/`, `assets/previews/hero.mp4`: file thật.
+- [ ] `assets/thumbs/`, `assets/previews/`: file thật.
 - [ ] `assets/free/free-sample-720p.mp4`: file mẫu thật (hoặc đặt `freeSample.enabled: false`).
 - [ ] `assets/bts/step-1..4.svg`: ảnh chụp quy trình thật; sửa chữ 4 bước trong `index.html` cho khớp quy trình của bạn.
 - [ ] `site.json → collections`: tên bộ thật, `stockUrl` nếu có.
-- [ ] `index.html`: đoạn About (`[YOUR_STORY]`), poster hero, `<title>`, meta, Open Graph.
+- [ ] `index.html`: đoạn About (`[YOUR_STORY]`), đường dẫn poster hero (2 chỗ), `<title>`, meta, Open Graph.
 - [ ] Domain `YOUR_USERNAME.github.io/nature-footage` trong `index.html`, `robots.txt`, `sitemap.xml`.
 - [ ] `assets/og.png`: ảnh chia sẻ thật.
 - [ ] Khi có dữ liệu thật: `stats`, `trustedBy`, `price`.
