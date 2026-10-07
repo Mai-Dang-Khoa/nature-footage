@@ -709,12 +709,44 @@
     hero.addEventListener("pointerleave", () => hero.classList.remove("lit"));
   }
 
-  /* ---------- Nav: frosted once the page scrolls ---------- */
-  const nav = $(".nav");
-  let navTicking = false;
-  const updateNav = () => { nav.classList.toggle("scrolled", window.scrollY > 24); navTicking = false; };
-  window.addEventListener("scroll", () => { if (!navTicking) { navTicking = true; requestAnimationFrame(updateNav); } }, { passive: true });
-  updateNav();
+  /* ---------- Nav: frosted after 40px, hides on scroll down, shows on scroll up ---------- */
+  const nav = $("#nav"), progress = $("#progress");
+  let travel = 0, docH = document.documentElement.scrollHeight;
+  new ResizeObserver(() => { docH = document.documentElement.scrollHeight; }).observe(document.body);
+  Motion.onScroll(({ y, dy, vh }) => {
+    nav.classList.toggle("scrolled", y > 40);
+    // only hide after a deliberate scroll, never near the top or while the menu has focus
+    travel = Math.sign(dy) === Math.sign(travel) ? travel + dy : dy;
+    if (y < 120 || nav.contains(document.activeElement) || travel < -8) nav.classList.remove("nav-hidden");
+    else if (travel > 12) nav.classList.add("nav-hidden");
+    // progress bar fallback when CSS scroll timelines are not available
+    if (!Motion.sda) progress.style.setProperty("--progress", Motion.clamp(y / Math.max(1, docH - vh)).toFixed(4));
+  });
+  nav.addEventListener("focusin", () => nav.classList.remove("nav-hidden"));
+
+  /* ---------- Nav: underline slides to the section being read ---------- */
+  const navInd = $("#nav-ind");
+  const navLinks = $$("nav a[href^='#']", nav);
+  const sectionToLink = { featured: "#collection", "use-cases": "#collection", collections: "#collection", collection: "#collection", process: "#process", faq: "#faq", about: "#contact", contact: "#contact" };
+  let activeHref = null;
+  function placeIndicator() {
+    const link = navLinks.find((a) => a.getAttribute("href") === activeHref && a.offsetParent);
+    navLinks.forEach((a) => (a === link ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current")));
+    if (!link) { navInd.classList.remove("on"); return; }
+    const x = link.offsetLeft, w = link.offsetWidth; // reads first…
+    Motion.add(() => { navInd.style.transform = `translateX(${x}px) scaleX(${w})`; navInd.classList.add("on"); }); // …write next frame
+  }
+  const sectionIO = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      const href = sectionToLink[e.target.id] || null;
+      if (href !== activeHref) { activeHref = href; placeIndicator(); }
+    });
+  }, { rootMargin: "-45% 0px -50% 0px" });
+  $$("main > section[id]").forEach((sec) => sectionIO.observe(sec));
+  $("#hero") && sectionIO.observe($("#hero"));
+  window.addEventListener("resize", placeIndicator, { passive: true });
+  if (document.fonts) document.fonts.ready.then(placeIndicator);
 
   /* ---------- Init ---------- */
   Promise.all([

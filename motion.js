@@ -21,6 +21,8 @@
   const lowPower = saveData || (nav.hardwareConcurrency > 0 && nav.hardwareConcurrency <= 4) || (nav.deviceMemory > 0 && nav.deviceMemory <= 4);
   // heavy effects (tilt, spotlight, cursor, parallax) only with a precise pointer on a capable device
   const rich = finePointer && !reduced && !lowPower;
+  // Scroll-driven CSS reveals where supported (animation-timeline: view()); otherwise IntersectionObserver.
+  const sda = !reduced && !!(window.CSS && CSS.supports && CSS.supports("animation-timeline: view()"));
 
   const lerp = (a, b, t) => a + (b - a) * t;
   const clamp = (v, min = 0, max = 1) => Math.min(max, Math.max(min, v));
@@ -163,12 +165,14 @@
       el.dataset.revealBound = "1";
       if (el.dataset.reveal === "mask") splitWords(el.matches("h1,h2,h3") ? el : el.querySelector("h1,h2,h3"));
       if (el.dataset.delay) el.style.setProperty("--reveal-delay", `${parseFloat(el.dataset.delay)}ms`);
+      if (sda) return; // CSS handles it, nothing to observe
       if (!io) { el.classList.add("is-in", "revealed"); return; }
       io.observe(el);
     });
   }
 
-  window.Motion = { reduced, finePointer, lowPower, saveData, rich, lerp, clamp, add, onScroll, pointer, spring, animating, splitWords, reveal, show, scroll: scrollState };
+  window.Motion = { reduced, finePointer, lowPower, saveData, rich, sda, lerp, clamp, add, onScroll, pointer, spring, animating, splitWords, reveal, show, scroll: scrollState };
   document.documentElement.classList.toggle("motion-rich", rich);
+  document.documentElement.classList.toggle("sda", sda);
   document.documentElement.classList.add("motion-ready");
 })();

@@ -43,7 +43,8 @@
 <body>
   <a class="skip" href="#featured">Skip to clips</a>
 
-  <header class="nav">
+  <div class="progress" id="progress" aria-hidden="true"></div>
+  <header class="nav" id="nav">
     <a class="brand" href="#top">
       <img src="favicon.svg" alt="" width="26" height="26"> <span data-site="brandName">Wild Frames</span>
     </a>
@@ -52,6 +53,7 @@
       <a href="#process">Process</a>
       <a href="#faq">FAQ</a>
       <a href="#contact">Contact</a>
+      <span class="nav-ind" id="nav-ind" aria-hidden="true"></span>
     </nav>
   </header>
 
@@ -86,12 +88,12 @@
 
     <!-- Hick's Law: a short, curated first choice -->
     <section id="featured" class="section">
-      <div class="section-head" data-reveal="up">
+      <div class="section-head">
         <div>
-          <p class="eyebrow">Start here</p>
-          <h2>Featured clips</h2>
+          <p class="eyebrow" data-reveal="line">Start here</p>
+          <h2 data-reveal="mask">Featured clips</h2>
         </div>
-        <p class="muted section-aside">A short, hand-picked selection. The full collection is further down.</p>
+        <p class="muted section-aside" data-reveal="fade" data-delay="120">A short, hand-picked selection. The full collection is further down.</p>
       </div>
       <div id="featured-grid" class="grid" data-stagger="70" aria-busy="true">
         <div class="card skeleton" aria-hidden="true"></div>
@@ -105,10 +107,10 @@
 
     <!-- Relevance: start from what the buyer is making -->
     <section id="use-cases" class="section">
-      <div class="section-head" data-reveal="up">
+      <div class="section-head">
         <div>
-          <p class="eyebrow">Find by project</p>
-          <h2>Perfect for</h2>
+          <p class="eyebrow" data-reveal="line">Find by project</p>
+          <h2 data-reveal="mask">Perfect for</h2>
         </div>
       </div>
       <div id="usecase-list" class="usecases" data-reveal="up"></div>
@@ -116,21 +118,21 @@
 
     <!-- Completion: sets of clips that belong together -->
     <section id="collections" class="section" hidden>
-      <div class="section-head" data-reveal="up">
+      <div class="section-head">
         <div>
-          <p class="eyebrow">Shot sets</p>
-          <h2>Collections</h2>
+          <p class="eyebrow" data-reveal="line">Shot sets</p>
+          <h2 data-reveal="mask">Collections</h2>
         </div>
-        <p class="muted section-aside">Clips made in the same world, with matching light and grade.</p>
+        <p class="muted section-aside" data-reveal="fade" data-delay="120">Clips made in the same world, with matching light and grade.</p>
       </div>
       <div id="collection-list" class="sets" data-reveal="up"></div>
     </section>
 
     <section id="collection" class="section">
-      <div class="section-head" data-reveal="up">
+      <div class="section-head">
         <div>
-          <p class="eyebrow">Everything</p>
-          <h2>Full collection</h2>
+          <p class="eyebrow" data-reveal="line">Everything</p>
+          <h2 data-reveal="mask">Full collection</h2>
         </div>
         <p class="muted" id="result-count" aria-live="polite"></p>
       </div>
@@ -171,7 +173,7 @@
       <div class="free" data-reveal="up">
         <img id="free-thumb" src="assets/thumbs/sample-1.svg" alt="" width="640" height="360" loading="lazy" decoding="async">
         <div class="free-body">
-          <p class="eyebrow">Free, no sign-up</p>
+          <p class="eyebrow" data-reveal="line">Free, no sign-up</p>
           <h2 id="free-title">Free sample clip</h2>
           <p id="free-desc" class="muted"></p>
           <p class="spec-line" id="free-spec"></p>
@@ -185,12 +187,12 @@
 
     <!-- Authority: show the real process -->
     <section id="process" class="section">
-      <div class="section-head" data-reveal="up">
+      <div class="section-head">
         <div>
-          <p class="eyebrow">Behind the scene</p>
-          <h2>From empty level to 4K frame</h2>
+          <p class="eyebrow" data-reveal="line">Behind the scene</p>
+          <h2 data-reveal="mask">From empty level to 4K frame</h2>
         </div>
-        <p class="muted section-aside">Every clip is computer-generated in Unreal Engine 5, a real-time engine — no drones, no location shoots.</p>
+        <p class="muted section-aside" data-reveal="fade" data-delay="120">Every clip is computer-generated in Unreal Engine 5, a real-time engine — no drones, no location shoots.</p>
       </div>
       <!-- EDIT: replace images in assets/bts/ and adjust text to match your own workflow -->
       <ol class="steps" data-reveal="up">
@@ -223,10 +225,10 @@
 
     <!-- Objection handling -->
     <section id="faq" class="section faq">
-      <div class="section-head" data-reveal="up">
+      <div class="section-head">
         <div>
-          <p class="eyebrow">Before you buy</p>
-          <h2>Questions</h2>
+          <p class="eyebrow" data-reveal="line">Before you buy</p>
+          <h2 data-reveal="mask">Questions</h2>
         </div>
       </div>
       <div class="faq-list" data-reveal="up">
@@ -254,7 +256,7 @@
     </section>
 
     <section id="about" class="section about">
-      <div class="section-head" data-reveal="up"><div><p class="eyebrow">About</p><h2>The person behind the frames</h2></div></div>
+      <div class="section-head"><div><p class="eyebrow" data-reveal="line">About</p><h2 data-reveal="mask">The person behind the frames</h2></div></div>
       <div class="about-body" data-reveal="up">
         <!-- EDIT: replace with your own story -->
         <p>Every scene in this collection is built from scratch in Unreal Engine 5 — terrain, vegetation, water, light and atmosphere — and rendered in native 4K.</p>
@@ -264,7 +266,7 @@
     </section>
 
     <section id="contact" class="section">
-      <div class="section-head" data-reveal="up"><div><p class="eyebrow">Contact</p><h2>Talk to me</h2></div></div>
+      <div class="section-head"><div><p class="eyebrow" data-reveal="line">Contact</p><h2 data-reveal="mask">Talk to me</h2></div></div>
       <p class="muted">Custom scenes, questions or licensing enquiries:</p>
       <ul class="links" id="contact-links" data-reveal="fade">
         <li><a class="js-mailto" data-subject="Hello" href="mailto:">Email</a></li>
@@ -273,7 +275,7 @@
 
     <!-- End: one clear final action -->
     <section class="finale">
-      <h2 data-reveal="up">Find your next shot.</h2>
+      <h2 data-reveal="mask">Find your next shot.</h2>
       <p class="muted" data-reveal="fade" data-delay="120">Every clip in this collection is available to license on Adobe Stock.</p>
       <a class="btn btn-accent btn-lg" data-site-href="adobeStockProfileUrl" data-utm="profile_finale" data-track="buy_click" data-clip="profile" href="https://stock.adobe.com/" target="_blank" rel="noopener noreferrer">See all clips on Adobe Stock</a>
     </section>
