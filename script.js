@@ -151,7 +151,7 @@
     $$("[data-fav]").forEach((b) => {
       const on = isFav(b.dataset.fav);
       b.setAttribute("aria-pressed", String(on));
-      const label = b.querySelector("span");
+      const label = b.querySelector(".fav-label");
       if (label) label.textContent = on ? "Saved" : "Save";
     });
     const n = favs.size;
@@ -222,80 +222,81 @@
     $$("[data-close]", d).forEach((b) => b.addEventListener("click", () => d.close()));
   });
 
-  /* ---------- Preview playback ---------- */
-  let current = null; // the media element currently playing
+  /* ---------- Preview playback (one card at a time) ---------- */
+  let current = null; // the card currently active / previewing
 
-  function stop(media) {
-    const v = media.querySelector("video");
+  function stop(cardEl) {
+    const v = cardEl.querySelector(".card-video");
     if (v) v.pause();
-    media.classList.remove("playing");
-    if (current === media) current = null;
+    cardEl.classList.remove("playing", "active");
+    if (current === cardEl) current = null;
   }
 
-  function play(media, src) {
-    if (current && current !== media) stop(current);
-    let v = media.querySelector("video");
+  function play(cardEl, src) {
+    if (current && current !== cardEl) stop(current);
+    current = cardEl;
+    if (reducedMotion || !src) return;
+    let v = cardEl.querySelector(".card-video");
     if (!v) {
-      v = el("video", { muted: true, loop: true, playsinline: true, preload: "none", "aria-hidden": "true", tabindex: "-1" });
+      // preview is only downloaded on first hover/tap
+      v = el("video", { class: "card-video", muted: true, loop: true, playsinline: true, preload: "none", "aria-hidden": "true", tabindex: "-1" });
       v.muted = true;
+      v.addEventListener("playing", () => { if (current === cardEl) cardEl.classList.add("playing"); });
+      v.addEventListener("error", () => cardEl.classList.remove("playing"));
       v.src = src;
-      media.prepend(v);
+      cardEl.querySelector(".card-thumb").after(v);
     }
-    v.play().then(() => {
-      if (!media.matches(":hover")) return v.pause();
-      media.classList.add("playing");
-      current = media;
-    }).catch(() => {});
+    v.play().catch(() => {});
   }
 
   /* ---------- Cards ---------- */
-  function specLine(v) {
-    return el("p", { class: "spec-line" }, [
-      el("span", { text: v.resolution }),
-      el("span", { text: v.duration }),
-      v.fps ? el("span", { text: `${v.fps} fps` }) : null,
-      v.loopable ? el("span", { class: "yes", text: "Seamless loop" }) : null,
-    ]);
-  }
-
   function buyLink(v, extraClass = "") {
     return el("a", {
-      class: `btn btn-buy ${extraClass}`.trim(), href: withUtm(v.stockUrl, v.id), target: "_blank", rel: "noopener noreferrer",
+      class: `btn btn-accent ${extraClass}`.trim(), href: withUtm(v.stockUrl, v.id), target: "_blank", rel: "noopener noreferrer",
       "data-track": "buy_click", "data-clip": v.id, text: "License on Adobe Stock",
     });
   }
 
   function card(v, list) {
-    const media = el("button", { class: "media", type: "button", "aria-label": `View details: ${v.title}` }, [
-      el("img", { src: v.thumbnail, alt: `${v.title} — ${v.category}`, loading: "lazy", width: "640", height: "360", decoding: "async" }),
-      el("span", { class: "badge", text: v.category }),
-      v.sample ? el("span", { class: "badge badge-sample", text: "Sample data" }) : null,
-      el("span", { class: "expand", "aria-hidden": "true", text: "View details" }),
-    ]);
-    media.addEventListener("click", () => openClip(v.id, list));
-    if (autoPreview) {
-      media.addEventListener("mouseenter", () => play(media, v.preview));
-      media.addEventListener("mouseleave", () => stop(media));
-    }
-
-    const titleLink = el("a", { href: `#clip=${encodeURIComponent(v.id)}`, text: v.title });
-    titleLink.addEventListener("click", (e) => { e.preventDefault(); openClip(v.id, list); });
-
+    const badge = [v.resolution, v.duration, v.sample ? "Sample" : null].filter(Boolean).join(" · ");
+    const hit = el("button", { class: "card-hit", type: "button", "aria-label": `${v.title} — preview and view details` });
+    const details = el("button", { class: "btn btn-outline btn-sm card-details", type: "button", text: "Details" });
     const fav = favButton(v);
     fav.setAttribute("aria-pressed", String(isFav(v.id)));
 
-    return el("article", { class: "card" }, [
+    const cardEl = el("article", { class: "card", "data-id": v.id }, [
+      el("img", { class: "card-thumb", src: v.thumbnail, alt: "", loading: "lazy", width: "640", height: "360", decoding: "async" }),
+      el("div", { class: "card-shade" }),
+      hit,
+      el("span", { class: "card-badge", text: badge }),
       fav,
-      media,
-      el("div", { class: "card-body" }, [
-        el("h3", {}, [titleLink]),
-        specLine(v),
-        v.price ? el("p", { class: "price", text: v.price }) : null,
-        el("p", { class: "license-note", text: "Commercial license via Adobe Stock" }),
-        buyLink(v),
+      el("div", { class: "card-foot" }, [
+        el("h3", { class: "card-title", title: v.title, text: v.title }),
+        el("div", { class: "card-actions" }, [buyLink(v, "btn-sm"), details]),
       ]),
     ]);
+
+    const open = () => openClip(v.id, list, hit);
+    hit.addEventListener("click", (e) => {
+      // touch: first tap previews, second tap opens details
+      const touch = e.pointerType === "touch" || (!canHover && e.pointerType !== "");
+      if (touch && current !== cardEl) { cardEl.classList.add("active"); play(cardEl, v.preview); return; }
+      open();
+    });
+    details.addEventListener("click", open);
+    if (canHover) {
+      cardEl.addEventListener("mouseenter", () => play(cardEl, v.preview));
+      cardEl.addEventListener("mouseleave", () => { if (!cardEl.querySelector(":focus-visible")) stop(cardEl); });
+    }
+    hit.addEventListener("focus", () => { if (hit.matches(":focus-visible")) play(cardEl, v.preview); });
+    cardEl.addEventListener("focusout", (e) => { if (!cardEl.contains(e.relatedTarget) && !cardEl.matches(":hover")) stop(cardEl); });
+    return cardEl;
   }
+
+  // tapping outside any card stops the active preview (touch)
+  document.addEventListener("pointerdown", (e) => {
+    if (current && !current.contains(e.target)) stop(current);
+  }, { passive: true });
 
   /* ---------- Featured ---------- */
   function renderFeatured() {
@@ -305,6 +306,7 @@
     const g = $("#featured-grid");
     g.replaceChildren(...list.map((v) => card(v, list)));
     g.setAttribute("aria-busy", "false");
+    revealCards(g);
   }
 
   /* ---------- Use cases ---------- */
@@ -346,7 +348,7 @@
           c.description ? el("p", { class: "muted", text: c.description }) : null,
           el("div", { class: "set-actions" }, [
             browse,
-            c.stockUrl ? el("a", { class: "btn btn-buy", href: withUtm(c.stockUrl, c.id), target: "_blank", rel: "noopener noreferrer", "data-track": "buy_click", "data-clip": c.id, text: "View full set on Adobe Stock" }) : null,
+            c.stockUrl ? el("a", { class: "btn btn-accent", href: withUtm(c.stockUrl, c.id), target: "_blank", rel: "noopener noreferrer", "data-track": "buy_click", "data-clip": c.id, text: "View full set on Adobe Stock" }) : null,
           ]),
         ]),
       ]);
@@ -421,6 +423,7 @@
     current = null;
     grid.replaceChildren(...list.slice(0, shown).map((v) => card(v, list)));
     grid.setAttribute("aria-busy", "false");
+    revealCards(grid);
     emptyEl.hidden = list.length > 0;
     moreBtn.hidden = list.length <= shown;
     moreBtn.textContent = `Show more (${list.length - Math.min(shown, list.length)} left)`;
@@ -434,7 +437,7 @@
     shown += PAGE_SIZE;
     render();
     // move focus to the first newly added card for keyboard users
-    if (first) $$(".card .media", grid)[list.indexOf(first)]?.focus();
+    if (first) $$(".card-hit", grid)[list.indexOf(first)]?.focus();
   });
 
   $("#clear-filters").addEventListener("click", () => {
@@ -462,15 +465,17 @@
 
   /* ---------- Clip modal ---------- */
   const modal = $("#clip-modal"), mVideo = $("#m-video");
-  let modalList = [], modalIndex = 0;
+  let modalList = [], modalIndex = 0, opener = null;
 
-  function openClip(id, list) {
+  function openClip(id, list, from) {
     const v = byId(id);
     if (!v) return;
     modalList = list && list.some((x) => x.id === id) ? list : videos;
     modalIndex = modalList.findIndex((x) => x.id === id);
+    if (!modal.open) opener = from || document.activeElement;
     fillModal(v);
     openDialog(modal);
+    $("#m-buy").focus({ preventScroll: true });
     history.replaceState(null, "", `#clip=${encodeURIComponent(id)}`);
     track("modal_open", { clip: id });
   }
@@ -481,7 +486,9 @@
     mVideo.poster = v.poster || v.thumbnail;
     mVideo.src = v.preview;
     mVideo.controls = reducedMotion;
+    mVideo.muted = !soundOn;
     if (!reducedMotion) mVideo.play().catch(() => {});
+    modal.setAttribute("aria-label", `${v.title} — clip details`);
 
     $("#m-cat").textContent = v.category;
     $("#m-title").textContent = v.title;
@@ -504,7 +511,7 @@
     const fav = $("#m-fav");
     fav.dataset.fav = v.id;
     fav.setAttribute("aria-pressed", String(isFav(v.id)));
-    fav.querySelector("span").textContent = isFav(v.id) ? "Saved" : "Save";
+    fav.querySelector(".fav-label").textContent = isFav(v.id) ? "Saved" : "Save";
     fav.setAttribute("aria-label", `Save ${v.title} to shortlist`);
 
     const many = modalList.length > 1;
@@ -527,7 +534,6 @@
       return el("li", {}, [b]);
     }));
     $(".modal-inner", modal).scrollTop = 0;
-    $(".modal-info", modal).scrollTop = 0;
   }
 
   function step(dir) {
@@ -541,6 +547,28 @@
   $("#m-prev").addEventListener("click", () => step(-1));
   $("#m-next").addEventListener("click", () => step(1));
   $("#m-fav").addEventListener("click", (e) => toggleFav(e.currentTarget.dataset.fav));
+  // Sound toggle (previews start muted)
+  let soundOn = false;
+  const soundBtn = $("#m-sound");
+  soundBtn.addEventListener("click", () => {
+    soundOn = !soundOn;
+    mVideo.muted = !soundOn;
+    soundBtn.setAttribute("aria-pressed", String(soundOn));
+    soundBtn.textContent = soundOn ? "Sound on" : "Sound off";
+  });
+
+  // Focus trap: keep Tab inside the open dialog
+  function trapFocus(d, e) {
+    if (e.key !== "Tab") return;
+    const items = $$("a[href], button:not([disabled]), video[controls], [tabindex]:not([tabindex='-1'])", d)
+      .filter((n) => n.offsetParent !== null || n === document.activeElement);
+    if (!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+  $$("dialog").forEach((d) => d.addEventListener("keydown", (e) => trapFocus(d, e)));
+
   modal.addEventListener("keydown", (e) => {
     if (e.target.matches("input, textarea")) return;
     if (e.key === "ArrowLeft") { e.preventDefault(); step(-1); }
@@ -551,6 +579,9 @@
     mVideo.removeAttribute("src");
     mVideo.load();
     if (location.hash.startsWith("#clip=")) history.replaceState(null, "", location.pathname + location.search);
+    // return focus to the card that opened the modal
+    if (opener && opener.isConnected) opener.focus({ preventScroll: true });
+    opener = null;
   });
 
   function openFromHash() {
@@ -581,23 +612,77 @@
     document.head.append(s);
   }
 
-  /* ---------- Hero video (lazy, skipped when reduced motion) ---------- */
-  function initHero() {
-    const hv = $("#hero-video");
-    if (reducedMotion || !hv) return;
-    hv.src = hv.dataset.src;
-    hv.play().catch(() => {});
-    new IntersectionObserver(([e]) => (e.isIntersecting ? hv.play().catch(() => {}) : hv.pause())).observe(hv);
+  /* ---------- Hero ---------- */
+  // Background = preview of the first featured clip. Poster shows at once; video loads after the page
+  // has finished loading, and never with reduced motion, Data Saver or a slow connection.
+  const hero = $("#hero"), heroVideo = $("#hero-video"), heroToggle = $("#hero-toggle");
+  let heroPausedByUser = false;
+
+  function initHero(clip) {
+    if (!clip) return;
+    const poster = clip.poster || clip.thumbnail;
+    const posterEl = $("#hero-poster");
+    if (poster && posterEl.getAttribute("src") !== poster) posterEl.src = poster;
+
+    const conn = navigator.connection || {};
+    const slow = conn.saveData || /(^|-)2g|3g/.test(conn.effectiveType || "");
+    if (reducedMotion || slow || !clip.preview) return;
+
+    const start = () => {
+      heroVideo.addEventListener("playing", () => hero.classList.add("video-on"), { once: true });
+      heroVideo.addEventListener("error", () => {
+        // no real file yet: keep the static poster, quietly
+        hero.classList.remove("video-on");
+        heroVideo.removeAttribute("src");
+        heroToggle.hidden = true;
+      }, { once: true });
+      heroVideo.src = clip.preview;
+      heroVideo.play().catch(() => {});
+      heroToggle.hidden = false;
+      new IntersectionObserver(([e]) => {
+        if (heroPausedByUser || !heroVideo.src) return;
+        if (e.isIntersecting) heroVideo.play().catch(() => {}); else heroVideo.pause();
+      }).observe(hero);
+    };
+    if (document.readyState === "complete") start(); else window.addEventListener("load", start, { once: true });
   }
 
-  /* ---------- Gentle reveal on scroll ---------- */
+  heroToggle.addEventListener("click", () => {
+    heroPausedByUser = !heroPausedByUser;
+    if (heroPausedByUser) heroVideo.pause(); else heroVideo.play().catch(() => {});
+    heroToggle.setAttribute("aria-pressed", String(heroPausedByUser));
+    heroToggle.setAttribute("aria-label", heroPausedByUser ? "Play background video" : "Pause background video");
+  });
+
+  /* ---------- Nav: frosted once the page scrolls ---------- */
+  const nav = $(".nav");
+  let navTicking = false;
+  const updateNav = () => { nav.classList.toggle("scrolled", window.scrollY > 24); navTicking = false; };
+  window.addEventListener("scroll", () => { if (!navTicking) { navTicking = true; requestAnimationFrame(updateNav); } }, { passive: true });
+  updateNav();
+
+  /* ---------- Reveal on scroll (once per element) ---------- */
+  const revealIO = !reducedMotion && "IntersectionObserver" in window
+    ? new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (e.isIntersecting) { e.target.classList.add("in"); revealIO.unobserve(e.target); }
+    }), { rootMargin: "0px 0px -8% 0px" })
+    : null;
+
+  function reveal(nodes) {
+    if (!revealIO) return;
+    nodes.forEach((n) => { n.classList.add("reveal"); revealIO.observe(n); });
+  }
+
+  // cards in the same row are staggered by --stagger-card
+  function revealCards(g) {
+    if (!revealIO) return;
+    const cols = getComputedStyle(g).gridTemplateColumns.split(" ").length || 1;
+    $$(".card", g).forEach((c, i) => c.style.setProperty("--delay", `calc(${i % cols} * var(--stagger-card))`));
+    reveal($$(".card", g));
+  }
+
   function initReveal() {
-    if (reducedMotion || !("IntersectionObserver" in window)) return;
-    const targets = $$(".section-head, .usecases, .sets, .free, .steps, .faq-list, .about-body, .finale > *");
-    const io = new IntersectionObserver((entries) => entries.forEach((e) => {
-      if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
-    }), { rootMargin: "0px 0px -8% 0px" });
-    targets.forEach((t) => { t.classList.add("reveal"); io.observe(t); });
+    reveal($$(".section-head, .controls, .usecases, .sets, .free, .steps, .faq-list, .about-body, .links, .finale > *"));
   }
 
   /* ---------- Init ---------- */
@@ -619,6 +704,7 @@
     syncFavs(false);
     injectJsonLd();
     initReveal();
+    initHero(videos.find((x) => x.featured) || videos[0]);
     openFromHash();
   }).catch(() => {
     grid.setAttribute("aria-busy", "false");
@@ -626,5 +712,4 @@
     errorEl.hidden = false;
   });
 
-  if ("requestIdleCallback" in window) requestIdleCallback(initHero); else setTimeout(initHero, 200);
 })();
