@@ -13,7 +13,7 @@ Website tĩnh (HTML/CSS/JS thuần, không thư viện, không bước build). M
 ## Cấu trúc
 
 ```
-index.html   style.css   script.js   motion.js
+index.html   style.css   script.js   motion.js   fx.js   fx.css
 videos.json         danh sách clip
 site.json           thông tin chung: tên, email, link, collections, mood, use case, analytics…
 assets/thumbs/      thumbnail
@@ -175,6 +175,71 @@ Trình duyệt hỗ trợ `animation-timeline: view()` thì reveal chạy hoàn 
 
 Người bật "giảm chuyển động" trong hệ điều hành: không có zoom, parallax, nghiêng, marquee hay video nền tự chạy; modal và drawer chỉ mờ dần 200ms.
 
+## Mức hiệu ứng (fxLevel): off · standard · max
+
+| Mức | Gồm những gì |
+|---|---|
+| `off` | Không chuyển động trang trí; mọi thay đổi trạng thái tức thì. Không video nền tự chạy. |
+| `standard` | Bản cũ: reveal khi cuộn, hero video, hover thẻ, modal, FLIP… |
+| `max` | `standard` + toàn bộ tầng "cinematic" bên dưới (file `fx.js` + `fx.css`). |
+
+**Cách chọn mức (ưu tiên từ trên xuống):**
+1. Thêm `?fx=off`, `?fx=standard` hoặc `?fx=max` vào URL. Lựa chọn được lưu lại (localStorage).
+2. Nút **FX** trên thanh menu. Trên điện thoại nút này ẩn, mở bằng link "Motion: …" ở footer hoặc phím **Shift+F**. Đổi mức sẽ ghi sự kiện `fx_change`.
+3. Mặc định lấy `site.json → "fxLevel"` (hiện là `"max"`), rồi tự hạ theo thiết bị:
+   - Bật "giảm chuyển động" → `off`.
+   - Data Saver, CPU ≤ 4 nhân hoặc RAM ≤ 4GB → `standard`.
+   - Màn hình cảm ứng → tắt các hiệu ứng theo chuột, giữ hiệu ứng theo cuộn.
+4. **Bộ đo FPS** (3 giây đầu và trong lúc cuộn): nếu dưới 45fps hai lần liên tiếp thì tắt dần hiệu ứng nặng nhất, theo thứ tự WebGL → hạt → méo ảnh → hạt phim (grain) → về hẳn `standard` trong phiên đó. WebGL và hạt chỉ được bật sau khi trang tải xong và giữ ≥ 50fps; máy không có GPU (trình render phần mềm) không bật WebGL.
+5. `?fxlock=1` giữ nguyên mức đang chọn, không tự hạ (dùng khi test hoặc demo).
+
+### Các hiệu ứng ở mức max và nhóm để tắt riêng
+
+| Nhóm | Hiệu ứng |
+|---|---|
+| `intro` | Màn kéo mở màn lần đầu vào trang (≤ 1150ms, có nút Skip, Esc; không chặn bấm; lần sau không chạy) |
+| `webgl` | Nền hero WebGL: video làm texture, gợn sóng nhẹ, quầng sáng theo chuột, tán sắc màu ở rìa khi rê nhanh |
+| `particles` | Hạt bụi/phấn hoa có chiều sâu trên hero (Canvas 2D), lớp sương, đom đóm CSS |
+| `distort` | Nghiêng theo vận tốc cuộn (skewY ≤ 3°), gợn sóng SVG trên ảnh thẻ khi hover |
+| `grain` | Vignette, hạt phim (opacity 0.05), vệt sáng ống kính |
+| `cursor` | Con trỏ phụ đổi theo ngữ cảnh (Play/View, Drag, Buy) |
+| `tilt` | Nghiêng thẻ 6°, parallax ảnh trong thẻ, viền sáng và bóng đổ theo hướng nghiêng |
+| `magnetic` | Nút chính và ♥ hút theo chuột (≤ 10px); chỉ lớp hiển thị di chuyển, vùng bấm thật đứng yên |
+
+Các hiệu ứng `max` khác (không thuộc nhóm nào, luôn nhẹ):
+- Tiêu đề hero và tiêu đề section hiện theo từng ký tự.
+- Số thứ tự section lật vào.
+- Dòng chữ khổng lồ chạy theo vận tốc cuộn; tông nền đổi giữa các section.
+- Process cao ~4.5 màn hình, ảnh zoom chậm, số lật.
+- Modal: nền mờ dần lên 14px; mở kiểu "ống kính" khi trình duyệt không có View Transitions; vệt sáng khi đổi clip.
+- Chi tiết nhỏ: tim có vòng sóng, số shortlist lật kiểu bảng chữ sân bay, chữ nút cuộn khi hover, nhãn nhỏ xáo trộn chữ một lần, bộ đếm số clip thật, chữ thương hiệu khổng lồ ở footer.
+
+**Tắt riêng một nhóm:** trong `motion.js`, sau dòng `const off = new Set(...)`, thêm ví dụ `off.add("webgl");`. Hoặc tắt khi đang chạy bằng `Motion.fx.disable("particles")` trong console.
+
+**Trang chậm, cần tắt nhanh:** đổi `"fxLevel": "standard"` trong `site.json`. Người xem nào đã tự chọn mức qua nút FX vẫn giữ lựa chọn của họ.
+
+### Ngân sách và số đo
+
+- **Dung lượng thêm cho mức max:** `fx.js` 12.8KB + `fx.css` 5.8KB (gzip), cộng khoảng 1.6KB thay đổi ở `motion.js`/`script.js`. Tổng ~20KB, dưới ngân sách 60KB. Không thêm file video nào.
+- **Lighthouse mobile** (đo trên máy test):
+
+  | Mức | Performance | Accessibility / Best Practices / SEO | CLS |
+  |---|---|---|---|
+  | standard | 90–91 | 100 / 100 / 100 | 0.041 |
+  | max | 87–90 | 100 / 100 / 100 | 0.041 |
+  | off | 90 | 100 / 100 / 100 | 0.04 |
+
+- **FPS desktop 1440px** trên máy test **không có GPU** (render bằng CPU, 4 nhân), nên đây là trường hợp xấu nhất:
+
+  | Mức | Đứng yên | Đang cuộn |
+  |---|---|---|
+  | off | 60 | 60 |
+  | standard | 59 | 39 |
+  | max (tự động) | ~27 lúc đầu, bộ đo FPS tự tắt dần hiệu ứng rồi về standard | — |
+  | max khoá (`?fxlock=1`) | 21 | 14 |
+
+  Trên máy có GPU thật các lớp này được card đồ hoạ xử lý; tôi chưa đo được trên thiết bị thật. Hãy thử `?fx=max` trên máy của bạn và xem nút FX có tự chuyển về Standard hay không.
+
 ## Analytics (tuỳ chọn)
 
 Mặc định tắt: không tải script, không cookie, không cần cookie banner.
@@ -189,6 +254,7 @@ Sự kiện ghi nhận:
 - `filter` (mood / category / use case / collection / từ khoá)
 - `shortlist_open`
 - `license_all`
+- `fx_change` (người xem đổi mức hiệu ứng), `fx_auto` (trang tự tắt bớt hiệu ứng vì chậm)
 - `free_download`
 - `sample_request`
 

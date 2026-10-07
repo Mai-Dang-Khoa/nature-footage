@@ -23,10 +23,17 @@
 
   /* ---------- Module registry: start when allowed, stop when a group is switched off ---------- */
   const modules = [];
+  // Heavy groups (WebGL, particles) wait for a short FPS probe after the page has loaded:
+  // they only start if the device keeps ≥ 50fps, so slow devices never pay for them.
+  const HEAVY = ["webgl", "particles"];
+  let heavyOk = null;
+  const waiting = [];
   function register(group, start) {
     const m = { group, start, stop: null, running: false };
     modules.push(m);
-    if (M.fx.max && M.fx.enabled(group)) run(m);
+    if (!(M.fx.max && M.fx.enabled(group))) return m;
+    if (!HEAVY.includes(group) || heavyOk === true) run(m);
+    else if (heavyOk === null) waiting.push(m);
     return m;
   }
   function run(m) {
@@ -58,6 +65,30 @@
   // ?fxlock=1 keeps the chosen level (for testing and demos); otherwise low FPS steps effects down
   const locked = /[?&]fxlock=1\b/.test(location.search);
   if (M.fx.max && !locked) M.on("lowfps", (fps) => stepDown(`fps ${Math.round(fps)}`));
+
+  function releaseHeavy(ok, reason) {
+    if (heavyOk !== null) return;
+    heavyOk = ok;
+    if (ok) waiting.splice(0).forEach((m) => { if (M.fx.enabled(m.group)) run(m); });
+    else { waiting.length = 0; HEAVY.forEach((g) => M.fx.disable(g)); track("fx_auto", { off: HEAVY.join("+"), reason }); }
+  }
+  if (M.fx.max) {
+    if (locked) releaseHeavy(true, "locked");
+    else {
+      const probe = () => setTimeout(() => {
+        const wins = [];
+        const off = M.on("fps", (f) => {
+          wins.push(f);
+          if (wins.length < 2) return;
+          off();
+          const worst = Math.min(...wins);
+          releaseHeavy(worst >= 50, `probe ${Math.round(worst)}fps`);
+        });
+        M.watchFps(2200);
+      }, 600);
+      if (document.readyState === "complete") probe(); else window.addEventListener("load", probe, { once: true });
+    }
+  }
 
   /* ---------- Level switch (FX button, Shift+F, footer link) ---------- */
   function currentLevel() { return root.getAttribute("data-fx") || "standard"; }
@@ -260,6 +291,10 @@
     canvas.setAttribute("aria-hidden", "true");
     const gl = canvas.getContext("webgl", { alpha: false, antialias: false, powerPreference: "low-power", preserveDrawingBuffer: false });
     if (!gl) return null; // fallback: plain video/poster
+    // a software renderer (no GPU) can't keep up: keep the plain video instead
+    const dbg = gl.getExtension("WEBGL_debug_renderer_info");
+    const renderer = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : "";
+    if (/swiftshader|llvmpipe|software|basic render/i.test(renderer) && !locked) { track("fx_auto", { off: "webgl", reason: "software renderer" }); M.fx.disable("webgl"); return null; }
     const VS = "attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}";
     const FS = `precision mediump float;
 uniform sampler2D t;uniform vec2 res;uniform vec2 tres;uniform vec2 mouse;uniform float time;uniform float ca;uniform float glow;varying vec2 v;
@@ -304,6 +339,12 @@ void main(){
     const offResize = M.on("resize", size);
     const offFps = M.on("fps", (f) => { if (f < 50 && quality > 0.6) { quality -= 0.2; size(); } });
     const source = () => (video && hero.classList.contains("video-on") && video.readyState >= 2 ? video : poster && poster.complete && poster.naturalWidth ? poster : null);
+    // upload the texture only when there is a new picture (new video frame, or the source changed)
+    let lastSrc = null, fresh = true;
+    if (video && video.requestVideoFrameCallback) {
+      const onFrame = () => { fresh = true; if (!stopped) video.requestVideoFrameCallback(onFrame); };
+      video.requestVideoFrameCallback(onFrame);
+    }
     const t0 = performance.now();
     let running = false;
     const frame = (t) => {
@@ -311,8 +352,12 @@ void main(){
       if (!heroActive()) { running = false; return false; }
       const src = source();
       if (src) {
-        try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, src); }
-        catch (err) { ok = false; }
+        const isVideo = src === video;
+        if (src !== lastSrc || fresh || (isVideo && !video.requestVideoFrameCallback)) {
+          try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, src); }
+          catch (err) { ok = false; }
+          lastSrc = src; fresh = false;
+        }
         if (!ok) { stop(); return false; }
         const tw = src.videoWidth || src.naturalWidth || 16, th = src.videoHeight || src.naturalHeight || 9;
         mouse[0] = M.lerp(mouse[0], hp.inside ? (hp.x + 1) / 2 : 0.5, 0.08);

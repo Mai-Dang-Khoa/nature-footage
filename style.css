@@ -224,7 +224,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 300; line-height: va
 /* sliding pill: one light layer clipped to the selected chip */
 .chip-pill { position: absolute; inset: 0; z-index: 0; background: var(--text); pointer-events: none; clip-path: inset(var(--pt, 0) var(--pr, 100%) var(--pb, 0) var(--pl, 0) round var(--prad, 22px)); transition: clip-path var(--dur-slow) var(--ease-in-out); }
 .chips.no-anim .chip-pill { transition: none; }
-.chips .chip { position: relative; z-index: 1; }
+.chips .chip { position: relative; z-index: 1; background: var(--bg); }
+.chips .chip[aria-pressed="true"] { background: transparent; } /* the sliding pill shows through */
 .chip { min-height: 44px; padding: var(--s-1) var(--s-3); border: 1px solid var(--border); border-radius: var(--r-pill); background: transparent; color: var(--text-muted); font: 500 var(--fs-small) var(--font-ui); cursor: pointer; transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast); }
 .chip:hover { color: var(--text); border-color: var(--border-strong); }
 .chip:active { transform: scale(var(--press)); }
