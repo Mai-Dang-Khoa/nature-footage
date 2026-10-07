@@ -512,7 +512,10 @@ void main(){
       if (btn.classList.contains("mag")) return btn._mag;
       const face = el("span", "mag-face");
       face.setAttribute("aria-hidden", "true");
-      face.textContent = btn.textContent.trim();
+      // label roll: the text slides up and a copy slides in on hover
+      const text = btn.textContent.trim();
+      if (btn.classList.contains("fav-btn")) face.textContent = text;
+      else { const roll = el("span", "roll"); roll.append(el("span", null, text), el("span", null, text)); face.append(roll); }
       btn.classList.add("mag");
       btn.append(face);
       btn._mag = { btn, face, x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, pressed: false };
@@ -669,6 +672,97 @@ void main(){
         .finished.then(() => sweep.remove(), () => sweep.remove());
     });
   }
+
+  /* ---------- Micro details ---------- */
+  if (M.fx.max) onData(() => {
+    // scramble small labels once when they come into view (≤ 450ms, never repeats)
+    const GLYPHS = "ABCDEFGHJKLMNPRSTUVWXYZ0123456789";
+    const scramble = (node) => {
+      const texts = [];
+      const walk = (n) => n.childNodes.forEach((c) => { if (c.nodeType === 3 && c.textContent.trim()) texts.push(c); else if (c.nodeType === 1 && !c.classList.contains("sec-num")) walk(c); });
+      walk(node);
+      if (!texts.length) return;
+      const orig = texts.map((t) => t.textContent);
+      const w = node.getBoundingClientRect().width;
+      node.style.width = `${w}px`; // lock the width so neighbours never move
+      const start = performance.now(), DUR = 450;
+      M.add((t) => {
+        const p = M.clamp((t - start) / DUR);
+        texts.forEach((tn, k) => {
+          const o = orig[k], keep = Math.floor(o.length * p);
+          tn.textContent = o.slice(0, keep) + o.slice(keep).replace(/[A-Za-z0-9]/g, () => GLYPHS[(Math.random() * GLYPHS.length) | 0]);
+        });
+        if (p < 1) return true;
+        texts.forEach((tn, k) => (tn.textContent = orig[k]));
+        node.style.width = "";
+        return false;
+      });
+    };
+    const scrIO = new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      scrIO.unobserve(e.target);
+      scramble(e.target);
+    }), { rootMargin: "0px 0px -10% 0px" });
+    $$("main .eyebrow, .card-badge").forEach((n) => scrIO.observe(n));
+
+    // counters: only real numbers from the data (clip counts), eased up once when visible
+    const cntIO = new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      cntIO.unobserve(e.target);
+      const node = e.target, m = node.textContent.match(/^(\d+)(.*)$/);
+      if (!m) return;
+      const end = +m[1], rest = m[2], start = performance.now(), DUR = M.ms("--dur-reveal") || 700;
+      let last = node.textContent;
+      M.add((t) => {
+        if (node.textContent !== last) return false; // content changed meanwhile (filters): stop
+        const p = M.clamp((t - start) / DUR), v = Math.round(end * (1 - Math.pow(1 - p, 3)));
+        node.textContent = last = `${v}${rest}`;
+        return p < 1;
+      });
+    }));
+    $$(".row-count, .stats dd").forEach((n) => cntIO.observe(n));
+
+    // fireflies in two quiet sections (≤ 8 each)
+    ["use-cases", "free-sample"].forEach((id) => {
+      const sec = document.getElementById(id);
+      if (!sec || sec.hidden) return;
+      const box = el("div", "fireflies");
+      box.setAttribute("aria-hidden", "true");
+      for (let k = 0; k < 7; k++) {
+        const f = el("i");
+        f.style.left = `${8 + k * 13}%`; f.style.top = `${20 + ((k * 37) % 60)}%`;
+        f.style.setProperty("--d", `${14 + (k % 4) * 3}s`); f.style.setProperty("--dl", `${-k * 2}s`);
+        f.style.setProperty("--fx", `${(k % 2 ? 1 : -1) * (30 + k * 6)}px`); f.style.setProperty("--fy", `${-(40 + k * 8)}px`);
+        box.append(f);
+      }
+      sec.style.position = "relative";
+      sec.prepend(box);
+    });
+
+    // giant brand above the footer: masked letters, leans a little with the pointer
+    const footer = $(".footer");
+    if (footer) {
+      const brand = el("div", "mega-brand");
+      brand.setAttribute("aria-hidden", "true");
+      const line = el("span");
+      const name = (window.App && window.App.isReal(window.App.site.brandName) && window.App.site.brandName) || "Wild Frames";
+      const h = el("p");
+      h.setAttribute("data-reveal", "mask");
+      h.textContent = name;
+      line.append(h);
+      brand.append(line);
+      footer.before(brand);
+      M.splitWords(h);
+      splitChars(h);
+      h.removeAttribute("aria-label");
+      M.reveal(brand);
+      if (M.rich) {
+        let bx = 0, tx = 0, running = false;
+        const tick = () => { bx = M.lerp(bx, tx, 0.06); line.style.setProperty("--bx", `${bx.toFixed(1)}px`); running = Math.abs(bx - tx) > 0.2; return running; };
+        M.on("pointer", (pt) => { tx = (pt.x / innerWidth - 0.5) * -40; if (!running) { running = true; M.add(tick); } });
+      }
+    }
+  });
 
   /* ---------- Pause everything when the tab is hidden ---------- */
   document.addEventListener("visibilitychange", () => M.emit("visibility", !document.hidden));

@@ -203,6 +203,11 @@
   function heartPop(btn) {
     if (reducedMotion) return;
     btn.classList.remove("pop"); void btn.offsetWidth; btn.classList.add("pop");
+    if (Motion.fx && Motion.fx.max) {
+      const ring = el("span", { class: "fav-ring", "aria-hidden": "true" });
+      ring.addEventListener("animationend", () => ring.remove(), { once: true });
+      btn.append(ring);
+    }
     btn.addEventListener("animationend", () => btn.classList.remove("pop"), { once: true });
     for (let i = 0; i < 6; i++) {
       const dot = el("span", { class: "particle", "aria-hidden": "true" });

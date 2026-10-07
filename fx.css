@@ -189,3 +189,36 @@ html[data-fx="max"] .modal.closing::backdrop { animation: backdrop-out calc(var(
 /* title and specs come in at different beats when the clip changes */
 html[data-fx="max"] .modal-info.stagger > h2 { animation-delay: calc(1 * var(--stagger-info)); }
 html[data-fx="max"] .modal-info.stagger > .specs { animation-delay: calc(3 * var(--stagger-info)); }
+
+/* ==========================================================================
+   Micro details (max)
+   ========================================================================== */
+/* ♥: pop + particles (standard) plus a widening ring */
+.fav-ring { position: absolute; inset: -2px; border: 1px solid var(--text); border-radius: 50%; pointer-events: none; animation: ring-out var(--dur-reveal) var(--ease-out) forwards; }
+@keyframes ring-out { from { opacity: .7; transform: scale(.7); } to { opacity: 0; transform: scale(2.2); } }
+/* split-flap shortlist number */
+html[data-fx="max"] .flip-num { perspective: 300px; }
+html[data-fx="max"] .flip-num .n-in { animation: flap-in var(--dur-slow) var(--ease-out) both; transform-origin: 50% 0; }
+html[data-fx="max"] .flip-num .n-out { animation: flap-out calc(var(--dur-slow) * .75) var(--ease-in) both; transform-origin: 50% 100%; }
+@keyframes flap-in { from { transform: rotateX(-90deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes flap-out { to { transform: rotateX(90deg); opacity: 0; } }
+/* shortlist bar: springy entrance, one soft border glow per new save (never repeated flashing) */
+html[data-fx="max"] .shortlist-bar:not([hidden]) .shortlist-btn { animation: bar-in var(--dur-slow) var(--ease-pop) both; }
+html[data-fx="max"] .shortlist-btn { position: relative; }
+html[data-fx="max"] .shortlist-btn::after { content: ""; position: absolute; inset: -3px; border: 1px solid var(--text); border-radius: inherit; opacity: 0; pointer-events: none; }
+html[data-fx="max"] .shortlist-bar.bump .shortlist-btn::after { animation: glow-once var(--dur-reveal) var(--ease-out); }
+@keyframes glow-once { 30% { opacity: .8; } to { opacity: 0; transform: scale(1.06); } }
+/* button label roll on hover (inside the magnetic face) */
+.roll { position: relative; display: inline-block; overflow: hidden; overflow: clip; line-height: 1.25; }
+.roll > span { display: block; transition: transform var(--dur-med) var(--ease-out); }
+.roll > span + span { position: absolute; inset: 100% 0 auto 0; }
+.mag:hover .roll > span { transform: translateY(-100%); }
+/* fireflies: a few slow CSS specks in quiet sections (particles group) */
+.fireflies { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.fireflies i { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: rgba(246, 238, 214, .6); box-shadow: 0 0 10px rgba(246, 238, 214, .45); opacity: .35; animation: firefly var(--d, 16s) var(--ease-in-out) var(--dl, 0s) infinite alternate; }
+@keyframes firefly { 0% { transform: translate3d(0, 0, 0); opacity: .15; } 50% { opacity: .45; } 100% { transform: translate3d(var(--fx, 40px), var(--fy, -60px), 0); opacity: .2; } }
+html.fx-no-particles .fireflies { display: none; }
+/* giant brand above the footer */
+.mega-brand { display: none; }
+html[data-fx="max"] .mega-brand { display: block; overflow: hidden; overflow: clip; padding: var(--s-6) var(--gutter) 0; font: 300 clamp(4rem, 17vw, 16rem)/.9 var(--font-display); letter-spacing: -.04em; color: var(--surface-2); user-select: none; pointer-events: none; }
+html[data-fx="max"] .mega-brand > span { display: block; translate: var(--bx, 0) 0; }
