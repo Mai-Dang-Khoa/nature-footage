@@ -735,6 +735,7 @@
     pill.style.setProperty("--pl", `${l}px`);
     pill.style.setProperty("--pr", `${W - l - w}px`);
     pill.style.setProperty("--pb", `${H - t - h}px`);
+    pill.style.setProperty("--prad", `${h / 2}px`);
   }
 
   let searchTimer;
