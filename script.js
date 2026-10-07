@@ -793,6 +793,8 @@
       vt.finished.finally(() => { mMedia.style.viewTransitionName = ""; document.documentElement.classList.remove("vt-open"); });
     } else {
       show();
+      // no View Transitions: the effect layer can open the video like a lens from the card
+      Motion.emit("modal-open", { from: thumb ? thumb.getBoundingClientRect() : null });
     }
     history.replaceState(null, "", `#clip=${encodeURIComponent(id)}`);
     track("modal_open", { clip: id });
@@ -868,6 +870,7 @@
     modalIndex = (modalIndex + dir + modalList.length) % modalList.length;
     const v = modalList[modalIndex];
     addRecent(v.id);
+    Motion.emit("modal-step", { dir });
     if (reducedMotion) { fillModal(v); }
     else {
       const total = Motion.ms("--dur-slow"), out = total * 0.4, inn = total * 0.6;
@@ -925,6 +928,7 @@
       const vt = document.startViewTransition(() => { mMedia.style.viewTransitionName = ""; modal.close(); target.style.viewTransitionName = VT_NAME; });
       vt.finished.finally(() => { target.style.viewTransitionName = ""; document.documentElement.classList.remove("vt-close"); });
     } else if (!reducedMotion) {
+      Motion.emit("modal-close", { to: onScreen ? r : null });
       modal.classList.add("closing");
       setTimeout(() => { modal.classList.remove("closing"); modal.close(); }, Motion.ms("--dur-med") * 0.75);
     } else {

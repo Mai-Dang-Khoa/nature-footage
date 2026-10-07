@@ -642,6 +642,34 @@ void main(){
     });
   }
 
+  /* ---------- Modal: lens opening without View Transitions, light sweep on clip change ---------- */
+  if (M.fx.max) {
+    const media = $(".modal-media");
+    const circleAt = (rect) => {
+      const m = media.getBoundingClientRect();
+      if (!rect) return { x: m.width / 2, y: m.height / 2 };
+      return { x: rect.left + rect.width / 2 - m.left, y: rect.top + rect.height / 2 - m.top };
+    };
+    M.on("modal-open", ({ from }) => {
+      if (!media || !media.animate) return;
+      const c = circleAt(from);
+      media.animate([{ clipPath: `circle(0px at ${c.x}px ${c.y}px)` }, { clipPath: `circle(150% at ${c.x}px ${c.y}px)` }], { duration: M.ms("--dur-slow"), easing: M.easing("--ease-out") });
+    });
+    M.on("modal-close", ({ to }) => {
+      if (!media || !media.animate) return;
+      const c = circleAt(to);
+      media.animate([{ clipPath: `circle(150% at ${c.x}px ${c.y}px)` }, { clipPath: `circle(0px at ${c.x}px ${c.y}px)` }], { duration: M.ms("--dur-med") * 0.75, easing: M.easing("--ease-in"), fill: "forwards" })
+        .finished.then((a) => a.cancel(), () => {});
+    });
+    M.on("modal-step", ({ dir }) => {
+      if (!media || !media.animate) return;
+      const sweep = el("span", "fx-sweep");
+      media.append(sweep);
+      sweep.animate([{ transform: `translateX(${dir > 0 ? -100 : 100}%)` }, { transform: `translateX(${dir > 0 ? 100 : -100}%)` }], { duration: Math.min(400, M.ms("--dur-slow")), easing: M.easing("--ease-in-out") })
+        .finished.then(() => sweep.remove(), () => sweep.remove());
+    });
+  }
+
   /* ---------- Pause everything when the tab is hidden ---------- */
   document.addEventListener("visibilitychange", () => M.emit("visibility", !document.hidden));
 
