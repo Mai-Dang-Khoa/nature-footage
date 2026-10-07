@@ -420,6 +420,26 @@ dialog { padding: 0; border: 0; color: var(--text); }
 dialog::backdrop { background: var(--scrim-strong); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 dialog[open] { animation: modal-in var(--dur-med) var(--ease-out); }
 dialog[open]::backdrop { animation: fade-in var(--dur-med) var(--ease-out); }
+dialog.closing { animation: modal-out calc(var(--dur-med) * .75) var(--ease-in) forwards; }
+dialog.closing::backdrop { animation: fade-out calc(var(--dur-med) * .75) var(--ease-in) forwards; }
+@keyframes modal-out { to { opacity: 0; transform: scale(.97); } }
+@keyframes fade-out { to { opacity: 0; } }
+/* View Transitions: the card thumbnail becomes the modal video and back */
+.vt-open dialog[open], .vt-open dialog[open]::backdrop { animation: none; }
+::view-transition-group(clip-media) { animation-duration: var(--dur-med); animation-timing-function: var(--ease-out); }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: var(--dur-med); }
+.vt-close::view-transition-group(clip-media), .vt-close::view-transition-old(root), .vt-close::view-transition-new(root) { animation-duration: calc(var(--dur-med) * .75); animation-timing-function: var(--ease-in-out); }
+::view-transition-old(clip-media), ::view-transition-new(clip-media) { height: 100%; object-fit: cover; }
+/* info column appears item by item (60ms); the buy button is not delayed */
+.modal-info.stagger > * { animation: info-in var(--dur-slow) var(--ease-out) both; }
+.modal-info.stagger > :nth-child(2) { animation-delay: calc(1 * var(--stagger-info)); }
+.modal-info.stagger > :nth-child(3) { animation-delay: calc(2 * var(--stagger-info)); }
+.modal-info.stagger > :nth-child(4) { animation-delay: calc(3 * var(--stagger-info)); }
+.modal-info.stagger > :nth-child(5) { animation-delay: calc(4 * var(--stagger-info)); }
+.modal-info.stagger > :nth-child(n+6) { animation-delay: calc(5 * var(--stagger-info)); }
+.modal-info.stagger > .modal-close { animation: none; }
+@keyframes info-in { from { opacity: 0; translate: 0 var(--s-2); } }
+.more-list li { animation: info-in var(--dur-slow) var(--ease-out) both; animation-delay: calc(var(--k, 0) * var(--stagger-card) + 2 * var(--stagger-info)); }
 @keyframes modal-in { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: none; } }
 @keyframes fade-in { from { opacity: 0; } }
 

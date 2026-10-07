@@ -713,15 +713,29 @@
   const modal = $("#clip-modal"), mVideo = $("#m-video");
   let modalList = [], modalIndex = 0, opener = null;
 
+  const mMedia = $(".modal-media", modal);
+  // weak devices get the lighter fade + scale (capturing page snapshots is costly without a GPU)
+  const canVT = () => !!document.startViewTransition && !reducedMotion && !Motion.lowPower;
+  const VT_NAME = "clip-media";
+
   function openClip(id, list, from) {
     const v = byId(id);
     if (!v) return;
     modalList = list && list.some((x) => x.id === id) ? list : videos;
     modalIndex = modalList.findIndex((x) => x.id === id);
-    if (!modal.open) opener = from || document.activeElement;
-    fillModal(v);
-    openDialog(modal);
-    $("#m-buy").focus({ preventScroll: true });
+    if (modal.open) { fillModal(v); return; }
+    opener = from || document.activeElement;
+    // the clicked thumbnail "flies" into the modal video (View Transitions), else fade + scale fallback
+    const thumb = from && from.closest(".card") ? from.closest(".card").querySelector(".card-media") : null;
+    const show = () => { fillModal(v); openDialog(modal); $("#m-buy").hidden ? $("#m-fav").focus({ preventScroll: true }) : $("#m-buy").focus({ preventScroll: true }); };
+    if (canVT() && thumb) {
+      document.documentElement.classList.add("vt-open");
+      thumb.style.viewTransitionName = VT_NAME;
+      const vt = document.startViewTransition(() => { thumb.style.viewTransitionName = ""; show(); mMedia.style.viewTransitionName = VT_NAME; });
+      vt.finished.finally(() => { mMedia.style.viewTransitionName = ""; document.documentElement.classList.remove("vt-open"); });
+    } else {
+      show();
+    }
     history.replaceState(null, "", `#clip=${encodeURIComponent(id)}`);
     track("modal_open", { clip: id });
   }
@@ -766,28 +780,45 @@
     $("#m-next").hidden = !many;
 
     // More like this: same category first, then shared tags/use cases
-    const score = (x) => (x.category === v.category ? 3 : 0) + (x.collection && x.collection === v.collection ? 2 : 0)
+    const score = (x) => (x.category === v.category ? 3 : 0) + (x.collection && x.collection === v.collection ? 2 : 0) + (x.mood && x.mood === v.mood ? 2 : 0)
       + (x.tags || []).filter((t) => t !== "sample" && t !== "placeholder" && (v.tags || []).includes(t)).length
       + (x.useCases || []).filter((u) => (v.useCases || []).includes(u)).length * 0.5;
     const similar = videos.filter((x) => x.id !== v.id).map((x) => [x, score(x)]).filter(([, s]) => s > 0)
       .sort((a, b) => b[1] - a[1]).slice(0, 4).map(([x]) => x);
     $("#m-more-wrap").hidden = similar.length === 0;
-    $("#m-more").replaceChildren(...similar.map((x) => {
+    $("#m-more").replaceChildren(...similar.map((x, i) => {
       const b = el("button", { type: "button" }, [
         el("img", { src: x.thumbnail, alt: "", loading: "lazy", width: "320", height: "180" }),
         el("span", { text: x.title }),
       ]);
       b.addEventListener("click", () => openClip(x.id, videos));
-      return el("li", {}, [b]);
+      const li = el("li", {}, [b]);
+      li.style.setProperty("--k", i);
+      return li;
     }));
     $(".modal-inner", modal).scrollTop = 0;
+    // restart the 60ms stagger of the info column
+    const info = $(".modal-info", modal);
+    info.classList.remove("stagger"); void info.offsetWidth; info.classList.add("stagger");
   }
 
+  // previous/next: the old video slides out, the new one slides in from the same side (--dur-slow in total)
+  let stepping = null;
   function step(dir) {
     if (modalList.length < 2) return;
     modalIndex = (modalIndex + dir + modalList.length) % modalList.length;
     const v = modalList[modalIndex];
-    fillModal(v);
+    if (reducedMotion) { fillModal(v); }
+    else {
+      const total = Motion.ms("--dur-slow"), out = total * 0.4, inn = total * 0.6;
+      if (stepping) stepping.cancel();
+      stepping = mVideo.animate([{ transform: "none", opacity: 1 }, { transform: `translateX(${-dir * 48}px)`, opacity: 0 }], { duration: out, easing: Motion.easing("--ease-in"), fill: "forwards" });
+      stepping.finished.then(() => {
+        fillModal(v);
+        stepping.cancel();
+        stepping = mVideo.animate([{ transform: `translateX(${dir * 48}px)`, opacity: 0 }, { transform: "none", opacity: 1 }], { duration: inn, easing: Motion.easing("--ease-out") });
+      }, () => {});
+    }
     history.replaceState(null, "", `#clip=${encodeURIComponent(v.id)}`);
   }
 
@@ -821,6 +852,29 @@
     if (e.key === "ArrowLeft") { e.preventDefault(); step(-1); }
     if (e.key === "ArrowRight") { e.preventDefault(); step(1); }
   });
+  // Closing is ~75% of the opening time. The video flies back to the card if it is still on screen.
+  function closeModal() {
+    if (!modal.open || modal.classList.contains("closing")) return;
+    const card = opener && opener.closest ? opener.closest(".card") : null;
+    const target = card && card.isConnected ? card.querySelector(".card-media") : null;
+    const r = target && target.getBoundingClientRect();
+    const onScreen = r && r.bottom > 0 && r.top < innerHeight && r.width > 0;
+    if (canVT() && onScreen) {
+      document.documentElement.classList.add("vt-close");
+      mMedia.style.viewTransitionName = VT_NAME;
+      const vt = document.startViewTransition(() => { mMedia.style.viewTransitionName = ""; modal.close(); target.style.viewTransitionName = VT_NAME; });
+      vt.finished.finally(() => { target.style.viewTransitionName = ""; document.documentElement.classList.remove("vt-close"); });
+    } else if (!reducedMotion) {
+      modal.classList.add("closing");
+      setTimeout(() => { modal.classList.remove("closing"); modal.close(); }, Motion.ms("--dur-med") * 0.75);
+    } else {
+      modal.close();
+    }
+  }
+  modal.addEventListener("cancel", (e) => { e.preventDefault(); closeModal(); }); // Esc
+  modal.addEventListener("click", (e) => { if (e.target === modal) { e.stopImmediatePropagation(); closeModal(); } }, true);
+  $$("[data-close]", modal).forEach((b) => b.addEventListener("click", (e) => { e.stopImmediatePropagation(); closeModal(); }, true));
+
   modal.addEventListener("close", () => {
     mVideo.pause();
     mVideo.removeAttribute("src");
