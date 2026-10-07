@@ -13,7 +13,8 @@ Website tĩnh (HTML/CSS/JS thuần, không thư viện, không bước build). M
 ## Cấu trúc
 
 ```
-index.html   style.css   script.js   motion.js   fx.js   fx.css
+index.html   style.css   script.js   motion.js   fx.js   fx.css   film.js
+assets/sequence/    khung hình cho đoạn "hero film" (desktop/ và mobile/; hiện là dữ liệu mẫu)
 videos.json         danh sách clip
 site.json           thông tin chung: tên, email, link, collections, mood, use case, analytics…
 assets/thumbs/      thumbnail
@@ -240,6 +241,37 @@ Các hiệu ứng `max` khác (không thuộc nhóm nào, luôn nhẹ):
 
   Trên máy có GPU thật các lớp này được card đồ hoạ xử lý; tôi chưa đo được trên thiết bị thật. Hãy thử `?fx=max` trên máy của bạn và xem nút FX có tự chuyển về Standard hay không.
 
+## Đoạn "hero film" (cuộn để tua chuỗi khung hình)
+
+Ngay dưới hero có một đoạn cao khoảng 4 màn hình. Khung hình dính lại (`position: sticky`) và cuộn trang sẽ tua qua chuỗi ảnh vẽ trên `<canvas>`. Bốn dòng chữ lần lượt hiện ở các mốc 15%, 40%, 65% và 90%. Ở cuối đoạn hiện nút "Browse Collection". Có nút "Skip film" để nhảy qua.
+
+- **Dữ liệu hiện tại là MẪU:** 60 khung do `tools/make-sample-sequence.py` tạo, mỗi khung có chữ "SAMPLE FRAME". Desktop 1280×720 (552KB), mobile 640×360 (244KB).
+- **Cấu hình** nằm trong `site.json → "sequence"`: số khung (`frames`), số chữ số trong tên file (`pad`), đường dẫn desktop/mobile (`{n}` = số khung), ảnh tĩnh dự phòng (`fallback`) và mô tả cho trình đọc màn hình (`label`). **Xoá cả khối `sequence` thì đoạn này ẩn đi.**
+- **Cách tải ảnh:** khung đầu tải ngay. Các khung còn lại tải theo lô, tối đa 6 yêu cầu cùng lúc, ưu tiên khung gần vị trí đang xem. Trong lúc chờ, trang hiện khung gần nhất đã tải xong.
+- **Dự phòng:** reduced motion, Data Saver, máy yếu hoặc lỗi tải khung đầu → chỉ hiện một ảnh tĩnh kèm cả 4 dòng chữ và nút bấm, không dùng canvas.
+- **Tiếp cận:** cả 4 dòng chữ luôn nằm trong DOM (trình đọc màn hình đọc được); canvas có `aria-label`.
+- **Ngân sách:** bộ ảnh desktop ≤ 8MB, mobile ≤ 4MB. WebP từ 960×540 đến 1280×720 là đủ.
+
+### Xuất chuỗi ảnh thật từ UE5
+
+1. Trong Sequencer, dựng một cú máy chậm, liền mạch, 4–6 giây (ví dụ dolly qua cảnh).
+2. Mở **Movie Render Queue** → Output: **PNG Sequence** (hoặc EXR), độ phân giải 1920×1080, 24 hoặc 30 fps. Tên file ví dụ `shot.{frame_number}`.
+3. Chọn khoảng 90–150 khung: nhiều hơn thì mượt hơn nhưng nặng hơn.
+4. Chuyển sang WebP và đổi tên đúng mẫu:
+
+```bash
+# desktop 1280×720
+ffmpeg -framerate 30 -i shot.%04d.png -vf "scale=1280:-2" -c:v libwebp -quality 70 -start_number 1 assets/sequence/desktop/frame_%04d.webp
+# mobile 640×360
+ffmpeg -framerate 30 -i shot.%04d.png -vf "scale=640:-2" -c:v libwebp -quality 66 -start_number 1 assets/sequence/mobile/frame_%04d.webp
+# hoặc lấy khung từ một video đã render (24 khung/giây)
+ffmpeg -i shot.mp4 -vf "fps=24,scale=1280:-2" -c:v libwebp -quality 70 assets/sequence/desktop/frame_%04d.webp
+```
+
+5. Cập nhật `"frames"` trong `site.json` bằng số file vừa tạo; chọn một khung đẹp làm `"fallback"`.
+6. Kiểm tra dung lượng: `du -sh assets/sequence/desktop` (≤ 8MB). Quá nặng thì giảm `-quality` (60–65) hoặc giảm số khung.
+7. Sửa 4 dòng chữ trong `index.html` (`.film-line`) cho đúng cảnh của bạn.
+
 ## Analytics (tuỳ chọn)
 
 Mặc định tắt: không tải script, không cookie, không cần cookie banner.
@@ -294,6 +326,7 @@ File vẫn lớn thì tăng `-crf` (30–32) hoặc giảm `scale` (960). Previe
 - [ ] Ảnh chụp màn hình UE5 thật cho "Behind the scene": thay `assets/bts/step-1.svg` … `step-4.svg` (dùng ở cả ảnh lớn desktop lẫn ảnh từng bước mobile), sửa chữ 4 bước cho khớp quy trình của bạn.
 - [ ] `assets/free/free-sample-720p.mp4`: file mẫu thật (hoặc xoá `freeSample.file` để ẩn mục này).
 - [ ] `assets/og.png`: ảnh chia sẻ thật.
+- [ ] `assets/sequence/`: chuỗi khung hình thật xuất từ UE5 (xem phần "hero film"), sửa `site.json → sequence` và 4 dòng chữ.
 - [ ] Khi có số liệu thật: `stats`, `trustedBy`, `price`.
 - [ ] (Tuỳ chọn) analytics.
 - [ ] Chạy `python3 tools/sync-fallback.py` sau khi sửa JSON nếu muốn mở `index.html` trực tiếp.
