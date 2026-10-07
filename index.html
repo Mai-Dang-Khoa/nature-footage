@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wild Frames — 4K Nature Stock Footage Made in Unreal Engine 5</title>
+  <meta name="description" content="Photoreal 4K nature stock footage created in Unreal Engine 5: forests, oceans, mountains, skies and waterfalls. Preview clips and license on Adobe Stock.">
+  <meta name="theme-color" content="#07090c">
+  <link rel="canonical" href="https://YOUR_USERNAME.github.io/nature-footage/">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Wild Frames — 4K Nature Stock Footage">
+  <meta property="og:description" content="Photoreal 4K nature clips created in Unreal Engine 5. Preview and license on Adobe Stock.">
+  <meta property="og:url" content="https://YOUR_USERNAME.github.io/nature-footage/">
+  <meta property="og:image" content="https://YOUR_USERNAME.github.io/nature-footage/assets/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&family=Manrope:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip" href="#collection">Skip to collection</a>
+
+  <header class="nav">
+    <a class="brand" href="#top" aria-label="Wild Frames, home">
+      <img src="favicon.svg" alt="" width="26" height="26"> Wild Frames
+    </a>
+    <nav aria-label="Main">
+      <a href="#collection">Collection</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <video id="hero-video" class="hero-video" muted loop playsinline preload="none"
+             poster="assets/thumbs/sample-3.svg" aria-hidden="true" tabindex="-1"
+             data-src="assets/previews/hero.mp4"></video>
+      <div class="hero-shade"></div>
+      <div class="hero-inner">
+        <p class="eyebrow">4K nature footage · Made in Unreal Engine 5</p>
+        <h1>Worlds that look <em>real</em>,<br>built from nothing.</h1>
+        <p class="lede">Photoreal landscapes, rendered in 4K, ready to license for your next project.</p>
+        <a class="btn btn-primary" href="#collection">Browse Collection</a>
+      </div>
+    </section>
+
+    <section id="collection" class="section">
+      <div class="section-head">
+        <h2>Collection</h2>
+        <p class="muted" id="result-count" aria-live="polite"></p>
+      </div>
+
+      <div class="controls">
+        <div class="chips" id="chips" role="group" aria-label="Filter by category"></div>
+        <label class="search">
+          <span class="sr-only">Search clips</span>
+          <input id="search" type="search" placeholder="Search clips, tags…" autocomplete="off">
+        </label>
+      </div>
+
+      <div id="grid" class="grid" aria-busy="true"></div>
+      <p id="empty" class="empty" hidden>No clips match your search.</p>
+      <p id="load-error" class="empty" hidden>Could not load the clip list. Please try again later.</p>
+    </section>
+
+    <section id="about" class="section about">
+      <h2>About</h2>
+      <div class="about-body">
+        <!-- EDIT: replace with your own story -->
+        <p>Every scene in this collection is built from scratch in Unreal Engine 5 — terrain, vegetation, water, light and atmosphere — and rendered in native 4K.</p>
+        <p>The goal is photoreal nature that holds up on a large screen: believable lighting, natural motion and clean, loop-friendly shots for editors and motion designers.</p>
+        <p>New clips are added regularly. All footage is available to license through stock marketplaces.</p>
+      </div>
+    </section>
+
+    <section id="contact" class="section">
+      <h2>Contact</h2>
+      <p class="muted">Custom scenes, questions or licensing enquiries:</p>
+      <ul class="links">
+        <li><a href="mailto:you@example.com">you@example.com</a></li>
+        <li><a href="https://stock.adobe.com/contributor/YOUR_ID" target="_blank" rel="noopener noreferrer">Adobe Stock profile</a></li>
+        <!-- EDIT: add other marketplaces, e.g. Shutterstock, Pond5 -->
+        <li><a href="https://www.shutterstock.com/g/YOUR_ID" target="_blank" rel="noopener noreferrer">Shutterstock profile</a></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© <span id="year">2025</span> Your Name. All rights reserved. Footage is licensed only through the linked stock platforms.</p>
+    <p><a href="https://stock.adobe.com/contributor/YOUR_ID" target="_blank" rel="noopener noreferrer">Adobe Stock profile</a></p>
+  </footer>
+
+  <!-- Fallback copy of videos.json, used only when fetch() is blocked (e.g. opening index.html via file://) -->
+  <script type="application/json" id="videos-fallback">
+[
+  {
+    "id": "sample-1",
+    "title": "Sample Clip 1",
+    "category": "Forest",
+    "tags": [
+      "sample",
+      "placeholder",
+      "forest"
+    ],
+    "resolution": "4K",
+    "duration": "0:12",
+    "thumbnail": "assets/thumbs/sample-1.svg",
+    "preview": "assets/previews/sample-1.mp4",
+    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+  },
+  {
+    "id": "sample-2",
+    "title": "Sample Clip 2",
+    "category": "Ocean",
+    "tags": [
+      "sample",
+      "placeholder",
+      "ocean"
+    ],
+    "resolution": "4K",
+    "duration": "0:14",
+    "thumbnail": "assets/thumbs/sample-2.svg",
+    "preview": "assets/previews/sample-2.mp4",
+    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+  },
+  {
+    "id": "sample-3",
+    "title": "Sample Clip 3",
+    "category": "Mountains",
+    "tags": [
+      "sample",
+      "placeholder",
+      "mountains"
+    ],
+    "resolution": "4K",
+    "duration": "0:16",
+    "thumbnail": "assets/thumbs/sample-3.svg",
+    "preview": "assets/previews/sample-3.mp4",
+    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+  },
+  {
+    "id": "sample-4",
+    "title": "Sample Clip 4",
+    "category": "Sky",
+    "tags": [
+      "sample",
+      "placeholder",
+      "sky"
+    ],
+    "resolution": "4K",
+    "duration": "0:18",
+    "thumbnail": "assets/thumbs/sample-4.svg",
+    "preview": "assets/previews/sample-4.mp4",
+    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+  },
+  {
+    "id": "sample-5",
+    "title": "Sample Clip 5",
+    "category": "Waterfall",
+    "tags": [
+      "sample",
+      "placeholder",
+      "waterfall"
+    ],
+    "resolution": "4K",
+    "duration": "0:20",
+    "thumbnail": "assets/thumbs/sample-5.svg",
+    "preview": "assets/previews/sample-5.mp4",
+    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+  },
+  {
+    "id": "sample-6",
+    "title": "Sample Clip 6",
+    "category": "Desert",
+    "tags": [
+      "sample",
+      "placeholder",
+      "desert"
+    ],
+    "resolution": "4K",
+    "duration": "0:22",
+    "thumbnail": "assets/thumbs/sample-6.svg",
+    "preview": "assets/previews/sample-6.mp4",
+    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+  }
+]
+  </script>
+  <script src="script.js" defer></script>
+</body>
+</html>

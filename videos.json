@@ -1,0 +1,92 @@
+[
+  {
+    "id": "sample-1",
+    "title": "Sample Clip 1",
+    "category": "Forest",
+    "tags": [
+      "sample",
+      "placeholder",
+      "forest"
+    ],
+    "resolution": "4K",
+    "duration": "0:12",
+    "thumbnail": "assets/thumbs/sample-1.svg",
+    "preview": "assets/previews/sample-1.mp4",
+    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+  },
+  {
+    "id": "sample-2",
+    "title": "Sample Clip 2",
+    "category": "Ocean",
+    "tags": [
+      "sample",
+      "placeholder",
+      "ocean"
+    ],
+    "resolution": "4K",
+    "duration": "0:14",
+    "thumbnail": "assets/thumbs/sample-2.svg",
+    "preview": "assets/previews/sample-2.mp4",
+    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+  },
+  {
+    "id": "sample-3",
+    "title": "Sample Clip 3",
+    "category": "Mountains",
+    "tags": [
+      "sample",
+      "placeholder",
+      "mountains"
+    ],
+    "resolution": "4K",
+    "duration": "0:16",
+    "thumbnail": "assets/thumbs/sample-3.svg",
+    "preview": "assets/previews/sample-3.mp4",
+    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+  },
+  {
+    "id": "sample-4",
+    "title": "Sample Clip 4",
+    "category": "Sky",
+    "tags": [
+      "sample",
+      "placeholder",
+      "sky"
+    ],
+    "resolution": "4K",
+    "duration": "0:18",
+    "thumbnail": "assets/thumbs/sample-4.svg",
+    "preview": "assets/previews/sample-4.mp4",
+    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+  },
+  {
+    "id": "sample-5",
+    "title": "Sample Clip 5",
+    "category": "Waterfall",
+    "tags": [
+      "sample",
+      "placeholder",
+      "waterfall"
+    ],
+    "resolution": "4K",
+    "duration": "0:20",
+    "thumbnail": "assets/thumbs/sample-5.svg",
+    "preview": "assets/previews/sample-5.mp4",
+    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+  },
+  {
+    "id": "sample-6",
+    "title": "Sample Clip 6",
+    "category": "Desert",
+    "tags": [
+      "sample",
+      "placeholder",
+      "desert"
+    ],
+    "resolution": "4K",
+    "duration": "0:22",
+    "thumbnail": "assets/thumbs/sample-6.svg",
+    "preview": "assets/previews/sample-6.mp4",
+    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+  }
+]
