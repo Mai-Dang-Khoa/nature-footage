@@ -141,13 +141,12 @@
   /* ---------- Hero title, letter by letter (max) ---------- */
   // Splits each word of the hero title into letters inside the existing word masks.
   // The whole title stays within 700ms; screen readers get the plain sentence via aria-label.
-  function splitHeroChars() {
-    const h1 = $(".hero-title");
-    if (!h1 || h1.dataset.chars) return;
-    h1.dataset.chars = "1";
-    h1.setAttribute("aria-label", h1.textContent.replace(/\s+/g, " ").trim());
+  function splitChars(h, cap = 700) {
+    if (!h || h.dataset.chars) return 0;
+    h.dataset.chars = "1";
+    h.setAttribute("aria-label", h.textContent.replace(/\s+/g, " ").trim());
     let i = 0;
-    $$(".wi", h1).forEach((wi) => {
+    $$(".wi", h).forEach((wi) => {
       const walk = (node) => [...node.childNodes].forEach((n) => {
         if (n.nodeType === 3) {
           const frag = document.createDocumentFragment();
@@ -163,9 +162,11 @@
       walk(wi);
       wi.classList.add("has-chars");
     });
-    if (i > 1) h1.style.setProperty("--char-step", `${Math.min(18, 700 / (i - 1)).toFixed(2)}ms`);
+    if (i > 1) h.style.setProperty("--char-step", `${Math.min(18, cap / (i - 1)).toFixed(2)}ms`);
+    if (i > 1) h.style.setProperty("--ch-step", `${Math.min(14, cap / (i - 1)).toFixed(2)}ms`);
+    return i;
   }
-  if (M.fx.max) splitHeroChars();
+  if (M.fx.max) splitChars($(".hero-title"));
   root.classList.add("chars-ready");
 
   /* ---------- Opening curtain (first visit, max) ---------- */
@@ -387,6 +388,83 @@ void main(){
     kick();
     const offVis = M.on("hero-visible", kick), offPage = M.on("visibility", kick);
     return () => { stopped = true; offResize(); offFps(); offVis(); offPage(); canvas.remove(); particlesCanvas = null; };
+  });
+
+  /* ---------- Scroll velocity sampled per frame (decays to 0 when scrolling stops) ---------- */
+  const vel = { v: 0, y: window.scrollY, t: performance.now(), stamp: 0 };
+  function sampleVel(stamp) {
+    if (stamp && stamp === vel.stamp) return vel.v;
+    vel.stamp = stamp;
+    const now = performance.now(), y = window.scrollY;
+    vel.v = M.lerp(vel.v, (y - vel.y) / Math.max(1, now - vel.t), 0.25);
+    vel.y = y; vel.t = now;
+    return vel.v;
+  }
+
+  /* ---------- Cinematic scroll ---------- */
+  if (M.fx.max) onData(() => {
+    // headings rise letter by letter; section numbers 01, 02… flip in next to the eyebrow
+    $$("h2[data-reveal='mask']").forEach((h) => { if (!$(".wi", h)) M.splitWords(h); splitChars(h); });
+    $$("main > section .section-head .eyebrow, #free-sample .eyebrow").filter((e) => !e.closest("[hidden]")).forEach((e, i) => {
+      const n = el("span", "sec-num", String(i + 1).padStart(2, "0"));
+      n.setAttribute("aria-hidden", "true");
+      e.prepend(n);
+    });
+    // process: step titles get word masks
+    $$(".story-steps .step h3").forEach((h) => M.splitWords(h));
+
+    // giant words line after the collection rows
+    const mega = el("div", "mega");
+    mega.setAttribute("aria-hidden", "true");
+    const track = el("div", "mega-track");
+    for (let k = 0; k < 4; k++) track.append(el("span", null, "4K · Photoreal · Unreal Engine 5 ·"));
+    mega.append(track);
+    ($("#rows") || $("main")).after(mega);
+    let half = 0, x = 0, dir = -1, megaOn = false, running = false;
+    const measure = () => { half = track.scrollWidth / 2; };
+    measure();
+    M.on("resize", measure);
+    const tick = (t) => {
+      if (!megaOn) { running = false; return false; }
+      const v = Math.abs(sampleVel(t));
+      x += dir * (0.4 + Math.min(v, 6) * 2.2);
+      if (x <= -half) x += half; else if (x > 0) x -= half;
+      track.style.transform = `translate3d(${x.toFixed(1)}px, 0, 0)`;
+      return true;
+    };
+    M.on("scroll", (st) => { if (st.dy) dir = st.dy > 0 ? -1 : 1; });
+    new IntersectionObserver(([e]) => { megaOn = e.isIntersecting && !document.hidden; if (megaOn && !running) { running = true; M.add(tick); } }).observe(mega);
+
+    // section tones: cross-fade full-page colour layers as sections come into view
+    const TONES = ["#070a08", "#07090d", "#0b0907", "#06100f"];
+    const SECTION_TONE = { rows: 0, recent: 0, "use-cases": 1, collection: 0, proof: 1, "free-sample": 2, process: 3, faq: 1, about: 2, contact: 2 };
+    const tones = el("div", "tones");
+    tones.setAttribute("aria-hidden", "true");
+    const layers = TONES.map((c, k) => { const t = el("span"); t.style.background = c; if (k === 0) t.classList.add("on"); tones.append(t); return t; });
+    document.body.prepend(tones);
+    const toneIO = new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      const k = SECTION_TONE[e.target.id] ?? 0;
+      layers.forEach((t, j) => t.classList.toggle("on", j === k));
+    }), { rootMargin: "-45% 0px -50% 0px" });
+    $$("main > section[id]").forEach((sec) => toneIO.observe(sec));
+  });
+
+  /* ---------- Speed skew: rows, grid and the story frame lean with scroll velocity (max 3°) ---------- */
+  register("distort", () => {
+    let targets = [], skew = 0, running = false, stopped = false;
+    const collect = () => { targets = $$(".row-track, #grid, .story-frame"); };
+    onData(collect);
+    const tick = (t) => {
+      if (stopped) return false;
+      const v = sampleVel(t);
+      skew = M.lerp(skew, M.clamp(v * 1.2, -3, 3), 0.15);
+      if (Math.abs(skew) < 0.01 && Math.abs(v) < 0.005) { skew = 0; targets.forEach((n) => (n.style.transform = "")); running = false; return false; }
+      targets.forEach((n) => (n.style.transform = `skewY(${skew.toFixed(3)}deg)`));
+      return true;
+    };
+    const off = M.on("scroll", () => { if (!running && !stopped) { if (!targets.length) collect(); running = true; M.add(tick); } });
+    return () => { stopped = true; off(); targets.forEach((t) => (t.style.transform = "")); };
   });
 
   /* ---------- Pause everything when the tab is hidden ---------- */

@@ -1105,10 +1105,14 @@
     const text = String(i + 1).padStart(2, "0");
     if (reducedMotion || !storyNum.animate) { storyNum.textContent = text; return; }
     const d = Motion.ms("--dur-med");
-    storyNum.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: `translateY(${-dir * 30}%)` }], { duration: d * 0.75, easing: Motion.easing("--ease-in") })
+    // max level: the number flips over like a card; otherwise it slides
+    const flip = Motion.fx && Motion.fx.max;
+    const outT = flip ? `perspective(400px) rotateX(${dir * 90}deg)` : `translateY(${-dir * 30}%)`;
+    const inT = flip ? `perspective(400px) rotateX(${-dir * 90}deg)` : `translateY(${dir * 30}%)`;
+    storyNum.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: outT }], { duration: d * 0.75, easing: Motion.easing("--ease-in") })
       .finished.then(() => {
         storyNum.textContent = text;
-        storyNum.animate([{ opacity: 0, transform: `translateY(${dir * 30}%)` }, { opacity: 1, transform: "none" }], { duration: d, easing: Motion.easing("--ease-out") });
+        storyNum.animate([{ opacity: 0, transform: inT }, { opacity: 1, transform: "none" }], { duration: d, easing: Motion.easing("--ease-out") });
       }, () => { storyNum.textContent = text; });
   }
   storySteps[0] && storySteps[0].classList.add("is-active");
