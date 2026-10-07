@@ -5,7 +5,9 @@
    ========================================================================== */
 
 /* ---------- Motion level switch ---------- */
-.fx-switch { position: fixed; left: var(--s-3); bottom: var(--s-3); z-index: 65; display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-2); }
+/* lives at the right end of the menu bar; the level menu drops down below it */
+.fx-switch { position: relative; margin-left: clamp(var(--s-3), 2vw, var(--s-5)); }
+.fx-switch .fx-menu { position: absolute; top: calc(100% + var(--s-2)); right: 0; }
 .fx-toggle, .fx-choice { min-height: 36px; padding: var(--s-1) var(--s-3); border: 1px solid var(--border-strong); border-radius: var(--r-pill); background: var(--glass); color: var(--text-muted); font: 600 var(--fs-micro) var(--font-ui); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; backdrop-filter: blur(8px); transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
 .fx-toggle:hover, .fx-choice:hover { color: var(--text); border-color: var(--text); }
 .fx-menu { display: flex; gap: var(--s-1); padding: var(--s-1); border: 1px solid var(--border); border-radius: var(--r-pill); background: var(--surface-2); }
@@ -15,7 +17,8 @@
 .fx-footer { padding: 0; border: 0; background: none; font: inherit; color: var(--text-muted); cursor: pointer; }
 /* hidden on small screens unless opened with Shift+F or from the footer */
 @media (max-width: 760px) { .fx-switch:not(.shown) { display: none; } }
-body.has-shortlist .fx-switch { bottom: calc(var(--tap) + var(--s-5)); }
+.nav { gap: var(--s-2); }
+.nav nav { margin-left: auto; }
 
 /* ==========================================================================
    Opening curtain (first visit, max): brand rises behind a mask, the black
@@ -45,7 +48,7 @@ html[data-fx="max"].intro-on { --hero-start: var(--intro-text); }
 html[data-fx="max"].js .nav { animation-delay: var(--hero-start); }
 html[data-fx="max"].js .hero-media { animation: hero-in var(--dur-hero-in) var(--ease-out) var(--hero-start) both, hero-zoom var(--dur-hero-zoom) var(--ease-in-out) calc(var(--hero-start) + var(--dur-hero-in)) infinite alternate-reverse; }
 :root { --dur-hero-in: 1200ms; }
-@keyframes hero-in { from { opacity: 0; transform: scale(1.15); filter: blur(12px); } to { opacity: 1; transform: scale(1.06); filter: blur(0); } }
+@keyframes hero-in { from { opacity: 0; transform: scale(1.15); filter: blur(12px); } to { opacity: 1; transform: scale(1.06); filter: none; } }
 html[data-fx="max"].js .hero-step { animation-delay: calc(var(--hero-start) + var(--i) * var(--stagger-hero)); }
 /* letters: each slides up inside its word mask, 18ms apart (the whole title stays within 700ms) */
 html[data-fx="max"].js:not(.chars-ready) .hero-title { opacity: 0; }
@@ -58,3 +61,25 @@ html[data-fx="max"].js:not(.fonts-ready) .hero-title .ch { animation: none; tran
 html[data-fx="max"] .hero-title em { position: relative; display: inline-block; }
 html[data-fx="max"] .hero-title em::after { content: attr(data-text); position: absolute; inset: 0; color: var(--glint); text-shadow: 0 0 18px var(--glint-glow); clip-path: inset(0 100% 0 0); pointer-events: none; animation: sweep-text var(--dur-hero) var(--ease-in-out) calc(var(--hero-start) + var(--sweep-at, 900ms)) both; }
 @keyframes sweep-text { 0% { clip-path: inset(0 100% 0 0); } 45% { clip-path: inset(0 25% 0 35%); } 100% { clip-path: inset(0 0 0 100%); } }
+
+/* ==========================================================================
+   Hero layers (max): media (WebGL) · mist · shade · particles · light leak ·
+   vignette · grain · text. Mouse parallax uses the `translate` property so
+   it stacks with the scroll parallax (transform).
+   ========================================================================== */
+.hero-gl { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity var(--dur-reveal) var(--ease-out); }
+.hero-gl.on { opacity: 1; }
+.fx-layer { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.fx-mist { inset: -10%; background: radial-gradient(40% 30% at 30% 70%, rgba(235, 234, 228, .07), transparent 70%), radial-gradient(35% 25% at 75% 60%, rgba(235, 234, 228, .05), transparent 70%); animation: mist-drift 26s var(--ease-in-out) infinite alternate; }
+@keyframes mist-drift { to { transform: translate3d(4%, -2%, 0) scale(1.08); } }
+.fx-particles { width: 100%; height: 100%; }
+.fx-vignette { background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(3, 5, 4, .55) 100%); }
+.fx-leak { inset: auto -10% auto auto; top: -20%; width: 55vw; height: 55vw; border-radius: 50%; background: radial-gradient(circle, rgba(255, 214, 170, .08), transparent 65%); animation: leak-drift 18s var(--ease-in-out) infinite alternate; }
+@keyframes leak-drift { to { transform: translate3d(-6vw, 4vw, 0) scale(1.15); opacity: .6; } }
+.fx-grain { inset: -50%; opacity: .05; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); animation: grain-jitter .8s steps(4) infinite; }
+/* layers sleep while the hero is off screen or the tab is hidden */
+.hero.fx-paused .fx-layer, .hero.fx-paused .hero-media { animation-play-state: paused; }
+@keyframes grain-jitter { 0% { transform: translate3d(0, 0, 0); } 25% { transform: translate3d(-4%, 3%, 0); } 50% { transform: translate3d(3%, -5%, 0); } 75% { transform: translate3d(-2%, -2%, 0); } 100% { transform: translate3d(5%, 4%, 0); } }
+html.fx-no-grain .fx-vignette, html.fx-no-grain .fx-grain, html.fx-no-grain .fx-leak { display: none; }
+html.fx-no-particles .fx-particles, html.fx-no-particles .fx-mist { display: none; }
+html.fx-no-webgl .hero-gl { display: none; }
