@@ -310,15 +310,44 @@
     if (current && !current.contains(e.target)) stop(current);
   }, { passive: true });
 
-  /* ---------- Featured ---------- */
-  function renderFeatured() {
-    let list = videos.filter((v) => v.featured);
-    if (!list.length) list = videos;
-    list = list.slice(0, 6);
-    const g = $("#featured-grid");
-    g.replaceChildren(...list.map((v) => card(v, list)));
-    g.setAttribute("aria-busy", "false");
-    Motion.reveal(g);
+  /* ---------- Collection rows (Featured first, then one row per collection) ---------- */
+  function renderRows() {
+    const rows = [];
+    let featured = videos.filter((v) => v.featured);
+    if (!featured.length) featured = videos.slice(0, 6);
+    rows.push({ id: "featured", name: "Featured", clips: featured.slice(0, 12) });
+    (site.collections || []).forEach((c) => {
+      const clips = videos.filter((v) => v.collection === c.id);
+      if (clips.length) rows.push({ id: c.id, name: c.name, description: c.description, url: c.collectionUrl || c.stockUrl, clips });
+    });
+
+    $("#rows-list").replaceChildren(...rows.map((r) => {
+      const track = el("div", { class: "row-track", "data-stagger": "60", role: "list", "aria-label": `${r.name} clips` },
+        r.clips.map((v) => { const c = card(v, r.clips); c.setAttribute("role", "listitem"); return c; }));
+      const prev = el("button", { class: "icon-btn row-arrow prev", type: "button", "aria-label": `Scroll ${r.name} left`, text: "←" });
+      const next = el("button", { class: "icon-btn row-arrow next", type: "button", "aria-label": `Scroll ${r.name} right`, text: "→" });
+      const page = (dir) => track.scrollBy({ left: dir * track.clientWidth * 0.85, behavior: reducedMotion ? "auto" : "smooth" });
+      prev.addEventListener("click", () => page(-1));
+      next.addEventListener("click", () => page(1));
+      // arrows only while there is room to scroll (read on scroll, write next frame)
+      const sync = () => {
+        const max = track.scrollWidth - track.clientWidth, x = track.scrollLeft;
+        Motion.add(() => { prev.disabled = x <= 1; next.disabled = x >= max - 1; });
+      };
+      track.addEventListener("scroll", sync, { passive: true });
+      new ResizeObserver(sync).observe(track);
+      const n = r.clips.length;
+      return el("section", { class: "row", "aria-labelledby": `row-${r.id}` }, [
+        el("div", { class: "row-head" }, [
+          el("h3", { id: `row-${r.id}`, text: r.name }),
+          el("span", { class: "row-count", text: `${n} ${n === 1 ? "clip" : "clips"}` }),
+          isReal(r.url) ? el("a", { class: "btn btn-accent btn-sm", href: withUtm(r.url, r.id), target: "_blank", rel: "noopener noreferrer", "data-track": "buy_click", "data-clip": r.id, text: "View full set on Adobe Stock" }) : null,
+          r.description ? el("p", { class: "row-desc", text: r.description }) : null,
+        ]),
+        prev, track, next,
+      ]);
+    }));
+    Motion.reveal($("#rows-list"));
   }
 
   /* ---------- Use cases ---------- */
@@ -339,34 +368,6 @@
     }).filter(Boolean);
     $("#use-cases").hidden = items.length === 0;
     $("#usecase-list").replaceChildren(...items);
-  }
-
-  /* ---------- Collections (sets) ---------- */
-  function renderCollections() {
-    const sets = (site.collections || []).map((c) => {
-      const clips = videos.filter((v) => v.collection === c.id);
-      if (!clips.length) return null;
-      const thumbs = clips.slice(0, 3);
-      const browse = el("button", { class: "btn btn-outline", type: "button", text: `Browse ${clips.length} ${clips.length === 1 ? "clip" : "clips"}` });
-      browse.addEventListener("click", () => {
-        setFilter({ collection: c.id, useCase: "", category: "All" });
-        $("#collection").scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth" });
-      });
-      return el("article", { class: "set" }, [
-        el("div", { class: `set-mosaic n${thumbs.length}` }, thumbs.map((v) => el("img", { src: v.thumbnail, alt: "", loading: "lazy", width: "640", height: "360", decoding: "async" }))),
-        el("div", { class: "set-body" }, [
-          el("span", { class: "set-count", text: `${clips.length} ${clips.length === 1 ? "clip" : "clips"} in this set` }),
-          el("h3", { text: c.name }),
-          c.description ? el("p", { class: "muted", text: c.description }) : null,
-          el("div", { class: "set-actions" }, [
-            browse,
-            isReal(c.collectionUrl || c.stockUrl) ? el("a", { class: "btn btn-accent", href: withUtm(c.collectionUrl || c.stockUrl, c.id), target: "_blank", rel: "noopener noreferrer", "data-track": "buy_click", "data-clip": c.id, text: "View full set on Adobe Stock" }) : null,
-          ]),
-        ]),
-      ]);
-    }).filter(Boolean);
-    $("#collections").hidden = sets.length === 0;
-    $("#collection-list").replaceChildren(...sets);
   }
 
   /* ---------- Social proof (real data only) ---------- */
@@ -727,7 +728,7 @@
   /* ---------- Nav: underline slides to the section being read ---------- */
   const navInd = $("#nav-ind");
   const navLinks = $$("nav a[href^='#']", nav);
-  const sectionToLink = { featured: "#collection", "use-cases": "#collection", collections: "#collection", collection: "#collection", process: "#process", faq: "#faq", about: "#contact", contact: "#contact" };
+  const sectionToLink = { rows: "#collection", "use-cases": "#collection", collection: "#collection", process: "#process", faq: "#faq", about: "#contact", contact: "#contact" };
   let activeHref = null;
   function placeIndicator() {
     const link = navLinks.find((a) => a.getAttribute("href") === activeHref && a.offsetParent);
@@ -757,9 +758,8 @@
     site = s || {};
     applySite();
     initAnalytics();
-    renderFeatured();
+    renderRows();
     renderUseCases();
-    renderCollections();
     buildChips();
     render();
     renderProof();
@@ -771,7 +771,6 @@
     openFromHash();
   }).catch(() => {
     grid.setAttribute("aria-busy", "false");
-    $("#featured-grid").setAttribute("aria-busy", "false");
     errorEl.hidden = false;
   });
 

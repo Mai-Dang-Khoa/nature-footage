@@ -148,7 +148,9 @@
     // containers stagger their direct reveal children
     const containers = [...(scope.matches && scope.matches("[data-stagger]") ? [scope] : []), ...scope.querySelectorAll("[data-stagger]")];
     containers.forEach((c) => {
-      const step = parseFloat(c.dataset.stagger) || 70;
+      const kids = c.children.length;
+      // whole group stays within 500ms: many items → smaller gaps
+      const step = Math.min(parseFloat(c.dataset.stagger) || 60, kids > 1 ? 500 / (kids - 1) : 0);
       // stagger restarts on every row so far-down items don't wait long
       const cols = c.classList.contains("grid") ? (getComputedStyle(c).gridTemplateColumns.split(" ").length || 1) : 0;
       [...c.children].filter((k) => k.matches("[data-reveal]") || k.querySelector(":scope > [data-reveal]"))
