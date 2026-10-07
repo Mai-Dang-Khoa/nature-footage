@@ -152,8 +152,8 @@
   function isFav(id) { return favs.has(id); }
 
   function toggleFav(id, btn) {
-    if (favs.has(id)) favs.delete(id);
-    else { favs.add(id); track("favorite_add", { clip: id }); if (btn) heartPop(btn); }
+    if (favs.has(id)) { favs.delete(id); toast("Removed from shortlist"); }
+    else { favs.add(id); track("favorite_add", { clip: id }); if (btn) heartPop(btn); toast("Saved to shortlist"); }
     store.set("shortlist", [...favs]);
     syncFavs(true);
   }
@@ -176,6 +176,16 @@
       bar.classList.remove("bump"); void bar.offsetWidth; bar.classList.add("bump");
     }
     if ($("#shortlist").open) renderShortlist();
+  }
+
+  // small status message, read out politely by screen readers, hides after 2s
+  let toastTimer;
+  function toast(msg) {
+    const t = $("#toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("show"), 2000);
   }
 
   // ♥ pop with a few particles (the only overshoot on the page)
@@ -214,10 +224,10 @@
 
   function renderShortlist() {
     const list = [...favs].map(byId).filter(Boolean);
-    $("#shortlist-items").replaceChildren(...list.map((v) => {
+    $("#shortlist-items").replaceChildren(...list.map((v, i) => {
       const remove = el("button", { class: "icon-btn", type: "button", "aria-label": `Remove ${v.title}`, text: "✕" });
       remove.addEventListener("click", () => toggleFav(v.id));
-      return el("li", {}, [
+      const li = el("li", {}, [
         el("img", { src: v.thumbnail, alt: "", width: "96", height: "54", loading: "lazy" }),
         el("div", {}, [
           el("strong", { text: v.title }),
@@ -225,6 +235,8 @@
         ]),
         remove,
       ]);
+      li.style.setProperty("--k", i);
+      return li;
     }));
     const linkable = list.filter((v) => buyUrl(v)).length;
     $("#license-all").textContent = `License all on Adobe Stock (${linkable})`;
@@ -247,7 +259,7 @@
     });
     const note = $("#shortlist-note");
     note.hidden = blocked === 0;
-    note.textContent = `Your browser blocked ${blocked} ${blocked === 1 ? "tab" : "tabs"} — use the individual links above.`;
+    note.textContent = `Your browser blocked ${blocked} of ${list.length} tabs. Allow pop-ups for this site and try again, or open each clip with its own link above.`;
   });
 
   /* ---------- Dialog helpers ---------- */
@@ -255,13 +267,21 @@
     if (!d.open) d.showModal();
     document.body.classList.add("locked");
   }
+  // close with a short exit animation (~75% of the entrance)
+  function closeSheet(d) {
+    if (!d.open || d.classList.contains("closing")) return;
+    if (reducedMotion) { d.close(); return; }
+    d.classList.add("closing");
+    setTimeout(() => { d.classList.remove("closing"); d.close(); }, Motion.ms("--dur-med") * 0.75);
+  }
   $$("dialog").forEach((d) => {
     d.addEventListener("close", () => {
       if (!$$("dialog").some((x) => x.open)) document.body.classList.remove("locked");
     });
-    // click on backdrop closes
-    d.addEventListener("click", (e) => { if (e.target === d) d.close(); });
-    $$("[data-close]", d).forEach((b) => b.addEventListener("click", () => d.close()));
+    if (d.id === "clip-modal") return; // the clip modal has its own close path
+    d.addEventListener("cancel", (e) => { e.preventDefault(); closeSheet(d); });
+    d.addEventListener("click", (e) => { if (e.target === d) closeSheet(d); });
+    $$("[data-close]", d).forEach((b) => b.addEventListener("click", () => closeSheet(d)));
   });
 
   /* ---------- Preview playback (one card at a time) ---------- */
@@ -709,6 +729,20 @@
     if (filters.query) searchTimer = setTimeout(() => track("filter", { search: filters.query }), 1200);
   });
 
+  /* ---------- Recently viewed (this device only, max 8) ---------- */
+  let recent = store.get("recent", []).filter((x) => typeof x === "string");
+  function addRecent(id) {
+    recent = [id, ...recent.filter((x) => x !== id)].slice(0, 8);
+    store.set("recent", recent);
+  }
+  function renderRecent() {
+    const list = recent.map(byId).filter(Boolean);
+    $("#recent").hidden = list.length === 0;
+    $("#recent-count").textContent = `${list.length} ${list.length === 1 ? "clip" : "clips"}`;
+    $("#recent-track").replaceChildren(...list.map((v) => card(v, list)));
+    Motion.reveal($("#recent-track"));
+  }
+
   /* ---------- Clip modal ---------- */
   const modal = $("#clip-modal"), mVideo = $("#m-video");
   let modalList = [], modalIndex = 0, opener = null;
@@ -738,6 +772,7 @@
     }
     history.replaceState(null, "", `#clip=${encodeURIComponent(id)}`);
     track("modal_open", { clip: id });
+    addRecent(id);
   }
 
   function fillModal(v) {
@@ -808,6 +843,7 @@
     if (modalList.length < 2) return;
     modalIndex = (modalIndex + dir + modalList.length) % modalList.length;
     const v = modalList[modalIndex];
+    addRecent(v.id);
     if (reducedMotion) { fillModal(v); }
     else {
       const total = Motion.ms("--dur-slow"), out = total * 0.4, inn = total * 0.6;
@@ -880,9 +916,11 @@
     mVideo.removeAttribute("src");
     mVideo.load();
     if (location.hash.startsWith("#clip=")) history.replaceState(null, "", location.pathname + location.search);
-    // return focus to the card that opened the modal
+    // return focus to the card that opened the modal (refresh "Recently viewed" unless that card lives there)
+    const fromRecent = opener && $("#recent").contains(opener);
     if (opener && opener.isConnected) opener.focus({ preventScroll: true });
     opener = null;
+    if (!fromRecent) renderRecent();
   });
 
   function openFromHash() {
@@ -1015,7 +1053,7 @@
   /* ---------- Nav: underline slides to the section being read ---------- */
   const navInd = $("#nav-ind");
   const navLinks = $$("nav a[href^='#']", nav);
-  const sectionToLink = { rows: "#collection", "use-cases": "#collection", collection: "#collection", process: "#process", faq: "#faq", about: "#contact", contact: "#contact" };
+  const sectionToLink = { rows: "#collection", recent: "#collection", "use-cases": "#collection", collection: "#collection", process: "#process", faq: "#faq", about: "#contact", contact: "#contact" };
   let activeHref = null;
   function placeIndicator() {
     const link = navLinks.find((a) => a.getAttribute("href") === activeHref && a.offsetParent);
@@ -1052,6 +1090,7 @@
     renderProof();
     renderFreeSample();
     syncFavs(false);
+    renderRecent();
     injectJsonLd();
     Motion.reveal(document);
     initHero(videos.find((x) => x.featured) || videos[0]);
