@@ -130,6 +130,13 @@
     walk(el);
   }
 
+  /* ---------- Read a duration token (e.g. "--dur-slow") in ms ---------- */
+  function ms(name) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v.endsWith("ms") ? parseFloat(v) : v.endsWith("s") ? parseFloat(v) * 1000 : 0;
+  }
+  const easing = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "ease-out";
+
   /* ---------- Reveal ---------- */
   function show(el) {
     if (el.classList.contains("is-in")) return;
@@ -173,7 +180,7 @@
     });
   }
 
-  window.Motion = { reduced, finePointer, lowPower, saveData, rich, sda, lerp, clamp, add, onScroll, pointer, spring, animating, splitWords, reveal, show, scroll: scrollState };
+  window.Motion = { reduced, finePointer, lowPower, saveData, rich, sda, ms, easing, lerp, clamp, add, onScroll, pointer, spring, animating, splitWords, reveal, show, scroll: scrollState };
   document.documentElement.classList.toggle("motion-rich", rich);
   document.documentElement.classList.toggle("sda", sda);
   document.documentElement.classList.add("motion-ready");

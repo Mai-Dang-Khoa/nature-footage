@@ -14,7 +14,8 @@
 
   let videos = [];
   let site = {};
-  const filters = { category: "All", useCase: "", collection: "", query: "" };
+  const filters = { category: "All", mood: "All", useCase: "", collection: "", query: "" };
+  let gridList = [];
   let shown = PAGE_SIZE;
 
   $("#year").textContent = new Date().getFullYear();
@@ -457,8 +458,8 @@
     });
 
     $("#rows-list").replaceChildren(...rows.map((r) => {
-      const track = el("div", { class: "row-track", "data-stagger": "60", role: "list", "aria-label": `${r.name} clips` },
-        r.clips.map((v) => { const c = card(v, r.clips, { inFeatured: r.id === "featured" }); c.setAttribute("role", "listitem"); return c; }));
+      const track = el("div", { class: "row-track", "data-stagger": "60" },
+        r.clips.map((v) => card(v, r.clips, { inFeatured: r.id === "featured" })));
       const prev = el("button", { class: "icon-btn row-arrow prev", type: "button", "aria-label": `Scroll ${r.name} left`, text: "←" });
       const next = el("button", { class: "icon-btn row-arrow next", type: "button", "aria-label": `Scroll ${r.name} right`, text: "→" });
       const page = (dir) => track.scrollBy({ left: dir * track.clientWidth * 0.85, behavior: reducedMotion ? "auto" : "smooth" });
@@ -485,25 +486,37 @@
     Motion.reveal($("#rows-list"));
   }
 
-  /* ---------- Use cases ---------- */
+  /* ---------- Use cases ("Perfect for" marquee) ---------- */
   function renderUseCases() {
-    const items = (site.useCases || []).map((u) => {
-      const n = videos.filter((v) => (v.useCases || []).includes(u.id)).length;
-      if (!n) return null;
-      const b = el("button", { class: "usecase", type: "button" }, [
+    const make = (u, n, dup) => {
+      const b = el("button", { class: "usecase", type: "button", "data-dup": dup ? "" : null }, [
         el("strong", { text: u.label }),
         el("span", { text: u.description || "" }),
         el("span", { class: "count", text: `${n} ${n === 1 ? "clip" : "clips"} →` }),
       ]);
       b.addEventListener("click", () => {
-        setFilter({ useCase: u.id, collection: "", category: "All" });
+        searchEl.value = "";
+        setFilter({ useCase: u.id, collection: "", category: "All", mood: "All", query: "" });
         $("#collection").scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth" });
       });
       return b;
-    }).filter(Boolean);
+    };
+    const items = (site.useCases || []).map((u) => [u, videos.filter((v) => (v.useCases || []).includes(u.id)).length]).filter(([, n]) => n);
     $("#use-cases").hidden = items.length === 0;
-    $("#usecase-list").replaceChildren(...items);
+    // a second, inert copy makes the loop seamless; screen readers and Tab only see the first
+    const dupWrap = items.map(([u, n]) => make(u, n, true));
+    dupWrap.forEach((d) => { d.inert = true; d.setAttribute("aria-hidden", "true"); });
+    $("#usecase-list").replaceChildren(...items.map(([u, n]) => make(u, n, false)), ...dupWrap);
   }
+
+  const marquee = $("#usecase-marquee"), marqueeBtn = $("#marquee-toggle");
+  marqueeBtn.addEventListener("click", () => {
+    const paused = marquee.classList.toggle("paused");
+    marqueeBtn.setAttribute("aria-pressed", String(paused));
+    marqueeBtn.textContent = paused ? "Play" : "Pause";
+  });
+  // don't animate while off screen
+  new IntersectionObserver(([e]) => marquee.classList.toggle("offscreen", !e.isIntersecting)).observe(marquee);
 
   /* ---------- Social proof (real data only) ---------- */
   function renderProof() {
@@ -539,6 +552,7 @@
   /* ---------- Filter & search ---------- */
   function matches(v) {
     if (filters.category !== "All" && v.category !== filters.category) return false;
+    if (filters.mood !== "All" && v.mood !== filters.mood) return false;
     if (filters.useCase && !(v.useCases || []).includes(filters.useCase)) return false;
     if (filters.collection && v.collection !== filters.collection) return false;
     if (!filters.query) return true;
@@ -549,8 +563,8 @@
   function setFilter(patch) {
     Object.assign(filters, patch);
     shown = PAGE_SIZE;
-    chipsEl.querySelectorAll(".chip").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.cat === filters.category)));
-    render();
+    syncChips();
+    render({ animate: true });
     const parts = Object.entries(patch).filter(([k, v]) => k !== "query" && v && v !== "All");
     parts.forEach(([k, v]) => track("filter", { [k]: v }));
   }
@@ -567,12 +581,65 @@
     activeEl.hidden = pills.length === 0;
   }
 
-  function render() {
+  /* FLIP: measure cards (First), re-order with reused elements (Last), Invert with transform, Play.
+     Removed cards fade + shrink as absolutely-positioned ghosts; new cards fade in. */
+  const gridCards = new Map(); // id -> card element in the full grid
+  function render({ animate = false } = {}) {
     const list = videos.filter(matches);
-    current = null;
-    grid.replaceChildren(...list.slice(0, shown).map((v) => card(v, list)));
+    gridList = list;
+    const visible = list.slice(0, shown);
+    const flip = animate && !reducedMotion && !grid.querySelector(".skeleton");
+    const dur = Motion.ms("--dur-slow"), easeIO = Motion.easing("--ease-in-out");
+
+    const first = new Map();
+    const gridBox = grid.getBoundingClientRect();
+    if (flip) $$(":scope > .card", grid).forEach((c) => first.set(c.dataset.id, c.getBoundingClientRect()));
+
+    const keep = new Set(visible.map((v) => v.id));
+    if (current && !keep.has(current.dataset.id)) stop(current);
+    // exits
+    const ghosts = [];
+    gridCards.forEach((c, id) => {
+      if (keep.has(id)) return;
+      gridCards.delete(id);
+      if (!flip || !c.isConnected) return;
+      const r = first.get(id);
+      if (!r || r.bottom < 0 || r.top > innerHeight) return;
+      c.classList.add("ghost");
+      Object.assign(c.style, { left: `${r.left - gridBox.left}px`, top: `${r.top - gridBox.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+      ghosts.push(c);
+    });
+    // new order, reusing existing elements
+    const added = [];
+    const nodes = visible.map((v) => {
+      let c = gridCards.get(v.id);
+      if (!c) { c = card(v, () => gridList); gridCards.set(v.id, c); added.push(c); }
+      return c;
+    });
+    grid.replaceChildren(...nodes, ...ghosts);
     grid.setAttribute("aria-busy", "false");
     Motion.reveal(grid);
+
+    if (flip) {
+      nodes.forEach((c) => {
+        const r0 = first.get(c.dataset.id);
+        if (!r0) return;
+        const r1 = c.getBoundingClientRect();
+        const dx = r0.left - r1.left, dy = r0.top - r1.top;
+        if (Math.abs(dx) + Math.abs(dy) < 1) return;
+        c.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { duration: dur, easing: easeIO });
+      });
+      const exitDur = dur * 0.75;
+      ghosts.forEach((c) => {
+        c.animate([{ opacity: 1, transform: "scale(1)" }, { opacity: 0, transform: "scale(.96)" }], { duration: exitDur, easing: Motion.easing("--ease-in"), fill: "forwards" })
+          .finished.then(() => c.remove(), () => c.remove());
+      });
+      const step = Math.min(60, added.length > 1 ? 500 / (added.length - 1) : 0);
+      added.forEach((c, i) => {
+        c.animate([{ opacity: 0, transform: "scale(.96)" }, { opacity: 1, transform: "none" }], { duration: dur, delay: i * step, easing: Motion.easing("--ease-out"), fill: "backwards" });
+      });
+    }
+
     emptyEl.hidden = list.length > 0;
     moreBtn.hidden = list.length <= shown;
     moreBtn.textContent = `Show more (${list.length - Math.min(shown, list.length)} left)`;
@@ -584,30 +651,60 @@
     const list = videos.filter(matches);
     const first = list[shown];
     shown += PAGE_SIZE;
-    render();
+    render({ animate: true });
     // move focus to the first newly added card for keyboard users
-    if (first) $$(".card-hit", grid)[list.indexOf(first)]?.focus();
+    if (first) gridCards.get(first.id)?.querySelector(".card-hit")?.focus({ preventScroll: true });
   });
 
   $("#clear-filters").addEventListener("click", () => {
     searchEl.value = "";
-    setFilter({ category: "All", useCase: "", collection: "", query: "" });
+    setFilter({ category: "All", mood: "All", useCase: "", collection: "", query: "" });
   });
 
   function buildChips() {
-    const cats = ["All", ...new Set(videos.map((v) => v.category))];
-    chipsEl.replaceChildren(...cats.map((c) => {
-      const b = el("button", { class: "chip", type: "button", "data-cat": c, "aria-pressed": String(c === filters.category), text: c });
-      b.addEventListener("click", () => setFilter({ category: c }));
-      return b;
-    }));
+    const cats = ["All", ...new Set(videos.map((v) => v.category).filter(Boolean))];
+    const moodLabels = new Map((site.moods || []).map((m) => [m.id, m.label]));
+    const moods = ["All", ...new Set(videos.map((v) => v.mood).filter(Boolean))];
+    const make = (holder, values, key, label) => {
+      holder.replaceChildren(el("span", { class: "chip-pill", "aria-hidden": "true" }), ...values.map((c) => {
+        const b = el("button", { class: "chip", type: "button", "data-value": c, "aria-pressed": String(c === filters[key]), text: label(c) });
+        b.addEventListener("click", () => setFilter({ [key]: c }));
+        return b;
+      }));
+      new ResizeObserver(() => placePill(holder, false)).observe(holder);
+    };
+    make(chipsEl, cats, "category", (c) => c);
+    const moodEl = $("#mood-chips");
+    make(moodEl, moods, "mood", (m) => (m === "All" ? "All" : moodLabels.get(m) || m[0].toUpperCase() + m.slice(1)));
+    moodEl.closest(".filter-group").hidden = moods.length < 2;
+    syncChips(false);
+  }
+
+  function syncChips(animate = true) {
+    [[chipsEl, "category"], [$("#mood-chips"), "mood"]].forEach(([holder, key]) => {
+      $$(".chip", holder).forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.value === filters[key])));
+      placePill(holder, animate);
+    });
+  }
+
+  // the pill is a full-size layer clipped (clip-path inset) to the selected chip — no width/left animation
+  function placePill(holder, animate = true) {
+    const pill = $(".chip-pill", holder), on = $(".chip[aria-pressed='true']", holder);
+    if (!pill || !on) return;
+    const W = holder.offsetWidth, H = holder.offsetHeight;
+    const t = on.offsetTop, l = on.offsetLeft, w = on.offsetWidth, h = on.offsetHeight;
+    holder.classList.toggle("no-anim", !animate);
+    pill.style.setProperty("--pt", `${t}px`);
+    pill.style.setProperty("--pl", `${l}px`);
+    pill.style.setProperty("--pr", `${W - l - w}px`);
+    pill.style.setProperty("--pb", `${H - t - h}px`);
   }
 
   let searchTimer;
   searchEl.addEventListener("input", () => {
     filters.query = searchEl.value.trim().toLowerCase();
     shown = PAGE_SIZE;
-    render();
+    render({ animate: true });
     clearTimeout(searchTimer);
     if (filters.query) searchTimer = setTimeout(() => track("filter", { search: filters.query }), 1200);
   });

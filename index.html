@@ -113,7 +113,10 @@
           <h2 data-reveal="mask">Perfect for</h2>
         </div>
       </div>
-      <div id="usecase-list" class="usecases" data-reveal="up"></div>
+      <div class="marquee" id="usecase-marquee" data-reveal="fade">
+        <div id="usecase-list" class="marquee-track"></div>
+      </div>
+      <button class="btn btn-outline btn-sm marquee-toggle" id="marquee-toggle" type="button" aria-pressed="false">Pause</button>
     </section>
 
     <section id="collection" class="section">
@@ -126,7 +129,16 @@
       </div>
 
       <div class="controls" data-reveal="fade">
-        <div class="chips" id="chips" role="group" aria-label="Filter by category"></div>
+        <div class="filter-groups">
+          <div class="filter-group">
+            <span class="filter-label" id="mood-label">Mood</span>
+            <div class="chips" id="mood-chips" role="group" aria-labelledby="mood-label"></div>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label" id="cat-label">Category</span>
+            <div class="chips" id="chips" role="group" aria-labelledby="cat-label"></div>
+          </div>
+        </div>
         <label class="search">
           <span class="sr-only">Search clips</span>
           <input id="search" type="search" placeholder="Search clips, tags…" autocomplete="off">
