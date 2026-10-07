@@ -150,9 +150,9 @@
 
   function isFav(id) { return favs.has(id); }
 
-  function toggleFav(id) {
+  function toggleFav(id, btn) {
     if (favs.has(id)) favs.delete(id);
-    else { favs.add(id); track("favorite_add", { clip: id }); }
+    else { favs.add(id); track("favorite_add", { clip: id }); if (btn) heartPop(btn); }
     store.set("shortlist", [...favs]);
     syncFavs(true);
   }
@@ -167,7 +167,7 @@
       if (label) label.textContent = on ? "Saved" : "Save";
     });
     const n = favs.size;
-    $("#shortlist-count").textContent = n;
+    setCount($("#shortlist-count"), n);
     $("#shortlist-bar").hidden = n === 0;
     document.body.classList.toggle("has-shortlist", n > 0);
     if (bump && !reducedMotion) {
@@ -177,9 +177,37 @@
     if ($("#shortlist").open) renderShortlist();
   }
 
+  // ♥ pop with a few particles (the only overshoot on the page)
+  function heartPop(btn) {
+    if (reducedMotion) return;
+    btn.classList.remove("pop"); void btn.offsetWidth; btn.classList.add("pop");
+    btn.addEventListener("animationend", () => btn.classList.remove("pop"), { once: true });
+    for (let i = 0; i < 6; i++) {
+      const dot = el("span", { class: "particle", "aria-hidden": "true" });
+      dot.style.setProperty("--a", `${i * 60 + 30}deg`);
+      dot.addEventListener("animationend", () => dot.remove(), { once: true });
+      btn.append(dot);
+    }
+  }
+
+  // number rolls up to the new value
+  function setCount(node, n) {
+    const text = String(n);
+    const cur = node.querySelector(".n-in, .n-static");
+    if (cur && cur.textContent === text) return;
+    if (reducedMotion || !cur) { node.replaceChildren(el("span", { class: "n-static", text })); return; }
+    node.classList.add("flip-num");
+    $$(".n-out", node).forEach((x) => x.remove());
+    cur.className = "n-out";
+    cur.setAttribute("aria-hidden", "true");
+    const next = el("span", { class: "n-in", text });
+    cur.addEventListener("animationend", () => cur.remove(), { once: true });
+    node.append(next);
+  }
+
   function favButton(v) {
     const b = el("button", { class: "fav-btn", type: "button", "data-fav": v.id, "aria-pressed": "false", "aria-label": `Save ${v.title} to shortlist`, title: "Save to shortlist", text: "♥" });
-    b.addEventListener("click", (e) => { e.stopPropagation(); toggleFav(v.id); });
+    b.addEventListener("click", (e) => { e.stopPropagation(); toggleFav(v.id, b); });
     return b;
   }
 
@@ -192,13 +220,14 @@
         el("img", { src: v.thumbnail, alt: "", width: "96", height: "54", loading: "lazy" }),
         el("div", {}, [
           el("strong", { text: v.title }),
-          el("a", { href: withUtm(v.stockUrl, v.id), target: "_blank", rel: "noopener noreferrer", "data-track": "buy_click", "data-clip": v.id, text: "License on Adobe Stock ↗" }),
+          buyUrl(v) ? el("a", { class: "text-link", href: withUtm(buyUrl(v), v.id), target: "_blank", rel: "noopener noreferrer", "data-track": "buy_click", "data-clip": v.id, text: "License on Adobe Stock ↗" }) : el("span", { class: "caption", text: "Adobe Stock link coming soon" }),
         ]),
         remove,
       ]);
     }));
-    $("#license-all").textContent = `License all on Adobe Stock (${list.length})`;
-    $("#license-all").disabled = list.length === 0;
+    const linkable = list.filter((v) => buyUrl(v)).length;
+    $("#license-all").textContent = `License all on Adobe Stock (${linkable})`;
+    $("#license-all").hidden = linkable === 0;
   }
 
   $("#shortlist-open").addEventListener("click", () => {
@@ -208,10 +237,10 @@
   });
 
   $("#license-all").addEventListener("click", () => {
-    const list = [...favs].map(byId).filter(Boolean);
+    const list = [...favs].map(byId).filter((v) => v && buyUrl(v));
     let blocked = 0;
     list.forEach((v) => {
-      const w = window.open(withUtm(v.stockUrl, v.id), "_blank");
+      const w = window.open(withUtm(buyUrl(v), v.id), "_blank");
       if (w) w.opener = null;
       else blocked++;
     });
@@ -262,33 +291,58 @@
   }
 
   /* ---------- Cards ---------- */
+  // Where "License" goes: the clip's own Adobe Stock page, else the profile; null when neither is filled in.
+  const buyUrl = (v) => (isReal(v.stockUrl) ? v.stockUrl : isReal(site.adobeStockProfileUrl) ? site.adobeStockProfileUrl : null);
+
   function buyLink(v, extraClass = "") {
+    const url = buyUrl(v);
+    if (!url) return null;
     return el("a", {
-      class: `btn btn-accent ${extraClass}`.trim(), href: withUtm(v.stockUrl, v.id), target: "_blank", rel: "noopener noreferrer",
+      class: `btn btn-accent ${extraClass}`.trim(), href: withUtm(url, v.id), target: "_blank", rel: "noopener noreferrer",
       "data-track": "buy_click", "data-clip": v.id, text: "License on Adobe Stock",
     });
   }
 
-  function card(v, list) {
-    const badge = [v.resolution, v.duration, v.sample ? "Sample" : null].filter(Boolean).join(" · ");
+  const DAY = 864e5;
+  const isNew = (v) => {
+    const t = Date.parse(v.addedAt || "");
+    return !isNaN(t) && Date.now() - t >= 0 && Date.now() - t <= 30 * DAY;
+  };
+
+  function card(v, list, opts = {}) {
+    const badge = [v.resolution, v.duration].filter(Boolean).join(" · ");
     const hit = el("button", { class: "card-hit", type: "button", "aria-label": `${v.title} — preview and view details` });
     const details = el("button", { class: "btn btn-outline btn-sm card-details", type: "button", text: "Details" });
     const fav = favButton(v);
     fav.setAttribute("aria-pressed", String(isFav(v.id)));
+    const thumb = el("img", { class: "card-thumb", src: v.thumbnail, alt: "", loading: "lazy", width: "640", height: "360", decoding: "async" });
+    // fade the image in once it has loaded (space is reserved, so nothing jumps)
+    const loaded = () => thumb.classList.add("loaded");
+    if (thumb.complete && thumb.naturalWidth) loaded(); else thumb.addEventListener("load", loaded, { once: true });
+    thumb.addEventListener("error", loaded, { once: true });
+    const buy = buyLink(v, "btn-sm");
 
-    const cardEl = el("article", { class: "card", "data-id": v.id, "data-reveal": "up" }, [
-      el("img", { class: "card-thumb", src: v.thumbnail, alt: "", loading: "lazy", width: "640", height: "360", decoding: "async" }),
-      el("div", { class: "card-shade" }),
-      hit,
-      el("span", { class: "card-badge", text: badge }),
-      fav,
-      el("div", { class: "card-foot" }, [
-        el("h3", { class: "card-title", title: v.title, text: v.title }),
-        el("div", { class: "card-actions" }, [buyLink(v, "btn-sm"), details]),
+    const cardEl = el("article", { class: "card", "data-id": v.id }, [
+      el("div", { class: "card-inner", "data-reveal": "up" }, [
+        el("div", { class: "card-media", "data-reveal": "clip" }, [thumb]),
+        el("div", { class: "card-shade" }),
+        el("div", { class: "card-glow" }),
+        hit,
+        el("div", { class: "card-tags" }, [
+          el("span", { class: "card-badge", text: badge }),
+          isNew(v) ? el("span", { class: "card-chip", text: "New" }) : null,
+          v.featured && !opts.inFeatured ? el("span", { class: "card-chip", text: "Featured" }) : null,
+          v.sample ? el("span", { class: "card-chip", text: "Sample data" }) : null,
+        ]),
+        fav,
+        el("div", { class: "card-foot" }, [
+          el("h3", { class: "card-title", title: v.title, text: v.title }),
+          el("div", { class: "card-actions" }, [buy, details]),
+        ]),
       ]),
     ]);
 
-    const open = () => openClip(v.id, list, hit);
+    const open = () => openClip(v.id, typeof list === "function" ? list() : list, hit);
     hit.addEventListener("click", (e) => {
       // touch: first tap previews, second tap opens details
       const touch = e.pointerType === "touch" || (!canHover && e.pointerType !== "");
@@ -302,13 +356,94 @@
     }
     hit.addEventListener("focus", () => { if (hit.matches(":focus-visible")) play(cardEl, v.preview); });
     cardEl.addEventListener("focusout", (e) => { if (!cardEl.contains(e.relatedTarget) && !cardEl.matches(":hover")) stop(cardEl); });
+    if (Motion.rich) tilt(cardEl, buy);
     return cardEl;
+  }
+
+  /* ---------- Card tilt + spotlight (desktop, capable devices) ---------- */
+  // Max 4° tilt (perspective 900px) plus the -4px lift; eases back with lerp (no bounce).
+  // While the pointer is over the buy button the card holds still, so the button never moves under the click.
+  function tilt(cardEl, buy) {
+    const s = { rx: 0, ry: 0, lift: 0 }, t = { rx: 0, ry: 0, lift: 0 };
+    let rect = null, running = false, hold = false;
+    const tick = () => {
+      s.rx = Motion.lerp(s.rx, t.rx, 0.15);
+      s.ry = Motion.lerp(s.ry, t.ry, 0.15);
+      s.lift = Motion.lerp(s.lift, t.lift, 0.15);
+      const done = Math.abs(s.rx - t.rx) + Math.abs(s.ry - t.ry) + Math.abs(s.lift - t.lift) < 0.01;
+      if (done && !t.lift) { cardEl.style.transform = ""; cardEl.style.willChange = ""; running = false; return false; }
+      cardEl.style.transform = `perspective(900px) translateY(${s.lift.toFixed(2)}px) rotateX(${s.rx.toFixed(2)}deg) rotateY(${s.ry.toFixed(2)}deg)`;
+      running = !done;
+      return running;
+    };
+    const kick = () => { if (!running) { running = true; cardEl.style.willChange = "transform"; Motion.add(tick); } };
+    cardEl.addEventListener("pointerenter", (e) => {
+      if (e.pointerType !== "mouse") return;
+      rect = cardEl.getBoundingClientRect();
+      t.lift = -4;
+      kick();
+    });
+    cardEl.addEventListener("pointermove", (e) => {
+      if (e.pointerType !== "mouse" || !rect || hold) return;
+      const x = (e.clientX - rect.left) / rect.width, y = (e.clientY - rect.top) / rect.height;
+      t.ry = (x - 0.5) * 8;   // ±4°
+      t.rx = (0.5 - y) * 8;
+      cardEl.style.setProperty("--mx", `${(x * 100).toFixed(1)}%`);
+      cardEl.style.setProperty("--my", `${(y * 100).toFixed(1)}%`);
+      kick();
+    }, { passive: true });
+    if (buy) {
+      buy.addEventListener("pointerenter", () => { hold = true; t.rx = s.rx; t.ry = s.ry; });
+      buy.addEventListener("pointerleave", () => { hold = false; });
+    }
+    cardEl.addEventListener("pointerleave", () => { hold = false; rect = null; t.rx = t.ry = t.lift = 0; kick(); });
   }
 
   // tapping outside any card stops the active preview (touch)
   document.addEventListener("pointerdown", (e) => {
     if (current && !current.contains(e.target)) stop(current);
   }, { passive: true });
+
+  /* ---------- Magnetic accent buttons (desktop, capable devices) ---------- */
+  // Pulled up to 8px toward the pointer with `translate` only; frozen while pressed so the click lands.
+  function magnetic(btn) {
+    btn.classList.add("magnetic");
+    let pressed = false;
+    btn.addEventListener("pointermove", (e) => {
+      if (pressed || e.pointerType !== "mouse") return;
+      const r = btn.getBoundingClientRect();
+      const dx = Motion.clamp((e.clientX - (r.left + r.width / 2)) / (r.width / 2), -1, 1);
+      const dy = Motion.clamp((e.clientY - (r.top + r.height / 2)) / (r.height / 2), -1, 1);
+      btn.style.translate = `${(dx * 8).toFixed(1)}px ${(dy * 6).toFixed(1)}px`;
+    }, { passive: true });
+    btn.addEventListener("pointerdown", () => { pressed = true; });
+    btn.addEventListener("pointerup", () => { pressed = false; });
+    btn.addEventListener("pointerleave", () => { pressed = false; btn.style.translate = ""; });
+  }
+  if (Motion.rich) $$(".btn-accent.btn-lg").forEach(magnetic);
+
+  /* ---------- Cursor label over clip cards (desktop, capable devices) ---------- */
+  if (Motion.rich) {
+    const label = el("div", { class: "cursor-label", "aria-hidden": "true", text: "Play" });
+    document.body.append(label);
+    const pos = { x: 0, y: 0 };
+    let onCard = null, running = false;
+    const tick = () => {
+      pos.x = Motion.lerp(pos.x, Motion.pointer.x, 0.25);
+      pos.y = Motion.lerp(pos.y, Motion.pointer.y, 0.25);
+      label.style.transform = `translate3d(${pos.x.toFixed(1)}px, ${pos.y.toFixed(1)}px, 0)`;
+      if (onCard) label.textContent = onCard.classList.contains("playing") ? "View" : "Play";
+      running = !!onCard || Math.abs(pos.x - Motion.pointer.x) + Math.abs(pos.y - Motion.pointer.y) > 0.5;
+      return running;
+    };
+    document.addEventListener("pointerover", (e) => {
+      const hit = e.pointerType === "mouse" && e.target.closest && e.target.closest(".card-hit");
+      onCard = hit ? hit.closest(".card") : null;
+      if (onCard && !label.classList.contains("on")) { pos.x = Motion.pointer.x; pos.y = Motion.pointer.y; }
+      label.classList.toggle("on", !!onCard);
+      if (onCard && !running) { running = true; Motion.add(tick); }
+    }, { passive: true });
+  }
 
   /* ---------- Collection rows (Featured first, then one row per collection) ---------- */
   function renderRows() {
@@ -323,7 +458,7 @@
 
     $("#rows-list").replaceChildren(...rows.map((r) => {
       const track = el("div", { class: "row-track", "data-stagger": "60", role: "list", "aria-label": `${r.name} clips` },
-        r.clips.map((v) => { const c = card(v, r.clips); c.setAttribute("role", "listitem"); return c; }));
+        r.clips.map((v) => { const c = card(v, r.clips, { inFeatured: r.id === "featured" }); c.setAttribute("role", "listitem"); return c; }));
       const prev = el("button", { class: "icon-btn row-arrow prev", type: "button", "aria-label": `Scroll ${r.name} left`, text: "←" });
       const next = el("button", { class: "icon-btn row-arrow next", type: "button", "aria-label": `Scroll ${r.name} right`, text: "→" });
       const page = (dir) => track.scrollBy({ left: dir * track.clientWidth * 0.85, behavior: reducedMotion ? "auto" : "smooth" });
@@ -520,7 +655,8 @@
     $("#m-set").textContent = set ? `Part of the set “${set.name}”.` : "";
 
     const buy = $("#m-buy");
-    buy.href = withUtm(v.stockUrl, v.id);
+    buy.hidden = !buyUrl(v);
+    if (buyUrl(v)) buy.href = withUtm(buyUrl(v), v.id);
     buy.dataset.clip = v.id;
     const fav = $("#m-fav");
     fav.dataset.fav = v.id;
@@ -560,7 +696,7 @@
 
   $("#m-prev").addEventListener("click", () => step(-1));
   $("#m-next").addEventListener("click", () => step(1));
-  $("#m-fav").addEventListener("click", (e) => toggleFav(e.currentTarget.dataset.fav));
+  $("#m-fav").addEventListener("click", (e) => toggleFav(e.currentTarget.dataset.fav, e.currentTarget));
   // Sound toggle (previews start muted)
   let soundOn = false;
   const soundBtn = $("#m-sound");
