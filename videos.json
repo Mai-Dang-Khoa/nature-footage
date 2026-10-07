@@ -2,91 +2,164 @@
   {
     "id": "sample-1",
     "title": "Sample Clip 1",
+    "sample": true,
+    "featured": true,
     "category": "Forest",
+    "collection": "forest-mornings",
     "tags": [
       "sample",
       "placeholder",
-      "forest"
+      "forest",
+      "calm"
+    ],
+    "useCases": [
+      "documentary",
+      "wellness",
+      "youtube"
     ],
     "resolution": "4K",
+    "fps": 24,
     "duration": "0:12",
+    "loopable": true,
     "thumbnail": "assets/thumbs/sample-1.svg",
+    "poster": "assets/thumbs/sample-1.svg",
     "preview": "assets/previews/sample-1.mp4",
-    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
   },
   {
     "id": "sample-2",
     "title": "Sample Clip 2",
+    "sample": true,
+    "featured": true,
     "category": "Ocean",
+    "collection": "ocean-waves",
     "tags": [
       "sample",
       "placeholder",
-      "ocean"
+      "ocean",
+      "waves"
+    ],
+    "useCases": [
+      "travel",
+      "wellness",
+      "youtube"
     ],
     "resolution": "4K",
+    "fps": 30,
     "duration": "0:14",
+    "loopable": true,
     "thumbnail": "assets/thumbs/sample-2.svg",
+    "poster": "assets/thumbs/sample-2.svg",
     "preview": "assets/previews/sample-2.mp4",
-    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
   },
   {
     "id": "sample-3",
     "title": "Sample Clip 3",
+    "sample": true,
+    "featured": true,
     "category": "Mountains",
+    "collection": "wild-horizons",
     "tags": [
       "sample",
       "placeholder",
-      "mountains"
+      "mountains",
+      "aerial"
+    ],
+    "useCases": [
+      "documentary",
+      "travel",
+      "presentation"
     ],
     "resolution": "4K",
+    "fps": 24,
     "duration": "0:16",
+    "loopable": false,
     "thumbnail": "assets/thumbs/sample-3.svg",
+    "poster": "assets/thumbs/sample-3.svg",
     "preview": "assets/previews/sample-3.mp4",
-    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
   },
   {
     "id": "sample-4",
     "title": "Sample Clip 4",
+    "sample": true,
+    "featured": true,
     "category": "Sky",
+    "collection": "ocean-waves",
     "tags": [
       "sample",
       "placeholder",
-      "sky"
+      "sky",
+      "clouds",
+      "sunset"
+    ],
+    "useCases": [
+      "presentation",
+      "wellness",
+      "youtube"
     ],
     "resolution": "4K",
+    "fps": 24,
     "duration": "0:18",
+    "loopable": true,
     "thumbnail": "assets/thumbs/sample-4.svg",
+    "poster": "assets/thumbs/sample-4.svg",
     "preview": "assets/previews/sample-4.mp4",
-    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
   },
   {
     "id": "sample-5",
     "title": "Sample Clip 5",
+    "sample": true,
+    "featured": true,
     "category": "Waterfall",
+    "collection": "forest-mornings",
     "tags": [
       "sample",
       "placeholder",
-      "waterfall"
+      "waterfall",
+      "forest",
+      "water"
+    ],
+    "useCases": [
+      "wellness",
+      "documentary"
     ],
     "resolution": "4K",
+    "fps": 30,
     "duration": "0:20",
+    "loopable": true,
     "thumbnail": "assets/thumbs/sample-5.svg",
+    "poster": "assets/thumbs/sample-5.svg",
     "preview": "assets/previews/sample-5.mp4",
-    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
   },
   {
     "id": "sample-6",
     "title": "Sample Clip 6",
+    "sample": true,
+    "featured": true,
     "category": "Desert",
+    "collection": "wild-horizons",
     "tags": [
       "sample",
       "placeholder",
-      "desert"
+      "desert",
+      "dunes"
+    ],
+    "useCases": [
+      "travel",
+      "presentation",
+      "youtube"
     ],
     "resolution": "4K",
+    "fps": 24,
     "duration": "0:22",
+    "loopable": false,
     "thumbnail": "assets/thumbs/sample-6.svg",
+    "poster": "assets/thumbs/sample-6.svg",
     "preview": "assets/previews/sample-6.mp4",
-    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
   }
 ]

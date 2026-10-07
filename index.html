@@ -18,24 +18,29 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&family=Manrope:wght@400;500;600&display=swap">
+  <!-- Fonts load without blocking first paint; system fonts show until they arrive -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&family=IBM+Plex+Mono:wght@400&family=Manrope:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&family=IBM+Plex+Mono:wght@400&family=Manrope:wght@400;500;600&display=swap"></noscript>
   <link rel="stylesheet" href="style.css">
+  <script>document.documentElement.classList.add("js");</script>
 </head>
 <body>
-  <a class="skip" href="#collection">Skip to collection</a>
+  <a class="skip" href="#featured">Skip to clips</a>
 
   <header class="nav">
-    <a class="brand" href="#top" aria-label="Wild Frames, home">
-      <img src="favicon.svg" alt="" width="26" height="26"> Wild Frames
+    <a class="brand" href="#top">
+      <img src="favicon.svg" alt="" width="26" height="26"> <span data-site="brandName">Wild Frames</span>
     </a>
     <nav aria-label="Main">
-      <a href="#collection">Collection</a>
-      <a href="#about">About</a>
+      <a href="#collection">Clips</a>
+      <a href="#process">Process</a>
+      <a href="#faq">FAQ</a>
       <a href="#contact">Contact</a>
     </nav>
   </header>
 
   <main id="top">
+    <!-- Peak: strong first impression -->
     <section class="hero">
       <video id="hero-video" class="hero-video" muted loop playsinline preload="none"
              poster="assets/thumbs/sample-3.svg" aria-hidden="true" tabindex="-1"
@@ -44,14 +49,58 @@
       <div class="hero-inner">
         <p class="eyebrow">4K nature footage · Made in Unreal Engine 5</p>
         <h1>Worlds that look <em>real</em>,<br>built from nothing.</h1>
-        <p class="lede">Photoreal landscapes, rendered in 4K, ready to license for your next project.</p>
-        <a class="btn btn-primary" href="#collection">Browse Collection</a>
+        <p class="lede" data-site="tagline">Photoreal 4K nature footage, built in Unreal Engine 5.</p>
+        <div class="hero-actions">
+          <a class="btn btn-light" href="#featured">Browse Collection</a>
+          <span class="hero-note">Hover any clip to preview — no sign-up.</span>
+        </div>
       </div>
+      <ul class="hero-specs" aria-label="Key facts">
+        <li>3840 × 2160</li><li>Unreal Engine 5</li><li>Licensed via Adobe Stock</li>
+      </ul>
+    </section>
+
+    <!-- Hick's Law: a short, curated first choice -->
+    <section id="featured" class="section">
+      <div class="section-head">
+        <div>
+          <p class="kicker">Start here</p>
+          <h2>Featured clips</h2>
+        </div>
+        <p class="muted section-aside">A short, hand-picked selection. The full collection is further down.</p>
+      </div>
+      <div id="featured-grid" class="grid" aria-busy="true"></div>
+    </section>
+
+    <!-- Relevance: start from what the buyer is making -->
+    <section id="use-cases" class="section">
+      <div class="section-head">
+        <div>
+          <p class="kicker">Find by project</p>
+          <h2>Perfect for</h2>
+        </div>
+      </div>
+      <div id="usecase-list" class="usecases"></div>
+    </section>
+
+    <!-- Completion: sets of clips that belong together -->
+    <section id="collections" class="section" hidden>
+      <div class="section-head">
+        <div>
+          <p class="kicker">Shot sets</p>
+          <h2>Collections</h2>
+        </div>
+        <p class="muted section-aside">Clips made in the same world, with matching light and grade.</p>
+      </div>
+      <div id="collection-list" class="sets"></div>
     </section>
 
     <section id="collection" class="section">
       <div class="section-head">
-        <h2>Collection</h2>
+        <div>
+          <p class="kicker">Everything</p>
+          <h2>Full collection</h2>
+        </div>
         <p class="muted" id="result-count" aria-live="polite"></p>
       </div>
 
@@ -62,133 +111,443 @@
           <input id="search" type="search" placeholder="Search clips, tags…" autocomplete="off">
         </label>
       </div>
+      <div id="active-filters" class="active-filters" hidden></div>
 
       <div id="grid" class="grid" aria-busy="true"></div>
-      <p id="empty" class="empty" hidden>No clips match your search.</p>
+      <div class="more-wrap"><button id="show-more" class="btn btn-outline" type="button" hidden>Show more</button></div>
+      <p id="empty" class="empty" hidden>No clips match your search. <button type="button" class="link-btn" id="clear-filters">Clear filters</button></p>
       <p id="load-error" class="empty" hidden>Could not load the clip list. Please try again later.</p>
     </section>
 
+    <!-- Social proof: rendered only from real data in site.json -->
+    <section id="proof" class="section proof" hidden>
+      <dl id="stats" class="stats" hidden></dl>
+      <div id="trusted" class="trusted" hidden>
+        <p class="kicker">As used in</p>
+        <ul id="trusted-list"></ul>
+      </div>
+    </section>
+
+    <!-- Reciprocity: give something first -->
+    <section id="free-sample" class="section" hidden>
+      <div class="free">
+        <img id="free-thumb" src="assets/thumbs/sample-1.svg" alt="" width="640" height="360" loading="lazy" decoding="async">
+        <div class="free-body">
+          <p class="kicker">Free, no sign-up</p>
+          <h2 id="free-title">Free sample clip</h2>
+          <p id="free-desc" class="muted"></p>
+          <p class="spec-line" id="free-spec"></p>
+          <div class="free-actions">
+            <a id="free-download" class="btn btn-light" href="#" download data-track="free_download">Download free sample</a>
+            <a id="free-more" class="btn btn-outline" href="#" data-track="sample_request">Ask for more samples</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Authority: show the real process -->
+    <section id="process" class="section">
+      <div class="section-head">
+        <div>
+          <p class="kicker">Behind the scene</p>
+          <h2>From empty level to 4K frame</h2>
+        </div>
+        <p class="muted section-aside">Every clip is computer-generated in Unreal Engine 5, a real-time engine — no drones, no location shoots.</p>
+      </div>
+      <!-- EDIT: replace images in assets/bts/ and adjust text to match your own workflow -->
+      <ol class="steps">
+        <li class="step">
+          <img src="assets/bts/step-1.svg" alt="Placeholder for a scene-build screenshot" width="640" height="400" loading="lazy" decoding="async">
+          <span class="step-n">01</span>
+          <h3>Scene build</h3>
+          <p>Terrain, rocks and vegetation are assembled in Unreal Engine 5. High-detail geometry keeps close-ups sharp.</p>
+        </li>
+        <li class="step">
+          <img src="assets/bts/step-2.svg" alt="Placeholder for a lighting screenshot" width="640" height="400" loading="lazy" decoding="async">
+          <span class="step-n">02</span>
+          <h3>Lighting</h3>
+          <p>Sun, sky and atmosphere are lit with real-time global illumination, tuned for natural, photoreal light.</p>
+        </li>
+        <li class="step">
+          <img src="assets/bts/step-3.svg" alt="Placeholder for a camera setup screenshot" width="640" height="400" loading="lazy" decoding="async">
+          <span class="step-n">03</span>
+          <h3>Cinematic camera</h3>
+          <p>Virtual cameras with real-world lens settings move slowly and smoothly, the way a film crew would shoot.</p>
+        </li>
+        <li class="step">
+          <img src="assets/bts/step-4.svg" alt="Placeholder for a render output screenshot" width="640" height="400" loading="lazy" decoding="async">
+          <span class="step-n">04</span>
+          <h3>4K render</h3>
+          <p>Final frames are rendered offline at 3840 × 2160, then checked shot by shot before upload.</p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- Objection handling -->
+    <section id="faq" class="section faq">
+      <div class="section-head">
+        <div>
+          <p class="kicker">Before you buy</p>
+          <h2>Questions</h2>
+        </div>
+      </div>
+      <div class="faq-list">
+        <details>
+          <summary>Can I use these clips on YouTube, in ads or in a documentary?</summary>
+          <p>All clips are licensed through Adobe Stock, and what you can do depends on the license you pick there. License terms are provided by Adobe Stock — <a data-site-href="adobeLicenseUrl" href="https://stock.adobe.com/license-terms" target="_blank" rel="noopener noreferrer">read the Adobe Stock license terms</a>.</p>
+        </details>
+        <details>
+          <summary>Is this real footage?</summary>
+          <p>No. Every scene is computer-generated in Unreal Engine 5. Nothing was filmed on location.</p>
+        </details>
+        <details>
+          <summary>What file will I get?</summary>
+          <p>Clips are rendered in 4K (3840 × 2160). The exact file format, frame rate and size are listed on each clip's Adobe Stock page before you buy.</p>
+        </details>
+        <details>
+          <summary>How do I download after buying?</summary>
+          <p>After you license a clip on Adobe Stock, the full-resolution file is available to download from your Adobe Stock account.</p>
+        </details>
+        <details>
+          <summary>Can you make a custom scene or a longer version?</summary>
+          <p>Get in touch by <a class="js-mailto" data-subject="Custom request" href="mailto:">email</a> with what you need.</p>
+        </details>
+      </div>
+    </section>
+
     <section id="about" class="section about">
-      <h2>About</h2>
+      <div class="section-head"><div><p class="kicker">About</p><h2>The person behind the frames</h2></div></div>
       <div class="about-body">
         <!-- EDIT: replace with your own story -->
         <p>Every scene in this collection is built from scratch in Unreal Engine 5 — terrain, vegetation, water, light and atmosphere — and rendered in native 4K.</p>
         <p>The goal is photoreal nature that holds up on a large screen: believable lighting, natural motion and clean, loop-friendly shots for editors and motion designers.</p>
-        <p>New clips are added regularly. All footage is available to license through stock marketplaces.</p>
+        <p>[YOUR_STORY] New clips are added regularly. All footage is available to license through stock marketplaces.</p>
       </div>
     </section>
 
     <section id="contact" class="section">
-      <h2>Contact</h2>
+      <div class="section-head"><div><p class="kicker">Contact</p><h2>Talk to me</h2></div></div>
       <p class="muted">Custom scenes, questions or licensing enquiries:</p>
-      <ul class="links">
-        <li><a href="mailto:you@example.com">you@example.com</a></li>
-        <li><a href="https://stock.adobe.com/contributor/YOUR_ID" target="_blank" rel="noopener noreferrer">Adobe Stock profile</a></li>
-        <!-- EDIT: add other marketplaces, e.g. Shutterstock, Pond5 -->
-        <li><a href="https://www.shutterstock.com/g/YOUR_ID" target="_blank" rel="noopener noreferrer">Shutterstock profile</a></li>
+      <ul class="links" id="contact-links">
+        <li><a class="js-mailto" data-subject="Hello" href="mailto:">Email</a></li>
       </ul>
+    </section>
+
+    <!-- End: one clear final action -->
+    <section class="finale">
+      <h2>Find your next shot.</h2>
+      <p class="muted">Every clip in this collection is available to license on Adobe Stock.</p>
+      <a class="btn btn-buy btn-lg" data-site-href="adobeStockProfileUrl" data-utm="profile_finale" data-track="buy_click" data-clip="profile" href="https://stock.adobe.com/" target="_blank" rel="noopener noreferrer">See all clips on Adobe Stock</a>
     </section>
   </main>
 
   <footer class="footer">
-    <p>© <span id="year">2025</span> Your Name. All rights reserved. Footage is licensed only through the linked stock platforms.</p>
-    <p><a href="https://stock.adobe.com/contributor/YOUR_ID" target="_blank" rel="noopener noreferrer">Adobe Stock profile</a></p>
+    <p>© <span id="year">2025</span> <span data-site="ownerName">[YOUR_NAME]</span>. All rights reserved. Footage is licensed only through the linked stock platforms.</p>
+    <p><a data-site-href="adobeStockProfileUrl" data-utm="profile_footer" href="https://stock.adobe.com/" target="_blank" rel="noopener noreferrer">Adobe Stock profile</a></p>
   </footer>
 
-  <!-- Fallback copy of videos.json, used only when fetch() is blocked (e.g. opening index.html via file://) -->
+  <!-- Commitment: shortlist bar (shown only when something is saved) -->
+  <div id="shortlist-bar" class="shortlist-bar" hidden>
+    <button id="shortlist-open" class="shortlist-btn" type="button">
+      <span aria-hidden="true">♥</span> Your shortlist (<span id="shortlist-count">0</span>)
+    </button>
+  </div>
+
+  <dialog id="shortlist" class="sheet" aria-labelledby="shortlist-title">
+    <div class="sheet-head">
+      <h2 id="shortlist-title">Your shortlist</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Close shortlist">✕</button>
+    </div>
+    <p class="muted small">Saved on this device only.</p>
+    <ul id="shortlist-items" class="sl-items"></ul>
+    <p id="shortlist-note" class="small muted" hidden></p>
+    <div class="sheet-foot">
+      <button id="license-all" class="btn btn-buy btn-block" type="button" data-track="buy_all">License all on Adobe Stock</button>
+    </div>
+  </dialog>
+
+  <!-- Endowment: clip detail -->
+  <dialog id="clip-modal" class="modal" aria-labelledby="m-title">
+    <div class="modal-inner">
+      <div class="modal-media">
+        <video id="m-video" muted loop playsinline preload="none"></video>
+        <button class="icon-btn nav-btn prev" type="button" id="m-prev" aria-label="Previous clip">←</button>
+        <button class="icon-btn nav-btn next" type="button" id="m-next" aria-label="Next clip">→</button>
+      </div>
+      <div class="modal-info">
+        <button class="icon-btn modal-close" type="button" data-close aria-label="Close">✕</button>
+        <p class="kicker" id="m-cat"></p>
+        <h2 id="m-title"></h2>
+        <dl id="m-specs" class="specs"></dl>
+        <p class="license-note">Commercial license via Adobe Stock</p>
+        <p id="m-price" class="price" hidden></p>
+        <ul id="m-tags" class="tags"></ul>
+        <p id="m-set" class="small muted"></p>
+        <div class="modal-cta">
+          <a id="m-buy" class="btn btn-buy btn-lg" href="#" target="_blank" rel="noopener noreferrer" data-track="buy_click">License on Adobe Stock</a>
+          <button id="m-fav" class="fav-btn fav-lg" type="button" aria-pressed="false">♥ <span>Save</span></button>
+        </div>
+        <div id="m-more-wrap">
+          <h3 class="more-title">More like this</h3>
+          <ul id="m-more" class="more-list"></ul>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Fallback copies of videos.json / site.json, used only when fetch() is blocked (opening index.html via file://).
+       Refresh with: python3 tools/sync-fallback.py -->
   <script type="application/json" id="videos-fallback">
 [
   {
     "id": "sample-1",
     "title": "Sample Clip 1",
+    "sample": true,
+    "featured": true,
     "category": "Forest",
+    "collection": "forest-mornings",
     "tags": [
       "sample",
       "placeholder",
-      "forest"
+      "forest",
+      "calm"
+    ],
+    "useCases": [
+      "documentary",
+      "wellness",
+      "youtube"
     ],
     "resolution": "4K",
+    "fps": 24,
     "duration": "0:12",
+    "loopable": true,
     "thumbnail": "assets/thumbs/sample-1.svg",
+    "poster": "assets/thumbs/sample-1.svg",
     "preview": "assets/previews/sample-1.mp4",
-    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
   },
   {
     "id": "sample-2",
     "title": "Sample Clip 2",
+    "sample": true,
+    "featured": true,
     "category": "Ocean",
+    "collection": "ocean-waves",
     "tags": [
       "sample",
       "placeholder",
-      "ocean"
+      "ocean",
+      "waves"
+    ],
+    "useCases": [
+      "travel",
+      "wellness",
+      "youtube"
     ],
     "resolution": "4K",
+    "fps": 30,
     "duration": "0:14",
+    "loopable": true,
     "thumbnail": "assets/thumbs/sample-2.svg",
+    "poster": "assets/thumbs/sample-2.svg",
     "preview": "assets/previews/sample-2.mp4",
-    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
   },
   {
     "id": "sample-3",
     "title": "Sample Clip 3",
+    "sample": true,
+    "featured": true,
     "category": "Mountains",
+    "collection": "wild-horizons",
     "tags": [
       "sample",
       "placeholder",
-      "mountains"
+      "mountains",
+      "aerial"
+    ],
+    "useCases": [
+      "documentary",
+      "travel",
+      "presentation"
     ],
     "resolution": "4K",
+    "fps": 24,
     "duration": "0:16",
+    "loopable": false,
     "thumbnail": "assets/thumbs/sample-3.svg",
+    "poster": "assets/thumbs/sample-3.svg",
     "preview": "assets/previews/sample-3.mp4",
-    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
   },
   {
     "id": "sample-4",
     "title": "Sample Clip 4",
+    "sample": true,
+    "featured": true,
     "category": "Sky",
+    "collection": "ocean-waves",
     "tags": [
       "sample",
       "placeholder",
-      "sky"
+      "sky",
+      "clouds",
+      "sunset"
+    ],
+    "useCases": [
+      "presentation",
+      "wellness",
+      "youtube"
     ],
     "resolution": "4K",
+    "fps": 24,
     "duration": "0:18",
+    "loopable": true,
     "thumbnail": "assets/thumbs/sample-4.svg",
+    "poster": "assets/thumbs/sample-4.svg",
     "preview": "assets/previews/sample-4.mp4",
-    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
   },
   {
     "id": "sample-5",
     "title": "Sample Clip 5",
+    "sample": true,
+    "featured": true,
     "category": "Waterfall",
+    "collection": "forest-mornings",
     "tags": [
       "sample",
       "placeholder",
-      "waterfall"
+      "waterfall",
+      "forest",
+      "water"
+    ],
+    "useCases": [
+      "wellness",
+      "documentary"
     ],
     "resolution": "4K",
+    "fps": 30,
     "duration": "0:20",
+    "loopable": true,
     "thumbnail": "assets/thumbs/sample-5.svg",
+    "poster": "assets/thumbs/sample-5.svg",
     "preview": "assets/previews/sample-5.mp4",
-    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
   },
   {
     "id": "sample-6",
     "title": "Sample Clip 6",
+    "sample": true,
+    "featured": true,
     "category": "Desert",
+    "collection": "wild-horizons",
     "tags": [
       "sample",
       "placeholder",
-      "desert"
+      "desert",
+      "dunes"
+    ],
+    "useCases": [
+      "travel",
+      "presentation",
+      "youtube"
     ],
     "resolution": "4K",
+    "fps": 24,
     "duration": "0:22",
+    "loopable": false,
     "thumbnail": "assets/thumbs/sample-6.svg",
+    "poster": "assets/thumbs/sample-6.svg",
     "preview": "assets/previews/sample-6.mp4",
-    "stockUrl": "https://stock.adobe.com/contributor/YOUR_ID"
+    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
   }
 ]
+  </script>
+  <script type="application/json" id="site-fallback">
+{
+  "_note": "SAMPLE DATA - replace every [YOUR_...] value. Empty arrays/strings hide their section.",
+  "brandName": "Wild Frames",
+  "ownerName": "[YOUR_NAME]",
+  "tagline": "Photoreal 4K nature footage, built in Unreal Engine 5.",
+  "email": "[YOUR_EMAIL]@example.com",
+  "adobeStockProfileUrl": "https://stock.adobe.com/contributor/[YOUR_ID]",
+  "adobeLicenseUrl": "https://stock.adobe.com/license-terms",
+  "social": [
+    {
+      "label": "Adobe Stock",
+      "url": "https://stock.adobe.com/contributor/[YOUR_ID]"
+    },
+    {
+      "label": "Shutterstock",
+      "url": "https://www.shutterstock.com/g/[YOUR_ID]"
+    }
+  ],
+  "stats": {
+    "showClipCount": false,
+    "items": []
+  },
+  "trustedBy": [],
+  "freeSample": {
+    "enabled": true,
+    "title": "Free sample clip",
+    "description": "A short, lower-resolution version of a real clip from the collection, free to download.",
+    "url": "assets/free/free-sample-720p.mp4",
+    "resolution": "1280×720",
+    "thumbnail": "assets/thumbs/sample-1.svg"
+  },
+  "collections": [
+    {
+      "id": "forest-mornings",
+      "name": "Forest Mornings (sample)",
+      "description": "Soft light through trees and falling water.",
+      "stockUrl": ""
+    },
+    {
+      "id": "ocean-waves",
+      "name": "Ocean Waves (sample)",
+      "description": "Open water and evening skies.",
+      "stockUrl": ""
+    },
+    {
+      "id": "wild-horizons",
+      "name": "Wild Horizons (sample)",
+      "description": "Peaks, dunes and wide open space.",
+      "stockUrl": ""
+    }
+  ],
+  "useCases": [
+    {
+      "id": "documentary",
+      "label": "Documentaries",
+      "description": "Establishing shots and calm cutaways."
+    },
+    {
+      "id": "youtube",
+      "label": "YouTube B-roll",
+      "description": "Clean shots to cover voice-over."
+    },
+    {
+      "id": "wellness",
+      "label": "Meditation & wellness apps",
+      "description": "Slow, loop-friendly scenes."
+    },
+    {
+      "id": "travel",
+      "label": "Travel ads",
+      "description": "Wide landscapes that sell a place."
+    },
+    {
+      "id": "presentation",
+      "label": "Presentations",
+      "description": "Backgrounds that sit behind text."
+    }
+  ],
+  "analytics": {
+    "provider": "",
+    "id": ""
+  }
+}
   </script>
   <script src="script.js" defer></script>
 </body>
