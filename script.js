@@ -1074,6 +1074,41 @@
   window.addEventListener("resize", placeIndicator, { passive: true });
   if (document.fonts) document.fonts.ready.then(placeIndicator);
 
+  /* ---------- Behind the scene story (desktop: sticky image follows the step being read) ---------- */
+  const story = $("#story"), storyNum = $("#story-num"), storyFill = $("#story-fill");
+  const storySteps = $$(".story-steps .step", story), storyImgs = $$(".story-img", story);
+  let storyActive = 0;
+  function setStory(i) {
+    if (i === storyActive) return;
+    const dir = i > storyActive ? 1 : -1;
+    storyActive = i;
+    storySteps.forEach((st, k) => st.classList.toggle("is-active", k === i));
+    storyImgs.forEach((im, k) => im.classList.toggle("is-active", k === i));
+    const text = String(i + 1).padStart(2, "0");
+    if (reducedMotion || !storyNum.animate) { storyNum.textContent = text; return; }
+    const d = Motion.ms("--dur-med");
+    storyNum.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: `translateY(${-dir * 30}%)` }], { duration: d * 0.75, easing: Motion.easing("--ease-in") })
+      .finished.then(() => {
+        storyNum.textContent = text;
+        storyNum.animate([{ opacity: 0, transform: `translateY(${dir * 30}%)` }, { opacity: 1, transform: "none" }], { duration: d, easing: Motion.easing("--ease-out") });
+      }, () => { storyNum.textContent = text; });
+  }
+  storySteps[0] && storySteps[0].classList.add("is-active");
+  const storyIO = new IntersectionObserver((entries) => entries.forEach((e) => {
+    if (e.isIntersecting) setStory(storySteps.indexOf(e.target));
+  }), { rootMargin: "-45% 0px -50% 0px" });
+  storySteps.forEach((st) => storyIO.observe(st));
+  // progress line fallback when CSS scroll timelines are missing (read rect, write next frame)
+  if (!Motion.sda && !reducedMotion) {
+    Motion.onScroll(({ vh }) => {
+      if (!story.offsetParent) return;
+      const r = story.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > vh) return;
+      const p = Motion.clamp(-r.top / Math.max(1, r.height - vh));
+      storyFill.style.setProperty("--story-p", p.toFixed(4));
+    });
+  }
+
   /* ---------- Init ---------- */
   Promise.all([
     loadJson("videos.json", "videos-fallback", validVideos),

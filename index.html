@@ -202,33 +202,49 @@
         </div>
         <p class="muted section-aside" data-reveal="fade" data-delay="120">Every clip is computer-generated in Unreal Engine 5, a real-time engine — no drones, no location shoots.</p>
       </div>
-      <!-- EDIT: replace images in assets/bts/ and adjust text to match your own workflow -->
-      <ol class="steps" data-reveal="up">
-        <li class="step">
+      <!-- EDIT: replace images in assets/bts/ (both the story-img and the step img) with real UE5 screenshots,
+           and adjust the text to match your own workflow -->
+      <div class="story" id="story">
+        <div class="story-visual" aria-hidden="true">
+          <div class="story-frame">
+          <img class="story-img is-active" data-step="0" src="assets/bts/step-1.svg" alt="" width="640" height="400" loading="lazy" decoding="async">
+          <img class="story-img" data-step="1" src="assets/bts/step-2.svg" alt="" width="640" height="400" loading="lazy" decoding="async">
+          <img class="story-img" data-step="2" src="assets/bts/step-3.svg" alt="" width="640" height="400" loading="lazy" decoding="async">
+          <img class="story-img" data-step="3" src="assets/bts/step-4.svg" alt="" width="640" height="400" loading="lazy" decoding="async">
+          </div>
+          <div class="story-meta">
+            <span class="story-num" id="story-num">01</span>
+            <span class="story-total">/ 04</span>
+          </div>
+          <div class="story-line"><span id="story-fill"></span></div>
+        </div>
+        <ol class="steps story-steps">
+        <li class="step" data-step="0" data-reveal="up">
           <img src="assets/bts/step-1.svg" alt="Placeholder for a scene-build screenshot" width="640" height="400" loading="lazy" decoding="async">
           <span class="step-n">01</span>
           <h3>Scene build</h3>
           <p>Terrain, rocks and vegetation are assembled in Unreal Engine 5. High-detail geometry keeps close-ups sharp.</p>
         </li>
-        <li class="step">
+        <li class="step" data-step="1" data-reveal="up">
           <img src="assets/bts/step-2.svg" alt="Placeholder for a lighting screenshot" width="640" height="400" loading="lazy" decoding="async">
           <span class="step-n">02</span>
           <h3>Lighting</h3>
           <p>Sun, sky and atmosphere are lit with real-time global illumination, tuned for natural, photoreal light.</p>
         </li>
-        <li class="step">
+        <li class="step" data-step="2" data-reveal="up">
           <img src="assets/bts/step-3.svg" alt="Placeholder for a camera setup screenshot" width="640" height="400" loading="lazy" decoding="async">
           <span class="step-n">03</span>
           <h3>Cinematic camera</h3>
           <p>Virtual cameras with real-world lens settings move slowly and smoothly, the way a film crew would shoot.</p>
         </li>
-        <li class="step">
+        <li class="step" data-step="3" data-reveal="up">
           <img src="assets/bts/step-4.svg" alt="Placeholder for a render output screenshot" width="640" height="400" loading="lazy" decoding="async">
           <span class="step-n">04</span>
           <h3>4K render</h3>
           <p>Final frames are rendered offline at 3840 × 2160, then checked shot by shot before upload.</p>
         </li>
-      </ol>
+        </ol>
+      </div>
     </section>
 
     <!-- Objection handling -->
