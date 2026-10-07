@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://YOUR_USERNAME.github.io/nature-footage/sitemap.xml
+Sitemap: https://mai-dang-khoa.github.io/nature-footage/sitemap.xml

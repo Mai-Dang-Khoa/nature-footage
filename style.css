@@ -17,6 +17,7 @@
   --clear: rgba(7, 10, 8, 0);      /* transparent stop in gradients */
   --glow: rgba(235, 234, 228, .09); /* soft light, never colored */
   --sheen: rgba(255, 255, 255, .45); /* light sweep across accent buttons */
+  --dim: .72;                /* inactive story steps: muted text still ≥ 4.5:1 */
 
   /* The ONLY accent. Use for: purchase buttons, the hero "Browse Collection" button, focus rings. Nothing else. */
   --accent: #e8b464;
@@ -398,10 +399,10 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 300; line-height: va
   .story-line { grid-column: 1; grid-row: 1 / 3; width: 2px; background: var(--border); border-radius: var(--r-pill); overflow: hidden; }
   .story-line span { display: block; height: 100%; background: var(--text); transform-origin: top center; transform: scaleY(var(--story-p, 0)); }
   .story-steps { gap: 0; }
-  .story-steps .step { display: flex; flex-direction: column; justify-content: center; min-height: 80vh; opacity: .35; transition: opacity var(--dur-slow) var(--ease-in-out); }
+  .story-steps .step { display: flex; flex-direction: column; justify-content: center; min-height: 80vh; opacity: var(--dim); transition: opacity var(--dur-slow) var(--ease-in-out); }
   .story-steps .step.is-active { opacity: 1; }
   /* desktop steps are dimmed/lit by the story itself, not by the scroll reveal */
-  html.js .story .story-steps .step[data-reveal] { animation: none; translate: none; opacity: .35; transition: opacity var(--dur-slow) var(--ease-in-out); }
+  html.js .story .story-steps .step[data-reveal] { animation: none; translate: none; opacity: var(--dim); transition: opacity var(--dur-slow) var(--ease-in-out); }
   html.js .story .story-steps .step[data-reveal].is-active { opacity: 1; }
   .story-steps .step img { display: none; }
   .story-steps .step h3 { font-size: var(--fs-h2); }
@@ -637,6 +638,10 @@ dialog.closing::backdrop { animation: fade-out calc(var(--dur-med) * .75) var(--
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  *, *::before, *::after { animation: none !important; transition-duration: 1ms !important; transition-delay: 0ms !important; }
+  /* no movement: transforms change instantly; only opacity cross-fades (200ms) */
+  *, *::before, *::after { animation: none !important; transition-property: opacity !important; transition-duration: 200ms !important; transition-delay: 0ms !important; transition-timing-function: linear !important; }
+  html dialog[open] { animation: fade-in 200ms linear !important; }
+  html dialog[open]::backdrop { animation: fade-in 200ms linear !important; }
   .card:hover, .card:focus-within, .card.active { transform: none; }
+  .card:hover .card-media > *, .card:focus-within .card-media > *, .card.active .card-media > * { scale: none; }
 }

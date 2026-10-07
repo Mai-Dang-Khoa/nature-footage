@@ -305,9 +305,15 @@
     if (current === cardEl) current = null;
   }
 
+  // a preview never keeps playing off screen
+  const offscreenIO = new IntersectionObserver((entries) => entries.forEach((e) => {
+    if (!e.isIntersecting) { const v = e.target.querySelector(".card-video"); if (v) v.pause(); if (current === e.target) stop(e.target); }
+  }));
+
   function play(cardEl, src) {
     if (current && current !== cardEl) stop(current);
     current = cardEl;
+    offscreenIO.observe(cardEl);
     if (reducedMotion || !src) return;
     let v = cardEl.querySelector(".card-video");
     if (!v) {
@@ -950,11 +956,11 @@
         description: `${v.title} — ${v.category} nature footage in ${v.resolution}, created in Unreal Engine 5.`,
         thumbnailUrl: abs(v.poster || v.thumbnail),
         contentUrl: abs(v.preview),
-        url: v.stockUrl,
-        keywords: (v.tags || []).join(", "),
+        keywords: (v.tags || []).filter((t) => t !== "sample" && t !== "placeholder").join(", "),
         duration: isoDuration(v.duration),
       };
-      if (v.uploadDate) o.uploadDate = v.uploadDate;
+      if (isReal(v.stockUrl)) o.url = v.stockUrl;
+      if (v.uploadDate || v.addedAt) o.uploadDate = v.uploadDate || v.addedAt;
       return o;
     });
     const s = el("script", { type: "application/ld+json" });
