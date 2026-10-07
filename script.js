@@ -402,6 +402,9 @@
   // Max 4° tilt (perspective 900px) plus the -4px lift; eases back with lerp (no bounce).
   // While the pointer is over the buy button the card holds still, so the button never moves under the click.
   function tilt(cardEl, buy) {
+    // max level: up to 6° and the CSS layer gets --rx/--ry for inner parallax, edge light and shadow
+    const maxFx = Motion.fx && Motion.fx.max && Motion.fx.enabled("tilt");
+    const AMP = maxFx ? 12 : 8;
     const s = { rx: 0, ry: 0, lift: 0 }, t = { rx: 0, ry: 0, lift: 0 };
     let rect = null, running = false, hold = false;
     const tick = () => {
@@ -411,6 +414,7 @@
       const done = Math.abs(s.rx - t.rx) + Math.abs(s.ry - t.ry) + Math.abs(s.lift - t.lift) < 0.01;
       if (done && !t.lift) { cardEl.style.transform = ""; cardEl.style.willChange = ""; running = false; return false; }
       cardEl.style.transform = `perspective(900px) translateY(${s.lift.toFixed(2)}px) rotateX(${s.rx.toFixed(2)}deg) rotateY(${s.ry.toFixed(2)}deg)`;
+      if (maxFx) { cardEl.style.setProperty("--rx", s.rx.toFixed(2)); cardEl.style.setProperty("--ry", s.ry.toFixed(2)); }
       running = !done;
       return running;
     };
@@ -424,8 +428,8 @@
     cardEl.addEventListener("pointermove", (e) => {
       if (e.pointerType !== "mouse" || !rect || hold) return;
       const x = (e.clientX - rect.left) / rect.width, y = (e.clientY - rect.top) / rect.height;
-      t.ry = (x - 0.5) * 8;   // ±4°
-      t.rx = (0.5 - y) * 8;
+      t.ry = (x - 0.5) * AMP;   // ±4° (±6° at max)
+      t.rx = (0.5 - y) * AMP;
       cardEl.style.setProperty("--mx", `${(x * 100).toFixed(1)}%`);
       cardEl.style.setProperty("--my", `${(y * 100).toFixed(1)}%`);
       kick();
@@ -458,10 +462,12 @@
     btn.addEventListener("pointerup", () => { pressed = false; });
     btn.addEventListener("pointerleave", () => { pressed = false; btn.style.translate = ""; });
   }
-  if (Motion.rich) $$(".btn-accent.btn-lg").forEach(magnetic);
+  // at max level fx.js runs a stronger magnetic on every main button (with a fixed hit area)
+  const fxOwns = (g) => Motion.fx && Motion.fx.max && Motion.fx.enabled(g);
+  if (Motion.rich && !fxOwns("magnetic")) $$(".btn-accent.btn-lg").forEach(magnetic);
 
   /* ---------- Cursor label over clip cards (desktop, capable devices) ---------- */
-  if (Motion.rich) {
+  if (Motion.rich && !fxOwns("cursor")) {
     const label = el("div", { class: "cursor-label", "aria-hidden": "true", text: "Play" });
     document.body.append(label);
     const pos = { x: 0, y: 0 };

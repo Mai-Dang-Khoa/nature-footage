@@ -226,7 +226,9 @@
     heroShade.after(vignette, leak, grain);
   }
   if (hero && M.fx.max && M.finePointer && M.rich) {
-    const layers = [[heroMedia, -8], [mist, -14], [() => particlesCanvas, -22], [heroInner, -12]];
+    // the buttons are left out on purpose: they must never move under the pointer
+    const textLayers = $$(":scope > :not(.hero-actions)", heroInner).map((n) => [n, -12]);
+    const layers = [[heroMedia, -8], [mist, -14], [() => particlesCanvas, -22], ...textLayers];
     let running = false;
     const tick = () => {
       hp.x = M.lerp(hp.x, hp.tx, 0.08);
@@ -466,6 +468,179 @@ void main(){
     const off = M.on("scroll", () => { if (!running && !stopped) { if (!targets.length) collect(); running = true; M.add(tick); } });
     return () => { stopped = true; off(); targets.forEach((t) => (t.style.transform = "")); };
   });
+
+  /* ---------- Hover ripple on card images (SVG displacement, settles in 400ms) ---------- */
+  register("distort", () => {
+    if (!M.finePointer) return null;
+    const NS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("class", "fx-svg"); svg.setAttribute("aria-hidden", "true");
+    svg.innerHTML = '<filter id="fx-ripple" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.010 0.026" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter>';
+    document.body.append(svg);
+    const disp = svg.querySelector("feDisplacementMap"), turb = svg.querySelector("feTurbulence");
+    let target = null, start = 0, running = false;
+    const DUR = M.ms("--dur-slow") || 400;
+    const tick = (t) => {
+      if (!target) { running = false; return false; }
+      const p = M.clamp((t - start) / DUR);
+      const e = 1 - Math.pow(1 - p, 3);
+      disp.setAttribute("scale", (26 * (1 - e)).toFixed(2));
+      turb.setAttribute("baseFrequency", `${(0.010 + 0.006 * e).toFixed(4)} ${(0.026 - 0.01 * e).toFixed(4)}`);
+      if (p >= 1) { target.style.filter = ""; target = null; running = false; return false; }
+      return true;
+    };
+    const onEnter = (e) => {
+      if (e.pointerType !== "mouse") return;
+      const card = e.target.closest && e.target.closest(".card");
+      if (!card || (e.relatedTarget && card.contains(e.relatedTarget))) return;
+      const img = $(".card-thumb", card);
+      if (!img) return;
+      if (target && target !== img) target.style.filter = "";
+      target = img; img.style.filter = "url(#fx-ripple)"; start = performance.now();
+      if (!running) { running = true; M.add(tick); }
+    };
+    document.addEventListener("pointerover", onEnter, { passive: true });
+    return () => { document.removeEventListener("pointerover", onEnter); if (target) target.style.filter = ""; target = null; svg.remove(); };
+  });
+
+  /* ---------- Magnetic buttons: visual copy follows the pointer, hit area stays put ---------- */
+  register("magnetic", () => {
+    const SEL = ".btn-accent, .hero-actions .btn-outline, .fav-btn";
+    const states = new Map();
+    let running = false;
+    const prepare = (btn) => {
+      if (btn.classList.contains("mag")) return btn._mag;
+      const face = el("span", "mag-face");
+      face.setAttribute("aria-hidden", "true");
+      face.textContent = btn.textContent.trim();
+      btn.classList.add("mag");
+      btn.append(face);
+      btn._mag = { btn, face, x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, pressed: false };
+      return btn._mag;
+    };
+    const tick = () => {
+      let moving = false;
+      states.forEach((m) => {
+        const sx = { x: m.x, v: m.vx }, sy = { x: m.y, v: m.vy };
+        const a = M.spring(sx, m.tx, 0.16, 0.72), b = M.spring(sy, m.ty, 0.16, 0.72);
+        m.x = sx.x; m.vx = sx.v; m.y = sy.x; m.vy = sy.v;
+        m.face.style.translate = `${m.x.toFixed(2)}px ${m.y.toFixed(2)}px`;
+        if (a || b) moving = true; else if (!m.tx && !m.ty) states.delete(m.btn);
+      });
+      running = moving || states.size > 0 && [...states.values()].some((m) => m.tx || m.ty);
+      return running;
+    };
+    const kick = () => { if (!running) { running = true; M.add(tick); } };
+    const onMove = (e) => {
+      if (e.pointerType !== "mouse") return;
+      const btn = e.target.closest && e.target.closest(SEL);
+      states.forEach((m) => { if (m.btn !== btn) { m.tx = 0; m.ty = 0; } });
+      if (btn && !(btn.id === "m-fav")) {
+        const m = prepare(btn);
+        if (!m.pressed) {
+          const r = btn.getBoundingClientRect();
+          m.tx = M.clamp((e.clientX - (r.left + r.width / 2)) / (r.width / 2), -1, 1) * 10;
+          m.ty = M.clamp((e.clientY - (r.top + r.height / 2)) / (r.height / 2), -1, 1) * 8;
+        }
+        states.set(btn, m);
+      }
+      kick();
+    };
+    const onDown = (e) => { const btn = e.target.closest && e.target.closest(".mag"); if (btn && btn._mag) btn._mag.pressed = true; };
+    const onUp = () => states.forEach((m) => { m.pressed = false; });
+    document.addEventListener("pointermove", onMove, { passive: true });
+    document.addEventListener("pointerdown", onDown, { passive: true });
+    document.addEventListener("pointerup", onUp, { passive: true });
+    return () => {
+      document.removeEventListener("pointermove", onMove); document.removeEventListener("pointerdown", onDown); document.removeEventListener("pointerup", onUp);
+      $$(".mag").forEach((b) => { b.classList.remove("mag"); b._mag && b._mag.face.remove(); b._mag = null; });
+    };
+  });
+
+  /* ---------- Context cursor: Play/View on cards, Drag on rows, Buy on buy buttons, grows on links ---------- */
+  register("cursor", () => {
+    const c = el("div", "fx-cursor");
+    c.setAttribute("aria-hidden", "true");
+    const label = el("span");
+    c.append(label);
+    document.body.append(c);
+    const pos = { x: M.pointer.x, y: M.pointer.y };
+    let running = false, mode = "";
+    const tick = () => {
+      pos.x = M.lerp(pos.x, M.pointer.x, 0.18); pos.y = M.lerp(pos.y, M.pointer.y, 0.18);
+      c.style.transform = `translate3d(${pos.x.toFixed(1)}px, ${pos.y.toFixed(1)}px, 0)`;
+      running = Math.abs(pos.x - M.pointer.x) + Math.abs(pos.y - M.pointer.y) > 0.3;
+      return running;
+    };
+    const setMode = (m, text = "") => {
+      if (m === mode && label.textContent === text) return;
+      mode = m; label.textContent = text;
+      c.classList.toggle("label", m === "label"); c.classList.toggle("grow", m === "grow");
+    };
+    const onOver = (e) => {
+      if (e.pointerType && e.pointerType !== "mouse") return;
+      const t = e.target;
+      const card = t.closest && t.closest(".card-hit");
+      if (card) setMode("label", card.closest(".card").classList.contains("playing") ? "View" : "Play");
+      else if (t.closest && t.closest(".btn-accent")) setMode("label", "Buy");
+      else if (t.closest && t.closest("a, button, summary, input, [role='button']")) setMode("grow");
+      else if (t.closest && t.closest(".row-track")) setMode("label", "Drag");
+      else setMode("");
+      c.classList.add("on");
+    };
+    const onMove = () => { if (!running) { running = true; M.add(tick); } };
+    const onLeave = (e) => { if (!e.relatedTarget) c.classList.remove("on"); };
+    document.addEventListener("pointerover", onOver, { passive: true });
+    document.addEventListener("pointermove", onMove, { passive: true });
+    document.addEventListener("pointerout", onLeave, { passive: true });
+    return () => { document.removeEventListener("pointerover", onOver); document.removeEventListener("pointermove", onMove); document.removeEventListener("pointerout", onLeave); c.remove(); };
+  });
+
+  /* ---------- Rows: drag with the mouse, with momentum and a soft elastic edge ---------- */
+  if (M.fx.max && M.finePointer) {
+    let drag = null;
+    document.addEventListener("pointerdown", (e) => {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      const track = e.target.closest && e.target.closest(".row-track");
+      if (!track || e.target.closest(".btn, .fav-btn, a")) return;
+      drag = { track, x0: e.clientX, s0: track.scrollLeft, last: e.clientX, t: performance.now(), v: 0, moved: false, pull: 0 };
+    });
+    window.addEventListener("pointermove", (e) => {
+      if (!drag) return;
+      const dx = e.clientX - drag.x0;
+      if (!drag.moved && Math.abs(dx) < 6) return;
+      if (!drag.moved) { drag.moved = true; drag.track.classList.add("dragging"); }
+      const max = drag.track.scrollWidth - drag.track.clientWidth;
+      const want = drag.s0 - dx;
+      drag.track.scrollLeft = M.clamp(want, 0, max);
+      // past the ends the row stretches a little (35% resistance)
+      drag.pull = want < 0 ? -want * 0.35 : want > max ? -(want - max) * 0.35 : 0;
+      drag.track.style.translate = drag.pull ? `${M.clamp(drag.pull, -60, 60).toFixed(1)}px 0` : "";
+      const now = performance.now();
+      drag.v = M.lerp(drag.v, (e.clientX - drag.last) / Math.max(1, now - drag.t), 0.4);
+      drag.last = e.clientX; drag.t = now;
+    }, { passive: true });
+    window.addEventListener("pointerup", () => {
+      if (!drag) return;
+      const d = drag;
+      drag = null;
+      if (!d.moved) return;
+      // swallow the click that ends a drag
+      const stop = (ev) => { ev.stopPropagation(); ev.preventDefault(); };
+      d.track.addEventListener("click", stop, { capture: true, once: true });
+      setTimeout(() => d.track.removeEventListener("click", stop, { capture: true }), 50);
+      let v = -d.v * 16, pull = M.clamp(d.pull, -60, 60);
+      M.add(() => {
+        v *= 0.94;
+        d.track.scrollLeft += v;
+        pull = M.lerp(pull, 0, 0.18);
+        d.track.style.translate = Math.abs(pull) > 0.3 ? `${pull.toFixed(1)}px 0` : "";
+        if (Math.abs(v) > 0.3 || Math.abs(pull) > 0.3) return true;
+        d.track.classList.remove("dragging"); // scroll-snap takes over again
+        return false;
+      });
+    });
+  }
 
   /* ---------- Pause everything when the tab is hidden ---------- */
   document.addEventListener("visibilitychange", () => M.emit("visibility", !document.hidden));

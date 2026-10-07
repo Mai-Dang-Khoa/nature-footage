@@ -125,3 +125,54 @@ html[data-fx="max"] .tones { position: fixed; inset: 0; z-index: -1; display: bl
 }
 @keyframes ken-burns { from { scale: 1; } to { scale: 1.08; } }
 html.fx-no-distort .row-track, html.fx-no-distort #grid, html.fx-no-distort .story-frame { transform: none !important; }
+
+/* ==========================================================================
+   Cards at max: deeper tilt (script.js feeds --rx/--ry), inner parallax,
+   edge light that follows the pointer, a long soft shadow that leans with
+   the tilt, two-way peel-in, displacement ripple on hover (distort group)
+   ========================================================================== */
+html[data-fx="max"]:not(.fx-no-tilt) .card-media { translate: calc(var(--ry, 0) * -1.4px) calc(var(--rx, 0) * 1.4px); }
+html[data-fx="max"]:not(.fx-no-tilt) .card-inner::after { content: ""; position: absolute; inset: 0; z-index: 5; padding: 1px; border-radius: inherit; background: radial-gradient(180px circle at var(--mx) var(--my), rgba(235, 234, 228, .6), transparent 65%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; pointer-events: none; transition: opacity var(--dur-med) var(--ease-out); }
+html[data-fx="max"]:not(.fx-no-tilt) .card:hover .card-inner::after { opacity: 1; }
+html[data-fx="max"]:not(.fx-no-tilt) .card::before { content: ""; position: absolute; inset: 12% 8% -6%; z-index: -1; border-radius: var(--r-lg); background: rgba(0, 0, 0, .6); filter: blur(24px); opacity: 0; transform: translate(calc(var(--ry, 0) * -2px), calc(18px + var(--rx, 0) * 2px)); transition: opacity var(--dur-med) var(--ease-out); pointer-events: none; }
+html[data-fx="max"]:not(.fx-no-tilt) .card:hover::before { opacity: 1; }
+/* odd cards peel in from the bottom, even cards from the top */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    html[data-fx="max"].js.sda .card:nth-child(even) .card-media[data-reveal] { animation-name: rv-clip-down; }
+  }
+}
+html[data-fx="max"].js:not(.sda) .card:nth-child(even) .card-media[data-reveal]:not(.is-in) { clip-path: inset(0 0 100% 0); }
+@keyframes rv-clip-down { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
+.fx-svg { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* ==========================================================================
+   Magnetic buttons (max): the button keeps its place and hit area; a visual
+   copy (.mag-face, aria-hidden) is pulled toward the pointer (≤10px)
+   ========================================================================== */
+.mag { color: transparent !important; background: transparent !important; border-color: transparent !important; box-shadow: none !important; overflow: visible !important; isolation: isolate; }
+.mag::before, .mag::after { opacity: 0 !important; }
+.mag-face { position: absolute; inset: 0; z-index: -1; display: flex; align-items: center; justify-content: center; gap: var(--s-2); border-radius: inherit; font: inherit; white-space: nowrap; pointer-events: none; overflow: hidden; transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+.btn-accent.mag .mag-face { background: var(--accent); color: var(--accent-ink); }
+.btn-accent.mag:hover .mag-face { background: var(--accent-hover); }
+.btn-accent.mag[target="_blank"] .mag-face::after { content: "↗"; font-weight: 500; }
+.btn-accent.mag .mag-face::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(105deg, transparent 30%, var(--sheen) 50%, transparent 70%); translate: -120% 0; }
+.btn-accent.mag:hover .mag-face::before { translate: 120% 0; transition: translate var(--dur-reveal) var(--ease-out); }
+.btn-outline.mag .mag-face { border: 1px solid var(--border-strong); color: var(--text); }
+.btn-outline.mag:hover .mag-face { border-color: var(--text); }
+.fav-btn.mag .mag-face { background: var(--glass); color: var(--text); }
+.fav-btn.mag[aria-pressed="true"] .mag-face { background: var(--text); color: var(--bg); }
+.mag:active .mag-face { scale: var(--press); }
+
+/* ==========================================================================
+   Context cursor (max, desktop): a lagging ring that changes with what is under it
+   ========================================================================== */
+.fx-cursor { position: fixed; top: 0; left: 0; z-index: 90; width: 36px; height: 36px; margin: -18px 0 0 -18px; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, .9); border-radius: 50%; color: #000; font: 600 var(--fs-micro) var(--font-ui); letter-spacing: .08em; text-transform: uppercase; pointer-events: none; mix-blend-mode: difference; opacity: 0; transition: opacity var(--dur-fast) var(--ease-out), scale var(--dur-med) var(--ease-out), background var(--dur-fast) var(--ease-out); }
+.fx-cursor.on { opacity: 1; }
+.fx-cursor.label { scale: 2; background: rgba(255, 255, 255, .95); }
+.fx-cursor.grow { scale: 1.6; }
+.fx-cursor span { scale: .5; }
+html.fx-no-cursor .fx-cursor { display: none; }
+
+/* drag-to-scroll rows (desktop) */
+html[data-fx="max"] .row-track.dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
