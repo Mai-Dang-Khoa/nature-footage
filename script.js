@@ -7,8 +7,8 @@
   const countEl = $("#result-count"), emptyEl = $("#empty"), errorEl = $("#load-error");
   const moreBtn = $("#show-more"), activeEl = $("#active-filters");
 
-  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const canHover = matchMedia("(hover: hover) and (pointer: fine)").matches;
+  const reducedMotion = Motion.reduced;
+  const canHover = Motion.finePointer;
   const autoPreview = canHover && !reducedMotion;
   const PAGE_SIZE = 12;
 
@@ -20,19 +20,31 @@
   $("#year").textContent = new Date().getFullYear();
 
   /* ---------- Data ---------- */
-  async function loadJson(file, fallbackId) {
+  // Reads a JSON file; on network/parse/shape errors falls back to the copy embedded in index.html,
+  // so the page is never blank.
+  async function loadJson(file, fallbackId, isValid) {
+    const fallback = () => {
+      const fb = document.getElementById(fallbackId);
+      const data = fb && fb.textContent.trim() ? JSON.parse(fb.textContent) : null;
+      if (!isValid(data)) throw new Error(`No usable data for ${file}`);
+      return data;
+    };
     try {
       // fetch is blocked on file:// — use the embedded fallback copy instead
-      if (location.protocol === "file:") throw new Error("file protocol");
-      const res = await fetch(file);
+      if (location.protocol === "file:") return fallback();
+      const res = await fetch(file, { cache: "no-cache" });
       if (!res.ok) throw new Error(res.status);
-      return await res.json();
-    } catch (err) {
-      const fb = document.getElementById(fallbackId);
-      if (fb && fb.textContent.trim()) return JSON.parse(fb.textContent);
-      throw err;
+      const data = await res.json();
+      return isValid(data) ? data : fallback();
+    } catch {
+      return fallback();
     }
   }
+  const validVideos = (d) => Array.isArray(d) && d.some((x) => x && x.id && x.title);
+  const validSite = (d) => !!d && typeof d === "object" && !Array.isArray(d);
+
+  // A value counts as real only if it is filled in and is not a [YOUR_...] placeholder.
+  const isReal = (x) => typeof x === "string" && x.trim() !== "" && !x.includes("[YOUR_");
 
   /* ---------- Helpers ---------- */
   function el(tag, props = {}, children = []) {
@@ -264,7 +276,7 @@
     const fav = favButton(v);
     fav.setAttribute("aria-pressed", String(isFav(v.id)));
 
-    const cardEl = el("article", { class: "card", "data-id": v.id }, [
+    const cardEl = el("article", { class: "card", "data-id": v.id, "data-reveal": "up" }, [
       el("img", { class: "card-thumb", src: v.thumbnail, alt: "", loading: "lazy", width: "640", height: "360", decoding: "async" }),
       el("div", { class: "card-shade" }),
       hit,
@@ -306,7 +318,7 @@
     const g = $("#featured-grid");
     g.replaceChildren(...list.map((v) => card(v, list)));
     g.setAttribute("aria-busy", "false");
-    revealCards(g);
+    Motion.reveal(g);
   }
 
   /* ---------- Use cases ---------- */
@@ -348,7 +360,7 @@
           c.description ? el("p", { class: "muted", text: c.description }) : null,
           el("div", { class: "set-actions" }, [
             browse,
-            c.stockUrl ? el("a", { class: "btn btn-accent", href: withUtm(c.stockUrl, c.id), target: "_blank", rel: "noopener noreferrer", "data-track": "buy_click", "data-clip": c.id, text: "View full set on Adobe Stock" }) : null,
+            isReal(c.collectionUrl || c.stockUrl) ? el("a", { class: "btn btn-accent", href: withUtm(c.collectionUrl || c.stockUrl, c.id), target: "_blank", rel: "noopener noreferrer", "data-track": "buy_click", "data-clip": c.id, text: "View full set on Adobe Stock" }) : null,
           ]),
         ]),
       ]);
@@ -377,12 +389,13 @@
   /* ---------- Free sample ---------- */
   function renderFreeSample() {
     const f = site.freeSample;
-    if (!f || !f.enabled || !f.url) return;
+    const file = f && (f.file || f.url);
+    if (!f || f.enabled === false || !isReal(file)) return;
     $("#free-title").textContent = f.title || "Free sample clip";
-    $("#free-desc").textContent = f.description || "";
+    $("#free-desc").textContent = f.note || f.description || "";
     $("#free-spec").textContent = [f.resolution, "Free download", "No sign-up"].filter(Boolean).join("  ·  ");
     if (f.thumbnail) $("#free-thumb").src = f.thumbnail;
-    $("#free-download").href = f.url;
+    $("#free-download").href = file;
     $("#free-more").href = mailto("More free samples");
     $("#free-sample").hidden = false;
   }
@@ -423,7 +436,7 @@
     current = null;
     grid.replaceChildren(...list.slice(0, shown).map((v) => card(v, list)));
     grid.setAttribute("aria-busy", "false");
-    revealCards(grid);
+    Motion.reveal(grid);
     emptyEl.hidden = list.length > 0;
     moreBtn.hidden = list.length <= shown;
     moreBtn.textContent = `Show more (${list.length - Math.min(shown, list.length)} left)`;
@@ -661,36 +674,12 @@
   window.addEventListener("scroll", () => { if (!navTicking) { navTicking = true; requestAnimationFrame(updateNav); } }, { passive: true });
   updateNav();
 
-  /* ---------- Reveal on scroll (once per element) ---------- */
-  const revealIO = !reducedMotion && "IntersectionObserver" in window
-    ? new IntersectionObserver((entries) => entries.forEach((e) => {
-      if (e.isIntersecting) { e.target.classList.add("in"); revealIO.unobserve(e.target); }
-    }), { rootMargin: "0px 0px -8% 0px" })
-    : null;
-
-  function reveal(nodes) {
-    if (!revealIO) return;
-    nodes.forEach((n) => { n.classList.add("reveal"); revealIO.observe(n); });
-  }
-
-  // cards in the same row are staggered by --stagger-card
-  function revealCards(g) {
-    if (!revealIO) return;
-    const cols = getComputedStyle(g).gridTemplateColumns.split(" ").length || 1;
-    $$(".card", g).forEach((c, i) => c.style.setProperty("--delay", `calc(${i % cols} * var(--stagger-card))`));
-    reveal($$(".card", g));
-  }
-
-  function initReveal() {
-    reveal($$(".section-head, .controls, .usecases, .sets, .free, .steps, .faq-list, .about-body, .links, .finale > *"));
-  }
-
   /* ---------- Init ---------- */
   Promise.all([
-    loadJson("videos.json", "videos-fallback"),
-    loadJson("site.json", "site-fallback").catch(() => ({})),
+    loadJson("videos.json", "videos-fallback", validVideos),
+    loadJson("site.json", "site-fallback", validSite).catch(() => ({})),
   ]).then(([v, s]) => {
-    videos = Array.isArray(v) ? v : [];
+    videos = v.filter((x) => x && x.id && x.title);
     site = s || {};
     applySite();
     initAnalytics();
@@ -703,7 +692,7 @@
     renderFreeSample();
     syncFavs(false);
     injectJsonLd();
-    initReveal();
+    Motion.reveal(document);
     initHero(videos.find((x) => x.featured) || videos[0]);
     openFromHash();
   }).catch(() => {

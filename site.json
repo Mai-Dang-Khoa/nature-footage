@@ -1,9 +1,10 @@
 {
-  "_note": "SAMPLE DATA - replace every [YOUR_...] value. Empty arrays/strings hide their section.",
+  "_note": "SAMPLE DATA. Replace every [YOUR_...] value. Values that are empty or still contain [YOUR_ are treated as missing: the button or block that needs them is hidden.",
   "brandName": "Wild Frames",
   "ownerName": "[YOUR_NAME]",
   "tagline": "Photoreal 4K nature footage, built in Unreal Engine 5.",
-  "email": "[YOUR_EMAIL]@example.com",
+  "story": "",
+  "email": "[YOUR_EMAIL]",
   "adobeStockProfileUrl": "https://stock.adobe.com/contributor/[YOUR_ID]",
   "adobeLicenseUrl": "https://stock.adobe.com/license-terms",
   "social": [
@@ -16,37 +17,62 @@
       "url": "https://www.shutterstock.com/g/[YOUR_ID]"
     }
   ],
+  "analytics": {
+    "provider": "",
+    "id": ""
+  },
+  "freeSample": {
+    "title": "Free sample clip",
+    "file": "assets/free/free-sample-720p.mp4",
+    "note": "A short, lower-resolution version of a clip from the collection. Free to download, no sign-up.",
+    "resolution": "1280×720",
+    "thumbnail": "assets/thumbs/sample-1.svg"
+  },
   "stats": {
     "showClipCount": false,
     "items": []
   },
   "trustedBy": [],
-  "freeSample": {
-    "enabled": true,
-    "title": "Free sample clip",
-    "description": "A short, lower-resolution version of a real clip from the collection, free to download.",
-    "url": "assets/free/free-sample-720p.mp4",
-    "resolution": "1280×720",
-    "thumbnail": "assets/thumbs/sample-1.svg"
-  },
   "collections": [
     {
       "id": "forest-mornings",
       "name": "Forest Mornings (sample)",
       "description": "Soft light through trees and falling water.",
-      "stockUrl": ""
+      "collectionUrl": ""
     },
     {
       "id": "ocean-waves",
       "name": "Ocean Waves (sample)",
       "description": "Open water and evening skies.",
-      "stockUrl": ""
+      "collectionUrl": ""
     },
     {
       "id": "wild-horizons",
       "name": "Wild Horizons (sample)",
       "description": "Peaks, dunes and wide open space.",
-      "stockUrl": ""
+      "collectionUrl": ""
+    }
+  ],
+  "moods": [
+    {
+      "id": "calm",
+      "label": "Calm"
+    },
+    {
+      "id": "epic",
+      "label": "Epic"
+    },
+    {
+      "id": "moody",
+      "label": "Moody"
+    },
+    {
+      "id": "warm",
+      "label": "Warm"
+    },
+    {
+      "id": "fresh",
+      "label": "Fresh"
     }
   ],
   "useCases": [
@@ -75,9 +101,5 @@
       "label": "Presentations",
       "description": "Backgrounds that sit behind text."
     }
-  ],
-  "analytics": {
-    "provider": "",
-    "id": ""
-  }
+  ]
 }
