@@ -128,22 +128,33 @@
   });
 
   /* ---------- Site settings ---------- */
+  // Everything that depends on site.json. Missing or [YOUR_...] values hide the button/block that needs them,
+  // so the page never shows an empty mailto: or a placeholder link.
   function applySite() {
-    $$("[data-site]").forEach((n) => { if (site[n.dataset.site]) n.textContent = site[n.dataset.site]; });
+    $$("[data-site]").forEach((n) => { if (isReal(site[n.dataset.site])) n.textContent = site[n.dataset.site]; });
     $$("[data-site-href]").forEach((n) => {
       const url = site[n.dataset.siteHref];
-      if (url) n.href = n.dataset.utm ? withUtm(url, n.dataset.utm) : url;
+      if (isReal(url)) { n.href = n.dataset.utm ? withUtm(url, n.dataset.utm) : url; n.hidden = false; }
+      else n.hidden = true;
     });
-    $$(".js-mailto").forEach((n) => (n.href = mailto(n.dataset.subject || "Hello")));
+    const hasEmail = isReal(site.email) && site.email.includes("@");
+    $$(".js-mailto").forEach((n) => (n.href = hasEmail ? mailto(n.dataset.subject || "Hello") : "#"));
+    $$("[data-needs='email']").forEach((n) => (n.hidden = !hasEmail));
+    $("#owner-name").textContent = isReal(site.ownerName) ? site.ownerName : (isReal(site.brandName) ? site.brandName : "Wild Frames");
+    if (isReal(site.story)) { $("#about-story").textContent = site.story; $("#about-story").hidden = false; }
 
     const contact = $("#contact-links");
-    (site.social || []).forEach((s) => {
-      const isStock = /stock\.adobe\.com/.test(s.url);
+    (site.social || []).filter((x) => x && isReal(x.url) && x.label).forEach((x) => {
+      const isStock = /stock\.adobe\.com/.test(x.url);
       contact.append(el("li", {}, [el("a", {
-        href: isStock ? withUtm(s.url, "profile_contact") : s.url,
-        target: "_blank", rel: "noopener noreferrer", text: s.label,
+        href: isStock ? withUtm(x.url, "profile_contact") : x.url,
+        target: "_blank", rel: "noopener noreferrer", text: x.label,
       })]));
     });
+    // no way to get in touch yet: hide the Contact block and its menu link
+    const anyContact = $$("#contact-links li").some((li) => !li.hidden);
+    $("#contact").hidden = !anyContact;
+    $$("nav a[href='#contact']").forEach((a) => (a.hidden = !anyContact));
   }
 
   /* ---------- Favorites / shortlist ---------- */
@@ -1108,6 +1119,26 @@
       storyFill.style.setProperty("--story-p", p.toFixed(4));
     });
   }
+
+  /* ---------- FAQ accordion: height eases open via grid-template-rows 0fr → 1fr ---------- */
+  $$(".faq details").forEach((d) => {
+    const summary = $("summary", d), body = $(".faq-a", d);
+    if (d.open) d.classList.add("is-open");
+    summary.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (!d.open) {
+        d.open = true;
+        if (reducedMotion) { d.classList.add("is-open"); return; }
+        requestAnimationFrame(() => requestAnimationFrame(() => d.classList.add("is-open")));
+      } else {
+        d.classList.remove("is-open");
+        if (reducedMotion) { d.open = false; return; }
+        const done = (ev) => { if (ev && ev.target !== body) return; body.removeEventListener("transitionend", done); if (!d.classList.contains("is-open")) d.open = false; };
+        body.addEventListener("transitionend", done);
+        setTimeout(done, Motion.ms("--dur-med") + 50);
+      }
+    });
+  });
 
   /* ---------- Init ---------- */
   Promise.all([

@@ -187,7 +187,7 @@
           <p class="spec-line" id="free-spec"></p>
           <div class="free-actions">
             <a id="free-download" class="btn btn-light" href="#" download data-track="free_download">Download free sample</a>
-            <a id="free-more" class="btn btn-outline" href="#" data-track="sample_request">Ask for more samples</a>
+            <a id="free-more" class="btn btn-outline" href="#" data-track="sample_request" data-needs="email">Ask for more samples</a>
           </div>
         </div>
       </div>
@@ -258,23 +258,23 @@
       <div class="faq-list" data-reveal="up">
         <details>
           <summary>Can I use these clips on YouTube, in ads or in a documentary?</summary>
-          <p>All clips are licensed through Adobe Stock, and what you can do depends on the license you pick there. License terms are provided by Adobe Stock — <a class="text-link" data-site-href="adobeLicenseUrl" href="https://stock.adobe.com/license-terms" target="_blank" rel="noopener noreferrer">read the Adobe Stock license terms</a>.</p>
+          <div class="faq-a"><div><p>All clips are licensed through Adobe Stock, and what you can do depends on the license you pick there. License terms are provided by Adobe Stock — <a class="text-link" data-site-href="adobeLicenseUrl" href="https://stock.adobe.com/license-terms" target="_blank" rel="noopener noreferrer">read the Adobe Stock license terms</a>.</p></div></div>
         </details>
         <details>
           <summary>Is this real footage?</summary>
-          <p>No. Every scene is computer-generated in Unreal Engine 5. Nothing was filmed on location.</p>
+          <div class="faq-a"><div><p>No. Every scene is computer-generated in Unreal Engine 5. Nothing was filmed on location.</p></div></div>
         </details>
         <details>
           <summary>What file will I get?</summary>
-          <p>Clips are rendered in 4K (3840 × 2160). The exact file format, frame rate and size are listed on each clip's Adobe Stock page before you buy.</p>
+          <div class="faq-a"><div><p>Clips are rendered in 4K (3840 × 2160). The exact file format, frame rate and size are listed on each clip's Adobe Stock page before you buy.</p></div></div>
         </details>
         <details>
           <summary>How do I download after buying?</summary>
-          <p>After you license a clip on Adobe Stock, the full-resolution file is available to download from your Adobe Stock account.</p>
+          <div class="faq-a"><div><p>After you license a clip on Adobe Stock, the full-resolution file is available to download from your Adobe Stock account.</p></div></div>
         </details>
-        <details>
+        <details data-needs="email">
           <summary>Can you make a custom scene or a longer version?</summary>
-          <p>Get in touch by <a class="js-mailto text-link" data-subject="Custom request" href="mailto:">email</a> with what you need.</p>
+          <div class="faq-a"><div><p>Get in touch by <a class="js-mailto text-link" data-subject="Custom request" href="mailto:">email</a> with what you need.</p></div></div>
         </details>
       </div>
     </section>
@@ -285,7 +285,8 @@
         <!-- EDIT: replace with your own story -->
         <p>Every scene in this collection is built from scratch in Unreal Engine 5 — terrain, vegetation, water, light and atmosphere — and rendered in native 4K.</p>
         <p>The goal is photoreal nature that holds up on a large screen: believable lighting, natural motion and clean, loop-friendly shots for editors and motion designers.</p>
-        <p>[YOUR_STORY] New clips are added regularly. All footage is available to license through stock marketplaces.</p>
+        <p id="about-story" hidden></p>
+        <p>New clips are added regularly. All footage is available to license through stock marketplaces.</p>
       </div>
     </section>
 
@@ -293,7 +294,7 @@
       <div class="section-head"><div><p class="eyebrow" data-reveal="line">Contact</p><h2 data-reveal="mask">Talk to me</h2></div></div>
       <p class="muted">Custom scenes, questions or licensing enquiries:</p>
       <ul class="links" id="contact-links" data-reveal="fade">
-        <li><a class="js-mailto" data-subject="Hello" href="mailto:">Email</a></li>
+        <li data-needs="email"><a class="js-mailto" data-subject="Hello" href="mailto:">Email</a></li>
       </ul>
     </section>
 
@@ -301,13 +302,13 @@
     <section class="finale">
       <h2 data-reveal="mask">Find your next shot.</h2>
       <p class="muted" data-reveal="fade" data-delay="120">Every clip in this collection is available to license on Adobe Stock.</p>
-      <a class="btn btn-accent btn-lg" data-site-href="adobeStockProfileUrl" data-utm="profile_finale" data-track="buy_click" data-clip="profile" href="https://stock.adobe.com/" target="_blank" rel="noopener noreferrer">See all clips on Adobe Stock</a>
+      <a class="btn btn-accent btn-lg finale-cta" data-site-href="adobeStockProfileUrl" data-utm="profile_finale" data-track="buy_click" data-clip="profile" href="#" target="_blank" rel="noopener noreferrer" hidden>See all clips on Adobe Stock</a>
     </section>
   </main>
 
   <footer class="footer">
-    <p>© <span id="year">2025</span> <span data-site="ownerName">[YOUR_NAME]</span>. All rights reserved. Footage is licensed only through the linked stock platforms.</p>
-    <p><a class="text-link" data-site-href="adobeStockProfileUrl" data-utm="profile_footer" href="https://stock.adobe.com/" target="_blank" rel="noopener noreferrer">Adobe Stock profile</a></p>
+    <p>© <span id="year">2025</span> <span id="owner-name">Wild Frames</span>. All rights reserved. Footage is licensed only through the linked stock platforms.</p>
+    <p><a class="text-link" data-site-href="adobeStockProfileUrl" data-utm="profile_footer" href="#" target="_blank" rel="noopener noreferrer" hidden>Adobe Stock profile</a></p>
   </footer>
 
   <!-- Commitment: shortlist bar (shown only when something is saved) -->
