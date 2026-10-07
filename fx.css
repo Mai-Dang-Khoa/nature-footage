@@ -16,3 +16,45 @@
 /* hidden on small screens unless opened with Shift+F or from the footer */
 @media (max-width: 760px) { .fx-switch:not(.shown) { display: none; } }
 body.has-shortlist .fx-switch { bottom: calc(var(--tap) + var(--s-5)); }
+
+/* ==========================================================================
+   Opening curtain (first visit, max): brand rises behind a mask, the black
+   curtain opens from the middle (clip-path), the brand flies to the menu.
+   Total ≤ 1200ms. pointer-events: none, so the page is usable underneath.
+   ========================================================================== */
+:root { --glint: #fff; --glint-glow: rgba(255, 255, 255, .55); --intro-text: 450ms; --intro-open: 700ms; --intro-total: 1150ms; --char-step: 18ms; }
+.intro, .intro-skip { display: none; }
+html.intro-on .intro { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; pointer-events: none; }
+html.intro-on .intro-curtain { position: absolute; inset: 0; background: var(--bg); clip-path: inset(0); animation: curtain-open var(--intro-open) var(--ease-in-out) var(--intro-text) forwards; }
+html.intro-on .intro-brand { position: relative; margin: 0; font: 300 clamp(2.5rem, 7vw, 5.5rem)/1 var(--font-display); letter-spacing: var(--tracking-tight); transform-origin: left center; animation: brand-fly calc(var(--intro-total) - var(--intro-text)) var(--ease-in-out) var(--intro-text) forwards; }
+html.intro-on .intro-mask { display: inline-block; overflow: hidden; overflow: clip; padding-bottom: .1em; }
+html.intro-on .intro-word { display: inline-block; animation: word-up var(--intro-text) var(--ease-out) both; }
+html.intro-on .intro-skip { position: fixed; right: var(--gutter); bottom: var(--s-4); z-index: 101; display: inline-flex; align-items: center; min-height: 40px; padding: var(--s-1) var(--s-3); border: 1px solid var(--border-strong); border-radius: var(--r-pill); background: var(--glass); color: var(--text); font: 600 var(--fs-caption) var(--font-ui); cursor: pointer; animation: fade-in var(--dur-med) var(--ease-out) both; }
+html.intro-on .nav .brand span { opacity: 0; }
+html.intro-done .intro, html.intro-done .intro-skip { display: none; }
+html.intro-done .nav .brand span { opacity: 1; transition: opacity var(--dur-fast) var(--ease-out); }
+@keyframes curtain-open { to { clip-path: inset(50% 0 50% 0); } }
+/* --fly-x / --fly-y / --fly-s are measured by fx.js (brand → menu logo); without JS the brand just fades */
+@keyframes brand-fly { to { opacity: var(--fly-o, 0); transform: translate(var(--fly-x, 0), var(--fly-y, 0)) scale(var(--fly-s, .9)); } }
+
+/* ==========================================================================
+   Hero entrance at max: video from blur + 1.15 zoom to 1.06, title letter by letter
+   ========================================================================== */
+html[data-fx="max"] { --hero-start: 0ms; }
+html[data-fx="max"].intro-on { --hero-start: var(--intro-text); }
+html[data-fx="max"].js .nav { animation-delay: var(--hero-start); }
+html[data-fx="max"].js .hero-media { animation: hero-in var(--dur-hero-in) var(--ease-out) var(--hero-start) both, hero-zoom var(--dur-hero-zoom) var(--ease-in-out) calc(var(--hero-start) + var(--dur-hero-in)) infinite alternate-reverse; }
+:root { --dur-hero-in: 1200ms; }
+@keyframes hero-in { from { opacity: 0; transform: scale(1.15); filter: blur(12px); } to { opacity: 1; transform: scale(1.06); filter: blur(0); } }
+html[data-fx="max"].js .hero-step { animation-delay: calc(var(--hero-start) + var(--i) * var(--stagger-hero)); }
+/* letters: each slides up inside its word mask, 18ms apart (the whole title stays within 700ms) */
+html[data-fx="max"].js:not(.chars-ready) .hero-title { opacity: 0; }
+html[data-fx="max"].js .hero-title .wi.has-chars { animation: none; transform: none; }
+.ch { display: inline-block; }
+html[data-fx="max"].js .hero-title .ch { animation: word-up var(--dur-reveal) var(--ease-out) both; animation-delay: calc(var(--hero-start) + 2 * var(--stagger-hero) + var(--ci) * var(--char-step)); }
+/* like the words, letters wait for the web fonts so the swap never shifts visible text */
+html[data-fx="max"].js:not(.fonts-ready) .hero-title .ch { animation: none; transform: translateY(110%); }
+/* the italic word gets one soft light sweep after it lands */
+html[data-fx="max"] .hero-title em { position: relative; display: inline-block; }
+html[data-fx="max"] .hero-title em::after { content: attr(data-text); position: absolute; inset: 0; color: var(--glint); text-shadow: 0 0 18px var(--glint-glow); clip-path: inset(0 100% 0 0); pointer-events: none; animation: sweep-text var(--dur-hero) var(--ease-in-out) calc(var(--hero-start) + var(--sweep-at, 900ms)) both; }
+@keyframes sweep-text { 0% { clip-path: inset(0 100% 0 0); } 45% { clip-path: inset(0 25% 0 35%); } 100% { clip-path: inset(0 0 0 100%); } }

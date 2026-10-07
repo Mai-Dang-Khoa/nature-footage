@@ -136,6 +136,64 @@
     }
   });
 
+  /* ---------- Hero title, letter by letter (max) ---------- */
+  // Splits each word of the hero title into letters inside the existing word masks.
+  // The whole title stays within 700ms; screen readers get the plain sentence via aria-label.
+  function splitHeroChars() {
+    const h1 = $(".hero-title");
+    if (!h1 || h1.dataset.chars) return;
+    h1.dataset.chars = "1";
+    h1.setAttribute("aria-label", h1.textContent.replace(/\s+/g, " ").trim());
+    let i = 0;
+    $$(".wi", h1).forEach((wi) => {
+      const walk = (node) => [...node.childNodes].forEach((n) => {
+        if (n.nodeType === 3) {
+          const frag = document.createDocumentFragment();
+          [...n.textContent].forEach((ch) => {
+            const s = el("span", "ch", ch);
+            s.setAttribute("aria-hidden", "true");
+            s.style.setProperty("--ci", i++);
+            frag.append(s);
+          });
+          n.replaceWith(frag);
+        } else if (n.nodeType === 1) walk(n);
+      });
+      walk(wi);
+      wi.classList.add("has-chars");
+    });
+    if (i > 1) h1.style.setProperty("--char-step", `${Math.min(18, 700 / (i - 1)).toFixed(2)}ms`);
+  }
+  if (M.fx.max) splitHeroChars();
+  root.classList.add("chars-ready");
+
+  /* ---------- Opening curtain (first visit, max) ---------- */
+  register("intro", () => {
+    if (!root.classList.contains("intro-on")) return null;
+    const brand = $(".intro-brand"), target = $(".nav .brand span"), skip = $("#intro-skip");
+    // measure where the brand has to fly: the menu logo
+    if (brand && target) {
+      const a = brand.getBoundingClientRect(), b = target.getBoundingClientRect();
+      brand.style.setProperty("--fly-x", `${(b.left - a.left).toFixed(1)}px`);
+      brand.style.setProperty("--fly-y", `${(b.top + b.height / 2 - (a.top + a.height / 2)).toFixed(1)}px`);
+      brand.style.setProperty("--fly-s", (b.width / Math.max(1, a.width)).toFixed(3));
+      brand.style.setProperty("--fly-o", "1");
+    }
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      root.classList.add("intro-done");
+      document.removeEventListener("keydown", onKey, true);
+      if (document.activeElement === skip) document.querySelector(".skip")?.focus({ preventScroll: true });
+    };
+    const onKey = (e) => { if (e.key === "Escape") finish(); };
+    document.addEventListener("keydown", onKey, true);
+    skip.addEventListener("click", finish);
+    const total = parseFloat(getComputedStyle(root).getPropertyValue("--intro-total")) || 1150;
+    const timer = setTimeout(finish, total + 60);
+    return () => { clearTimeout(timer); finish(); };
+  });
+
   /* ---------- Pause everything when the tab is hidden ---------- */
   document.addEventListener("visibilitychange", () => M.emit("visibility", !document.hidden));
 

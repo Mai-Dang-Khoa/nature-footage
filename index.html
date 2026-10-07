@@ -50,6 +50,12 @@
       }
       d.setAttribute("data-fx", lvl);
       d.setAttribute("data-fx-source", choice ? "user" : "auto");
+      // Opening curtain: max level, first visit only (never blocks the page; Skip / Esc end it)
+      var visited = "1";
+      try { visited = localStorage.getItem("visited"); localStorage.setItem("visited", "1"); } catch (e) {}
+      if (lvl === "max" && !visited) d.classList.add("intro-on");
+      // safety net for the per-letter hero title: show it even if fx.js never runs
+      setTimeout(function () { d.classList.add("chars-ready"); }, 2000);
       var done = function () { d.classList.add("fonts-ready"); };
       setTimeout(done, 1200);
       // safety net: if motion.js never loads, show everything
@@ -63,6 +69,12 @@
   </script>
 </head>
 <body>
+  <!-- Opening curtain (max level, first visit). Decorative: clicks pass through. -->
+  <div class="intro" id="intro" aria-hidden="true">
+    <div class="intro-curtain"></div>
+    <p class="intro-brand"><span class="intro-mask"><span class="intro-word">Wild Frames</span></span></p>
+  </div>
+  <button class="intro-skip" id="intro-skip" type="button">Skip intro</button>
   <a class="skip" href="#rows">Skip to clips</a>
 
   <div class="progress" id="progress" aria-hidden="true"></div>
@@ -94,7 +106,7 @@
       <div class="hero-inner" id="hero-inner">
         <p class="eyebrow hero-step" style="--i:1">4K nature footage · Made in Unreal Engine 5</p>
         <!-- each word sits in its own mask (.w) and slides up (.wi) -->
-        <h1 class="hero-title" style="--i:2"><span class="w"><span class="wi" style="--wi:0">Worlds</span></span> <span class="w"><span class="wi" style="--wi:1">that</span></span> <span class="w"><span class="wi" style="--wi:2">look</span></span> <span class="w"><span class="wi wi-em" style="--wi:3"><em>real</em>,</span></span><br><span class="w"><span class="wi" style="--wi:4">built</span></span> <span class="w"><span class="wi" style="--wi:5">from</span></span> <span class="w"><span class="wi" style="--wi:6">nothing.</span></span></h1>
+        <h1 class="hero-title" style="--i:2"><span class="w"><span class="wi" style="--wi:0">Worlds</span></span> <span class="w"><span class="wi" style="--wi:1">that</span></span> <span class="w"><span class="wi" style="--wi:2">look</span></span> <span class="w"><span class="wi wi-em" style="--wi:3"><em data-text="real">real</em>,</span></span><br><span class="w"><span class="wi" style="--wi:4">built</span></span> <span class="w"><span class="wi" style="--wi:5">from</span></span> <span class="w"><span class="wi" style="--wi:6">nothing.</span></span></h1>
         <p class="lede hero-step" style="--i:3" data-site="tagline">Photoreal 4K nature footage, built in Unreal Engine 5.</p>
         <div class="hero-actions hero-step" style="--i:4">
           <a class="btn btn-accent btn-lg" href="#rows">Browse Collection</a>
