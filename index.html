@@ -58,18 +58,27 @@
   <main id="top">
     <!-- Peak: strong first impression -->
     <section class="hero" id="hero">
-      <div class="hero-media" aria-hidden="true">
-        <img class="hero-poster" id="hero-poster" src="assets/thumbs/sample-1.svg" alt="" width="1920" height="1080" fetchpriority="high" decoding="async">
-        <video id="hero-video" class="hero-video" muted loop playsinline preload="none" tabindex="-1"></video>
+      <!-- layers: parallax wrapper (scroll) > media (slow zoom) -->
+      <div class="hero-parallax" id="hero-parallax" aria-hidden="true">
+        <div class="hero-media">
+          <img class="hero-poster" id="hero-poster" src="assets/thumbs/sample-1.svg" alt="" width="1920" height="1080" fetchpriority="high" decoding="async">
+          <video id="hero-video" class="hero-video" muted loop playsinline preload="none" tabindex="-1"></video>
+        </div>
       </div>
       <div class="hero-shade"></div>
-      <div class="hero-inner">
-        <p class="eyebrow hero-step" style="--i:0">4K nature footage · Made in Unreal Engine 5</p>
-        <h1 class="hero-step" style="--i:1">Worlds that look <em>real</em>,<br>built from nothing.</h1>
-        <p class="lede hero-step" style="--i:2" data-site="tagline">Photoreal 4K nature footage, built in Unreal Engine 5.</p>
-        <a class="btn btn-accent btn-lg hero-step" style="--i:3" href="#featured">Browse Collection</a>
+      <div class="hero-light" id="hero-light" aria-hidden="true"></div>
+      <div class="hero-inner" id="hero-inner">
+        <p class="eyebrow hero-step" style="--i:1">4K nature footage · Made in Unreal Engine 5</p>
+        <!-- each word sits in its own mask (.w) and slides up (.wi) -->
+        <h1 class="hero-title" style="--i:2"><span class="w"><span class="wi" style="--wi:0">Worlds</span></span> <span class="w"><span class="wi" style="--wi:1">that</span></span> <span class="w"><span class="wi" style="--wi:2">look</span></span> <span class="w"><span class="wi wi-em" style="--wi:3"><em>real</em>,</span></span><br><span class="w"><span class="wi" style="--wi:4">built</span></span> <span class="w"><span class="wi" style="--wi:5">from</span></span> <span class="w"><span class="wi" style="--wi:6">nothing.</span></span></h1>
+        <p class="lede hero-step" style="--i:3" data-site="tagline">Photoreal 4K nature footage, built in Unreal Engine 5.</p>
+        <div class="hero-actions hero-step" style="--i:4">
+          <a class="btn btn-accent btn-lg" href="#featured">Browse Collection</a>
+          <a class="btn btn-outline btn-lg" href="#process">How it's made</a>
+        </div>
       </div>
-      <p class="hero-specs">3840 × 2160 · Unreal Engine 5 · Licensed via Adobe Stock</p>
+      <p class="hero-specs" id="hero-specs">3840 × 2160 · Unreal Engine 5 · Licensed via Adobe Stock</p>
+      <a class="scroll-cue" href="#featured" aria-label="Scroll to clips"><span></span></a>
       <button id="hero-toggle" class="icon-btn hero-toggle" type="button" aria-label="Pause background video" aria-pressed="false" hidden>
         <span class="i-pause" aria-hidden="true"></span>
       </button>

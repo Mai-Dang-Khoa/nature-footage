@@ -627,7 +627,7 @@
 
   /* ---------- Hero ---------- */
   // Background = preview of the first featured clip. Poster shows at once; video loads after the page
-  // has finished loading, and never with reduced motion, Data Saver or a slow connection.
+  // has finished loading, and never with reduced motion, Data Saver, a slow connection or a weak device.
   const hero = $("#hero"), heroVideo = $("#hero-video"), heroToggle = $("#hero-toggle");
   let heroPausedByUser = false;
 
@@ -639,7 +639,7 @@
 
     const conn = navigator.connection || {};
     const slow = conn.saveData || /(^|-)2g|3g/.test(conn.effectiveType || "");
-    if (reducedMotion || slow || !clip.preview) return;
+    if (reducedMotion || slow || Motion.lowPower || !clip.preview) return;
 
     const start = () => {
       heroVideo.addEventListener("playing", () => hero.classList.add("video-on"), { once: true });
@@ -666,6 +666,48 @@
     heroToggle.setAttribute("aria-pressed", String(heroPausedByUser));
     heroToggle.setAttribute("aria-label", heroPausedByUser ? "Play background video" : "Pause background video");
   });
+
+  /* ---------- Hero parallax + scroll cue ---------- */
+  // rich (mouse, capable device): video drifts down 18% and fades, text rises slower (0.3), specs line (0.4).
+  // light (touch / weak device): only the video fades. reduced motion: nothing.
+  const heroLayer = $("#hero-parallax"), heroInner = $("#hero-inner"), heroSpecs = $("#hero-specs");
+  let heroH = hero.offsetHeight;
+  window.addEventListener("resize", () => { heroH = hero.offsetHeight; }, { passive: true });
+  let heroDone = false;
+  Motion.onScroll(({ y }) => {
+    const p = Motion.clamp(y / heroH);
+    hero.classList.toggle("past-cue", p > 0.1);
+    if (reducedMotion || (p >= 1 && heroDone)) return;
+    heroDone = p >= 1;
+    heroLayer.style.opacity = String(1 - p * 0.85);
+    if (!Motion.rich) return;
+    heroLayer.style.transform = `translate3d(0, ${(p * 18).toFixed(2)}%, 0)`;
+    heroInner.style.transform = `translate3d(0, ${(y * 0.3).toFixed(1)}px, 0)`;
+    heroInner.style.opacity = String(Motion.clamp(1 - p * 2));
+    heroSpecs.style.transform = `translate3d(0, ${(y * 0.4).toFixed(1)}px, 0)`;
+    heroSpecs.style.opacity = String(Motion.clamp(1 - p * 3));
+  });
+
+  /* ---------- Hero spotlight (desktop only) ---------- */
+  if (Motion.rich) {
+    const light = $("#hero-light");
+    const pos = { x: innerWidth * 0.6, y: innerHeight * 0.5 }, target = { x: pos.x, y: pos.y };
+    let running = false;
+    const tick = () => {
+      pos.x = Motion.lerp(pos.x, target.x, 0.08);
+      pos.y = Motion.lerp(pos.y, target.y, 0.08);
+      light.style.transform = `translate3d(${pos.x.toFixed(1)}px, ${pos.y.toFixed(1)}px, 0)`;
+      running = Math.abs(target.x - pos.x) + Math.abs(target.y - pos.y) > 0.5;
+      return running;
+    };
+    hero.addEventListener("pointermove", (e) => {
+      target.x = e.clientX;
+      target.y = e.clientY + Motion.scroll.y; // hero starts at the top of the page
+      if (!running) { running = true; Motion.add(tick); }
+    }, { passive: true });
+    hero.addEventListener("pointerenter", () => hero.classList.add("lit"));
+    hero.addEventListener("pointerleave", () => hero.classList.remove("lit"));
+  }
 
   /* ---------- Nav: frosted once the page scrolls ---------- */
   const nav = $(".nav");
