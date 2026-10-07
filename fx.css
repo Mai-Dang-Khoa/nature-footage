@@ -1,0 +1,18 @@
+/* ==========================================================================
+   FX layer — styles for the "cinematic max" effects.
+   Every effect is scoped to html[data-fx="max"]; .fx-no-<group> on <html>
+   switches a single group off (set by motion.js / the FPS monitor).
+   ========================================================================== */
+
+/* ---------- Motion level switch ---------- */
+.fx-switch { position: fixed; left: var(--s-3); bottom: var(--s-3); z-index: 65; display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-2); }
+.fx-toggle, .fx-choice { min-height: 36px; padding: var(--s-1) var(--s-3); border: 1px solid var(--border-strong); border-radius: var(--r-pill); background: var(--glass); color: var(--text-muted); font: 600 var(--fs-micro) var(--font-ui); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; backdrop-filter: blur(8px); transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
+.fx-toggle:hover, .fx-choice:hover { color: var(--text); border-color: var(--text); }
+.fx-menu { display: flex; gap: var(--s-1); padding: var(--s-1); border: 1px solid var(--border); border-radius: var(--r-pill); background: var(--surface-2); }
+.fx-menu[hidden] { display: none; }
+.fx-choice { border-color: transparent; background: none; }
+.fx-choice[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+.fx-footer { padding: 0; border: 0; background: none; font: inherit; color: var(--text-muted); cursor: pointer; }
+/* hidden on small screens unless opened with Shift+F or from the footer */
+@media (max-width: 760px) { .fx-switch:not(.shown) { display: none; } }
+body.has-shortlist .fx-switch { bottom: calc(var(--tap) + var(--s-5)); }

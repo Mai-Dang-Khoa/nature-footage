@@ -13,14 +13,18 @@
 
   const mq = (q) => window.matchMedia(q);
   const nav = navigator;
-  const reduced = mq("(prefers-reduced-motion: reduce)").matches;
+  const root = document.documentElement;
+  // Effect level set in <head> before first paint: off | standard | max
+  const fxLevel = root.getAttribute("data-fx") || "standard";
+  const reduced = mq("(prefers-reduced-motion: reduce)").matches || fxLevel === "off";
   const finePointer = mq("(hover: hover) and (pointer: fine)").matches;
   // weak devices and Data Saver get the light version automatically
   const conn = nav.connection || {};
   const saveData = !!conn.saveData;
   const lowPower = saveData || (nav.hardwareConcurrency > 0 && nav.hardwareConcurrency <= 4) || (nav.deviceMemory > 0 && nav.deviceMemory <= 4);
   // heavy effects (tilt, spotlight, cursor, parallax) only with a precise pointer on a capable device
-  const rich = finePointer && !reduced && !lowPower;
+  // (an explicit "max" turns them on even on a weak device; the FPS monitor can still step down)
+  const rich = finePointer && !reduced && (fxLevel === "max" || !lowPower);
   // Scroll-driven CSS reveals where supported (animation-timeline: view()); otherwise IntersectionObserver.
   const sda = !reduced && !!(window.CSS && CSS.supports && CSS.supports("animation-timeline: view()"));
 
@@ -42,17 +46,27 @@
     return () => tasks.delete(fn);
   }
 
-  /* ---------- Scroll: read scrollY once per frame, then notify ---------- */
+  /* ---------- Tiny event bus: "scroll", "pointer", "resize", "fps", "lowfps", "fx", "data" ---------- */
+  const bus = new Map();
+  const on = (type, fn) => { if (!bus.has(type)) bus.set(type, new Set()); bus.get(type).add(fn); return () => bus.get(type).delete(fn); };
+  const emit = (type, detail) => { const set = bus.get(type); if (set) set.forEach((fn) => fn(detail)); };
+
+  /* ---------- Scroll: read scrollY once per frame, then notify (with velocity in px/ms) ---------- */
   const scrollSubs = new Set();
-  const scrollState = { y: window.scrollY, dy: 0, vh: window.innerHeight };
+  const scrollState = { y: window.scrollY, dy: 0, vh: window.innerHeight, v: 0, t: performance.now() };
   let scrollQueued = false;
   function flushScroll() {
     scrollQueued = false;
-    const y = window.scrollY;
+    const y = window.scrollY, t = performance.now();
     scrollState.dy = y - scrollState.y;
+    const dt = Math.max(1, t - scrollState.t);
+    scrollState.v = lerp(scrollState.v, scrollState.dy / dt, 0.5);
     scrollState.y = y;
+    scrollState.t = t;
     scrollState.vh = window.innerHeight;
     scrollSubs.forEach((fn) => fn(scrollState));
+    emit("scroll", scrollState);
+    if (fx.max) watchFps(1500);
   }
   function queueScroll() {
     if (scrollQueued) return;
@@ -70,8 +84,49 @@
   /* ---------- Pointer (precise pointers only) ---------- */
   const pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
   if (finePointer) {
-    window.addEventListener("pointermove", (e) => { pointer.x = e.clientX; pointer.y = e.clientY; }, { passive: true });
+    window.addEventListener("pointermove", (e) => { pointer.x = e.clientX; pointer.y = e.clientY; emit("pointer", pointer); }, { passive: true });
   }
+  window.addEventListener("resize", () => emit("resize", { w: innerWidth, h: innerHeight }), { passive: true });
+
+  /* ---------- FPS monitor: first 3s, and while scrolling ---------- */
+  // Averages frames over 1s windows; two windows below 45fps in a row → "lowfps".
+  let fpsUntil = 0, fpsRunning = false, frames = 0, winStart = 0, lowRuns = 0, lastFps = 60;
+  function fpsTask(t) {
+    if (document.hidden) { fpsRunning = false; return false; }
+    if (!winStart) winStart = t;
+    frames++;
+    if (t - winStart >= 1000) {
+      lastFps = (frames * 1000) / (t - winStart);
+      emit("fps", lastFps);
+      lowRuns = lastFps < 45 ? lowRuns + 1 : 0;
+      if (lowRuns >= 2) { lowRuns = 0; emit("lowfps", lastFps); }
+      frames = 0; winStart = t;
+    }
+    if (performance.now() < fpsUntil) return true;
+    fpsRunning = false; frames = 0; winStart = 0;
+    return false;
+  }
+  function watchFps(ms) {
+    fpsUntil = Math.max(fpsUntil, performance.now() + ms);
+    if (!fpsRunning) { fpsRunning = true; add(fpsTask); }
+  }
+
+  /* ---------- Effect groups (max level only) ---------- */
+  // Each heavy effect belongs to a group that can be switched off on its own.
+  const GROUPS = ["intro", "webgl", "particles", "distort", "grain", "cursor", "tilt", "magnetic"];
+  const POINTER_GROUPS = ["cursor", "tilt", "magnetic"];
+  const max = fxLevel === "max" && !reduced;
+  const off = new Set(max ? [] : GROUPS);
+  if (!finePointer) POINTER_GROUPS.forEach((g) => off.add(g)); // touch: no pointer effects, scroll effects stay
+  const fx = {
+    level: fxLevel,
+    max,
+    groups: GROUPS,
+    enabled: (g) => !off.has(g),
+    disable(g) { if (off.has(g)) return; off.add(g); root.classList.add(`fx-no-${g}`); emit("fx", { group: g, on: false }); },
+    get fps() { return lastFps; },
+  };
+  off.forEach((g) => root.classList.add(`fx-no-${g}`));
 
   /* ---------- Spring (critically-damped-ish), for "return to rest" ---------- */
   // Steps value toward target. Returns true while still moving.
@@ -156,8 +211,9 @@
     const containers = [...(scope.matches && scope.matches("[data-stagger]") ? [scope] : []), ...scope.querySelectorAll("[data-stagger]")];
     containers.forEach((c) => {
       const kids = c.children.length;
-      // whole group stays within 500ms: many items → smaller gaps
-      const step = Math.min(parseFloat(c.dataset.stagger) || 60, kids > 1 ? 500 / (kids - 1) : 0);
+      // whole group stays within 500ms (700ms at max level): many items → smaller gaps
+      const cap = max ? 700 : 500;
+      const step = Math.min(parseFloat(c.dataset.stagger) || 60, kids > 1 ? cap / (kids - 1) : 0);
       // stagger restarts on every row so far-down items don't wait long
       const cols = c.classList.contains("grid") ? (getComputedStyle(c).gridTemplateColumns.split(" ").length || 1) : 0;
       [...c.children].filter((k) => k.matches("[data-reveal]") || k.querySelector(":scope > [data-reveal]"))
@@ -180,7 +236,8 @@
     });
   }
 
-  window.Motion = { reduced, finePointer, lowPower, saveData, rich, sda, ms, easing, lerp, clamp, add, onScroll, pointer, spring, animating, splitWords, reveal, show, scroll: scrollState };
+  window.Motion = { reduced, finePointer, lowPower, saveData, rich, sda, ms, easing, lerp, clamp, add, onScroll, pointer, spring, animating, splitWords, reveal, show, scroll: scrollState, on, emit, fx, watchFps };
+  if (max) watchFps(3000);
   document.documentElement.classList.toggle("motion-rich", rich);
   document.documentElement.classList.toggle("sda", sda);
   document.documentElement.classList.add("motion-ready");

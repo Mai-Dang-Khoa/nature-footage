@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-fx="standard">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -31,10 +31,25 @@
   <!-- Hero poster shows instantly. Keep this path equal to the poster/thumbnail of the first featured clip. -->
   <link rel="preload" as="image" href="assets/thumbs/sample-1.svg" fetchpriority="high">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="fx.css">
   <script>
     // Hero text animates in only once web fonts are ready (max 1.2s), so the swap never shifts visible text.
     (function (d) {
       d.classList.add("js");
+      // Effect level (off | standard | max), decided before first paint.
+      // Priority: ?fx= in the URL > saved choice > automatic (site default "max", lowered for the device).
+      var L = /^(off|standard|max)$/, q = (location.search.match(/[?&]fx=(off|standard|max)\b/) || [])[1], saved, auto;
+      try { if (q) localStorage.setItem("fx", q); saved = localStorage.getItem("fx"); } catch (e) {}
+      try { auto = sessionStorage.getItem("fx-auto"); } catch (e) {}
+      var choice = q || (L.test(saved || "") ? saved : ""), n = navigator, c = n.connection || {};
+      var weak = !!c.saveData || (n.hardwareConcurrency > 0 && n.hardwareConcurrency <= 4) || (n.deviceMemory > 0 && n.deviceMemory <= 4);
+      var lvl = choice || "max";
+      if (!choice) {
+        if (matchMedia("(prefers-reduced-motion: reduce)").matches) lvl = "off";
+        else if (weak || auto === "standard") lvl = "standard";
+      }
+      d.setAttribute("data-fx", lvl);
+      d.setAttribute("data-fx-source", choice ? "user" : "auto");
       var done = function () { d.classList.add("fonts-ready"); };
       setTimeout(done, 1200);
       // safety net: if motion.js never loads, show everything
@@ -558,6 +573,7 @@ Sound off</button>
   "brandName": "Wild Frames",
   "ownerName": "[YOUR_NAME]",
   "tagline": "Photoreal 4K nature footage, built in Unreal Engine 5.",
+  "fxLevel": "max",
   "story": "",
   "email": "[YOUR_EMAIL]",
   "adobeStockProfileUrl": "https://stock.adobe.com/contributor/[YOUR_ID]",
@@ -661,5 +677,6 @@ Sound off</button>
   </script>
   <script src="motion.js" defer></script>
   <script src="script.js" defer></script>
+  <script src="fx.js" defer></script>
 </body>
 </html>

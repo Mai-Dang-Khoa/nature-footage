@@ -92,6 +92,10 @@
   --press: .98;
 }
 
+/* Effect level "off" (set by the FX switch or reduced motion): no decorative motion, instant state changes */
+html[data-fx="off"] *, html[data-fx="off"] *::before, html[data-fx="off"] *::after { animation: none !important; transition-duration: 0s !important; transition-delay: 0s !important; }
+html[data-fx="off"] { scroll-behavior: auto; }
+
 /* touch screens: motion a little slower than desktop */
 @media (pointer: coarse) {
   :root { --dur-med: 280ms; --dur-slow: 450ms; --dur-reveal: 760ms; }

@@ -1168,6 +1168,9 @@
     Motion.reveal(document);
     initHero(videos.find((x) => x.featured) || videos[0]);
     openFromHash();
+    // hand the data to the optional effect layer (fx.js)
+    window.App = { site, videos, track, toast, isReal };
+    Motion.emit("data", window.App);
   }).catch(() => {
     grid.setAttribute("aria-busy", "false");
     errorEl.hidden = false;
