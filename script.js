@@ -138,6 +138,7 @@
 
   function initHero(clip) {
     if (!clip) return;
+    $("#hero-ph").hidden = !clip.sample;
     const poster = clip.poster || clip.thumbnail;
     const posterEl = $("#hero-poster");
     if (poster && posterEl.getAttribute("src") !== poster) posterEl.src = poster;
@@ -317,10 +318,15 @@
     const meta = [v.resolution, v.duration, v.sample ? "Sample" : ""].filter(Boolean).join(" · ");
     const thumb = el("img", { class: "card-thumb", src: v.thumbnail, alt: "", loading: "lazy", width: "640", height: "360", decoding: "async" });
     const hit = el("button", { class: "card-hit", type: "button" }, [
-      el("span", { class: "card-media" }, [thumb]),
+      el("span", { class: "card-media" }, [thumb, v.sample ? el("span", { class: "ph-tag", text: "Placeholder · 1280×720 image, 1920×1080 MP4" }) : null]),
       el("span", { class: "card-cap" }, [el("span", { class: "card-title", text: v.title }), el("span", { class: "small", text: meta })]),
     ]);
-    const cardEl = el("article", { class: "card", "data-id": v.id }, [hit]);
+    // buy button: opens the partner page in a new tab; without a real link it stays disabled (never "#")
+    const url = buyUrl(v), partner = isReal(site.partnerName) ? site.partnerName : "Adobe Stock";
+    const buy = url
+      ? el("a", { class: "pill pill-sm", href: withUtm(url, v.id), target: "_blank", rel: "noopener noreferrer", "data-track": "buy_click", "data-clip": v.id, text: `Buy on ${partner}` })
+      : el("button", { class: "pill pill-sm", type: "button", disabled: true, title: "Link coming soon", text: `Buy on ${partner}` });
+    const cardEl = el("article", { class: "card", "data-id": v.id }, [hit, el("div", { class: "card-buy" }, [buy])]);
     hit.addEventListener("click", () => openClip(v.id, hit));
     if (M.finePointer) {
       cardEl.addEventListener("mouseenter", () => play(cardEl, v.preview));

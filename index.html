@@ -61,16 +61,19 @@
 
   <main id="top">
     <section class="hero" id="hero" data-theme="dark">
-      <div class="hero-head">
-        <h1 class="display" data-reveal>Nature,<span class="br-sm"></span> rendered.</h1>
-        <p class="body" data-reveal style="--d:100ms">Photoreal 4K stock footage,<span class="br-sm"></span> built in Unreal Engine 5.</p>
-        <a class="pill" href="#clips" data-reveal style="--d:200ms">Browse clips</a>
-      </div>
+      <!-- Full-screen footage behind the headline, muted and looping, under a 35% dark veil -->
       <div class="hero-media">
         <img id="hero-poster" src="assets/thumbs/sample-1.svg" alt="" width="1920" height="1080" fetchpriority="high" decoding="async">
         <video id="hero-video" muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>
-        <button id="hero-toggle" class="media-toggle" type="button" aria-pressed="false" hidden>Pause</button>
+        <div class="hero-shade" aria-hidden="true"></div>
       </div>
+      <div class="hero-head">
+        <h1 class="hero-title">Nature,<span class="br-sm"></span> rendered.</h1>
+        <p class="hero-sub">Photoreal 4K stock footage,<span class="br-sm"></span> built in Unreal Engine 5.</p>
+        <a class="pill" href="#clips">Browse clips</a>
+      </div>
+      <p class="ph-note" id="hero-ph" hidden>Placeholder — replace with a 3840×2160 MP4 loop (≤ 8 MB) and a 1920×1080 poster</p>
+      <button id="hero-toggle" class="media-toggle" type="button" aria-pressed="false" hidden>Pause</button>
     </section>
 
     <!-- Sticky footage while the captions change (hidden unless site.json has "sequence") -->
@@ -113,7 +116,7 @@
 
     <section id="free-sample" class="section wrap" data-theme="dark" aria-labelledby="free-title" hidden>
       <div class="split grid12">
-        <img class="split-media" id="free-thumb" src="assets/thumbs/sample-1.svg" alt="" width="1280" height="720" loading="lazy" decoding="async" data-reveal>
+        <img class="split-media" id="free-thumb" src="assets/thumbs/sample-1.svg" alt="" width="1280" height="720" loading="lazy" decoding="async">
         <div class="split-text">
           <h2 id="free-title" class="title" data-reveal>Try one clip free.</h2>
           <p id="free-desc" class="body muted" data-reveal style="--d:100ms">A 720p version of a real clip. No sign-up.</p>
@@ -434,6 +437,7 @@
 {
   "_note": "SAMPLE DATA. Replace every [YOUR_...] value. Values that are empty or still contain [YOUR_ are treated as missing: the button or block that needs them is hidden.",
   "brandName": "Wild Frames",
+  "partnerName": "Adobe Stock",
   "ownerName": "[YOUR_NAME]",
   "tagline": "Photoreal 4K nature footage, built in Unreal Engine 5.",
   "sequence": {

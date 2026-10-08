@@ -34,6 +34,21 @@ Nền xen kẽ đen / xám nhạt, mỗi màn một ý, một hành động:
 
 Hero (đen: một dòng, một câu, nút **Browse clips**, footage full-bleed) → Film (đen: khung footage đứng yên, chữ đổi khi cuộn) → Clips (sáng: lọc theo category, thẻ clip, Show more) → Free sample (đen) → Process (sáng: ảnh đứng yên, 4 bước cuộn qua) → FAQ (đen) → About (sáng) → CTA cuối (đen, căn giữa) → footer.
 
+## Chuyển động và tương tác (apple.css + apple.js)
+
+Bật cho mọi người, tắt hết khi người xem bật "giảm chuyển động". Chỉ dùng transform / opacity / filter / clip-path.
+
+- **Hero:** video toàn màn hình (tắt tiếng, lặp) dưới lớp tối 35%. Tiêu đề 72px (điện thoại 40px), dòng phụ 20px màu `#86868b`. Khi tải trang: tiêu đề, dòng phụ, nút hiện lần lượt bằng spring 800ms, cách nhau 150ms. Khi cuộn: video thu lại thành khung bo góc, tiêu đề nhấc lên và mờ đi.
+- **Ảnh/video trong các section:** phóng từ 0.92 lên 1 và hiện dần từ 0 lên 1, gắn với vị trí cuộn (đường cong ease-out, không tuyến tính).
+- **Tiêu đề section:** từng chữ trồi lên khỏi mặt nạ, hơi mờ rồi nét (kiểu keynote).
+- **Thẻ clip:** hover phóng 1.03, bóng đổ mềm, 400ms. Có chuột: thẻ nghiêng nhẹ ≤ 4° theo chuột, có vệt sáng chạy theo con trỏ.
+- **Bấm vào thẻ:** ảnh "bay" thành khung video trong cửa sổ chi tiết (View Transitions); các dòng thông tin hiện lần lượt.
+- **Bộ lọc:** dạng segmented control, viên chọn trượt có độ nảy kiểu Telegram. Số "Saved" nảy khi thay đổi.
+- **About:** câu giới thiệu sáng dần từng chữ khi đọc tới.
+- **Có chuột:** nền hero dịch chiều sâu theo chuột; nút hút nhẹ ≤ 6px về phía chuột (nút mua không bao giờ di chuyển); menu có viên sáng trượt theo mục đang rê.
+- **Nút mua trên mỗi thẻ:** "Buy on Adobe Stock" (đổi tên đối tác ở `site.json → partnerName`), mở tab mới. Chưa có link thật thì nút xám, không bấm được.
+- **Placeholder:** hero và từng thẻ có nhãn ghi kích thước cần thay (video hero 3840×2160 MP4 ≤ 8MB + poster 1920×1080; thẻ: ảnh 1280×720, preview 1920×1080 MP4).
+
 ## Thêm clip mới (`videos.json`)
 
 ```json

@@ -15,20 +15,25 @@
 .anim .split.in .mi { transform: none; opacity: 1; filter: none; }
 
 /* ---------- Hero: keynote entrance, then the footage folds into a card as you scroll ---------- */
-.anim .hero-media > img, .anim .hero-media > video:not([hidden]) { transform: scale(1.12); transition: transform 1.8s var(--e-apple), opacity 1s var(--e-apple); }
+.anim .hero-media > img, .anim .hero-media > video { transform: scale(1.12); transition: transform 1.8s var(--e-apple), opacity 1s var(--e-apple); }
 .anim.fonts-ready .hero-media > img, .anim.fonts-ready .hero-media > video { transform: none; }
 .anim .hero-media { transform-origin: 50% 0; will-change: transform, clip-path; }
 .anim .hero-head { will-change: transform, opacity; }
 .anim .nav { animation: nav-in .9s var(--e-apple) .15s both; }
 @keyframes nav-in { from { transform: translateY(-100%); opacity: 0; } }
 
-/* ---------- Cards: staggered rise, image breathes in on hover, spring press ---------- */
-.anim .card.pre { opacity: 0; transform: translateY(48px) scale(.96); }
-.anim .card { transition: opacity .9s var(--e-apple), transform 1s var(--e-apple); transition-delay: calc(var(--k, 0) * 70ms); }
-.card-thumb, .card-video { transition: transform .9s var(--e-apple), opacity .3s var(--e-apple); }
-.card-hit:hover .card-thumb, .card-hit:hover .card-video { transform: scale(1.05); }
+/* ---------- Hero: title, line and button arrive on a spring, 800ms, 150ms apart ---------- */
+.anim .hero-head > * { opacity: 0; transform: translateY(32px) scale(.96); transition: opacity .8s var(--e-apple), transform .8s var(--e-spring); transition-delay: calc(var(--i, 0) * 150ms + 100ms); }
+.anim.fonts-ready .hero-head > * { opacity: 1; transform: none; }
+
+/* ---------- Cards: hover lifts the whole card (1.03) with a soft shadow, 400ms ---------- */
+.card { transition: transform .4s var(--e-apple); }
+.card-media { transition: box-shadow .4s var(--e-apple), transform .45s var(--e-spring); }
+.card:hover { transform: scale(1.03); }
+.card:hover .card-media { box-shadow: var(--shadow-soft); }
 .card-hit:active .card-media { transform: scale(.97); }
-.card-media { transition: transform .45s var(--e-spring); }
+/* scroll-linked media (apple.js sets scale + opacity from the scroll position) */
+.anim .sm { will-change: scale, opacity; }
 
 /* ---------- Buttons: spring press ---------- */
 .pill, .chip, .text-btn, .more { transition: opacity .25s var(--e-apple), transform .45s var(--e-spring), color .3s var(--e-apple); }
@@ -43,7 +48,7 @@
 
 /* ---------- Statement: words light up as you read (About) ---------- */
 .statement { max-width: 22ch; font: 600 var(--fs-section)/1.12 var(--font-display); font-stretch: 87.5%; letter-spacing: -.02em; color: var(--fg); }
-.statement .sw { opacity: .18; transition: opacity .35s var(--e-apple); }
+.statement .sw { opacity: .5; transition: opacity .35s var(--e-apple); }
 .statement .sw.lit { opacity: 1; }
 
 /* ---------- Free sample: picture scales up into place ---------- */
@@ -74,7 +79,7 @@
 @keyframes pop { 40% { transform: scale(1.45); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .anim .split .mi, .anim .card.pre { transform: none !important; opacity: 1 !important; filter: none !important; }
+  .anim .split .mi { transform: none !important; opacity: 1 !important; filter: none !important; }
   .statement .sw { opacity: 1; }
 }
 

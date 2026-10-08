@@ -1,6 +1,7 @@
 {
   "_note": "SAMPLE DATA. Replace every [YOUR_...] value. Values that are empty or still contain [YOUR_ are treated as missing: the button or block that needs them is hidden.",
   "brandName": "Wild Frames",
+  "partnerName": "Adobe Stock",
   "ownerName": "[YOUR_NAME]",
   "tagline": "Photoreal 4K nature footage, built in Unreal Engine 5.",
   "sequence": {

@@ -40,12 +40,10 @@
   }
   const heads = $$(".display, .title").filter((n) => !n.closest("dialog"));
   heads.forEach(split);
-  const hero = $(".hero h1");
-  // hero waits for the web font (style.css sets .fonts-ready ≤ 900ms), the rest wait for the scroll
-  const whenFonts = (fn) => (root.classList.contains("fonts-ready") ? fn() : new MutationObserver((_, o) => { if (root.classList.contains("fonts-ready")) { o.disconnect(); fn(); } }).observe(root, { attributes: true, attributeFilter: ["class"] }));
-  whenFonts(() => hero && hero.classList.add("in"));
+  // hero: title, line and button get their order; CSS starts them once fonts are ready (≤ 900ms)
+  $$(".hero-head > *").forEach((n, i) => n.style.setProperty("--i", i));
   const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -12% 0px" });
-  heads.filter((n) => n !== hero).forEach((n) => io.observe(n));
+  heads.forEach((n) => io.observe(n));
 
   /* ---------- 2. About: a statement that lights up word by word ---------- */
   const about = $("#about .head p.body");
@@ -57,19 +55,15 @@
     words = $$(".sw", about);
   }
 
-  /* ---------- 3. cards: staggered rise (also after filtering) ---------- */
+  /* ---------- 3. pictures in sections: scale 0.92 → 1 and fade in, tied to the scroll (eased) ---------- */
   const grid = $("#grid");
-  const cardIO = new IntersectionObserver((es) => es.forEach((e) => {
-    if (!e.isIntersecting) return;
-    requestAnimationFrame(() => e.target.classList.remove("pre"));
-    cardIO.unobserve(e.target);
-  }), { rootMargin: "0px 0px -8% 0px" });
-  function prepCards() {
-    const cards = $$(":scope > .card", grid).filter((c) => !c.dataset.anim);
-    let k = 0;
-    cards.forEach((c) => { c.dataset.anim = "1"; c.classList.add("pre"); c.style.setProperty("--k", k++ % 3); cardIO.observe(c); });
-  }
-  if (grid) { new MutationObserver(prepCards).observe(grid, { childList: true }); prepCards(); }
+  let scrollMedia = [];
+  const collectMedia = () => {
+    scrollMedia = $$(".card-media, .split-media, .story-frame, .step-img").filter((n) => !n.closest("dialog"));
+    scrollMedia.forEach((n) => n.classList.add("sm"));
+    schedule();
+  };
+  if (grid) new MutationObserver(collectMedia).observe(grid, { childList: true });
 
   /* ---------- 4. category filter: segmented control with a sliding pill ---------- */
   const chips = $("#chips");
@@ -101,7 +95,7 @@
   if (count) new MutationObserver(() => { count.classList.remove("pop"); void count.offsetWidth; count.classList.add("pop"); }).observe(count, { childList: true, characterData: true, subtree: true });
 
   /* ---------- 6. scroll-linked: hero fold, free-sample scale, About words ---------- */
-  const heroEl = $(".hero"), media = $(".hero-media"), head = $(".hero-head"), free = $("#free-thumb");
+  const heroEl = $(".hero"), media = $(".hero-media"), head = $(".hero-head");
   let ticking = false;
   function frame() {
     ticking = false;
@@ -115,14 +109,14 @@
       head.style.transform = `translateY(${(-p * 60).toFixed(1)}px) scale(${(1 - p * 0.04).toFixed(4)})`;
       head.style.opacity = (1 - p * 1.4).toFixed(3);
     }
-    // free sample: grows from 88% with large corners into place
-    if (free && free.offsetParent) {
-      const r = free.getBoundingClientRect();
-      if (r.top < vh && r.bottom > 0) {
-        const p = clamp((vh - r.top) / (vh * 0.75));
-        free.style.transform = `scale(${(0.88 + p * 0.12).toFixed(4)})`;
-      }
-    }
+    // pictures: 0.92 → 1 and 0 → 1 while their top travels from the bottom edge to 45% of the screen (ease-out cubic)
+    scrollMedia.forEach((n) => {
+      if (!n.offsetParent) return;
+      const r = n.getBoundingClientRect();
+      const p = clamp((vh - r.top) / (vh * 0.55)), e = 1 - Math.pow(1 - p, 3);
+      n.style.scale = (0.92 + e * 0.08).toFixed(4);
+      n.style.opacity = e.toFixed(3);
+    });
     // About: words light up between 85% and 40% of the screen height
     if (words.length) {
       const r = about.getBoundingClientRect();
@@ -218,5 +212,6 @@
   const schedule = () => { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };
   window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("resize", schedule, { passive: true });
+  collectMedia();
   frame();
 })();
