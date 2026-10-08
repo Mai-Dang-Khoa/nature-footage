@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-fx="standard">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -31,12 +31,33 @@
   <!-- Hero poster shows instantly. Keep this path equal to the poster/thumbnail of the first featured clip. -->
   <link rel="preload" as="image" href="assets/thumbs/sample-1.svg" fetchpriority="high">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="fx.css">
   <script>
     // Hero text animates in only once web fonts are ready (max 1.2s), so the swap never shifts visible text.
     (function (d) {
       d.classList.add("js");
+      // Effect level (off | standard | max), decided before first paint.
+      // Priority: ?fx= in the URL > saved choice > automatic (site default "max", lowered for the device).
+      var L = /^(off|standard|max)$/, q = (location.search.match(/[?&]fx=(off|standard|max)\b/) || [])[1], saved, auto;
+      try { if (q) localStorage.setItem("fx", q); saved = localStorage.getItem("fx"); } catch (e) {}
+      try { auto = sessionStorage.getItem("fx-auto"); } catch (e) {}
+      var choice = q || (L.test(saved || "") ? saved : ""), n = navigator, c = n.connection || {};
+      var weak = !!c.saveData || (n.hardwareConcurrency > 0 && n.hardwareConcurrency <= 4) || (n.deviceMemory > 0 && n.deviceMemory <= 4);
+      var lvl = choice || "max";
+      if (!choice) {
+        if (matchMedia("(prefers-reduced-motion: reduce)").matches) lvl = "off";
+        else if (weak || auto === "standard") lvl = "standard";
+      }
+      d.setAttribute("data-fx", lvl);
+      d.setAttribute("data-fx-source", choice ? "user" : "auto");
+      // Opening curtain: max level, first visit only (never blocks the page; Skip / Esc end it)
+      var visited = "1";
+      try { visited = localStorage.getItem("visited"); localStorage.setItem("visited", "1"); } catch (e) {}
+      if (lvl === "max" && !visited) d.classList.add("intro-on");
+      // safety net for the per-letter hero title: show it even if fx.js never runs
+      setTimeout(function () { d.classList.add("chars-ready"); }, 2000);
       var done = function () { d.classList.add("fonts-ready"); };
-      setTimeout(done, 1200);
+      setTimeout(done, 900);
       // safety net: if motion.js never loads, show everything
       setTimeout(function () { if (!window.Motion) d.classList.remove("js"); }, 4000);
       window.fontsGo = function () {
@@ -48,6 +69,12 @@
   </script>
 </head>
 <body>
+  <!-- Opening curtain (max level, first visit). Decorative: clicks pass through. -->
+  <div class="intro" id="intro" aria-hidden="true">
+    <div class="intro-curtain"></div>
+    <p class="intro-brand"><span class="intro-mask"><span class="intro-word">Wild Frames</span></span></p>
+  </div>
+  <button class="intro-skip" id="intro-skip" type="button">Skip intro</button>
   <a class="skip" href="#rows">Skip to clips</a>
 
   <div class="progress" id="progress" aria-hidden="true"></div>
@@ -79,7 +106,7 @@
       <div class="hero-inner" id="hero-inner">
         <p class="eyebrow hero-step" style="--i:1">4K nature footage · Made in Unreal Engine 5</p>
         <!-- each word sits in its own mask (.w) and slides up (.wi) -->
-        <h1 class="hero-title" style="--i:2"><span class="w"><span class="wi" style="--wi:0">Worlds</span></span> <span class="w"><span class="wi" style="--wi:1">that</span></span> <span class="w"><span class="wi" style="--wi:2">look</span></span> <span class="w"><span class="wi wi-em" style="--wi:3"><em>real</em>,</span></span><br><span class="w"><span class="wi" style="--wi:4">built</span></span> <span class="w"><span class="wi" style="--wi:5">from</span></span> <span class="w"><span class="wi" style="--wi:6">nothing.</span></span></h1>
+        <h1 class="hero-title" style="--i:2"><span class="w"><span class="wi" style="--wi:0">Worlds</span></span> <span class="w"><span class="wi" style="--wi:1">that</span></span> <span class="w"><span class="wi" style="--wi:2">look</span></span> <span class="w"><span class="wi wi-em" style="--wi:3"><em data-text="real">real</em>,</span></span><br><span class="w"><span class="wi" style="--wi:4">built</span></span> <span class="w"><span class="wi" style="--wi:5">from</span></span> <span class="w"><span class="wi" style="--wi:6">nothing.</span></span></h1>
         <p class="lede hero-step" style="--i:3" data-site="tagline">Photoreal 4K nature footage, built in Unreal Engine 5.</p>
         <div class="hero-actions hero-step" style="--i:4">
           <a class="btn btn-accent btn-lg" href="#rows">Browse Collection</a>
@@ -91,6 +118,24 @@
       <button id="hero-toggle" class="icon-btn hero-toggle" type="button" aria-label="Pause background video" aria-pressed="false" hidden>
         <span class="i-pause" aria-hidden="true"></span>
       </button>
+    </section>
+
+    <!-- Hero film: scroll scrubs through a frame sequence (hidden unless site.json has "sequence") -->
+    <section id="film" class="film" aria-labelledby="film-title" hidden>
+      <h2 id="film-title" class="sr-only">How a scene comes together</h2>
+      <div class="film-sticky">
+        <canvas class="film-canvas" id="film-canvas" role="img" aria-label="Scroll-driven frame sequence"></canvas>
+        <img class="film-still" id="film-still" alt="" width="1280" height="720" loading="lazy" decoding="async" hidden>
+        <div class="film-shade" aria-hidden="true"></div>
+        <ol class="film-lines" id="film-lines">
+          <li class="film-line" data-at="0.15"><span>Every frame starts as an empty level.</span></li>
+          <li class="film-line" data-at="0.40"><span>Terrain, rocks and trees are placed in Unreal Engine 5.</span></li>
+          <li class="film-line" data-at="0.65"><span>Light and atmosphere are tuned until it reads as real.</span></li>
+          <li class="film-line" data-at="0.90"><span>Then it is rendered, frame by frame, in 4K.</span></li>
+        </ol>
+        <a class="btn btn-accent btn-lg film-cta" id="film-cta" href="#rows">Browse Collection</a>
+        <a class="film-skip" href="#rows">Skip film</a>
+      </div>
     </section>
 
     <!-- Hick's Law: a short, curated first row, then one row per collection (streaming-style shelves) -->
@@ -558,6 +603,24 @@ Sound off</button>
   "brandName": "Wild Frames",
   "ownerName": "[YOUR_NAME]",
   "tagline": "Photoreal 4K nature footage, built in Unreal Engine 5.",
+  "fxLevel": "max",
+  "sequence": {
+    "_note": "SAMPLE frames generated by tools/make-sample-sequence.py. Replace with a real UE5 render (see README). Remove this block to hide the section.",
+    "frames": 60,
+    "pad": 4,
+    "desktop": {
+      "path": "assets/sequence/desktop/frame_{n}.webp",
+      "width": 1280,
+      "height": 720
+    },
+    "mobile": {
+      "path": "assets/sequence/mobile/frame_{n}.webp",
+      "width": 640,
+      "height": 360
+    },
+    "fallback": "assets/sequence/desktop/frame_0060.webp",
+    "label": "Sample frames: a mountain range from night to sunrise as the camera moves forward"
+  },
   "story": "",
   "email": "[YOUR_EMAIL]",
   "adobeStockProfileUrl": "https://stock.adobe.com/contributor/[YOUR_ID]",
@@ -661,5 +724,7 @@ Sound off</button>
   </script>
   <script src="motion.js" defer></script>
   <script src="script.js" defer></script>
+  <script src="fx.js" defer></script>
+  <script src="film.js" defer></script>
 </body>
 </html>

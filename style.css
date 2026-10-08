@@ -92,6 +92,10 @@
   --press: .98;
 }
 
+/* Effect level "off" (set by the FX switch or reduced motion): no decorative motion, instant state changes */
+html[data-fx="off"] *, html[data-fx="off"] *::before, html[data-fx="off"] *::after { animation: none !important; transition-duration: 0s !important; transition-delay: 0s !important; }
+html[data-fx="off"] { scroll-behavior: auto; }
+
 /* touch screens: motion a little slower than desktop */
 @media (pointer: coarse) {
   :root { --dur-med: 280ms; --dur-slow: 450ms; --dur-reveal: 760ms; }
@@ -220,7 +224,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 300; line-height: va
 /* sliding pill: one light layer clipped to the selected chip */
 .chip-pill { position: absolute; inset: 0; z-index: 0; background: var(--text); pointer-events: none; clip-path: inset(var(--pt, 0) var(--pr, 100%) var(--pb, 0) var(--pl, 0) round var(--prad, 22px)); transition: clip-path var(--dur-slow) var(--ease-in-out); }
 .chips.no-anim .chip-pill { transition: none; }
-.chips .chip { position: relative; z-index: 1; }
+.chips .chip { position: relative; z-index: 1; background: var(--bg); }
+.chips .chip[aria-pressed="true"] { background: transparent; } /* the sliding pill shows through */
 .chip { min-height: 44px; padding: var(--s-1) var(--s-3); border: 1px solid var(--border); border-radius: var(--r-pill); background: transparent; color: var(--text-muted); font: 500 var(--fs-small) var(--font-ui); cursor: pointer; transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast); }
 .chip:hover { color: var(--text); border-color: var(--border-strong); }
 .chip:active { transform: scale(var(--press)); }
@@ -623,6 +628,31 @@ html.js [data-reveal]:focus-within [data-reveal] { animation: none; opacity: 1; 
   .js.sda .progress { animation: progress linear both; animation-timeline: scroll(root block); }
 }
 @keyframes progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* ==========================================================================
+   Hero film: a tall section (~400vh) whose sticky frame shows a canvas scrubbed by scroll
+   ========================================================================== */
+.film { position: relative; height: 400vh; }
+.film-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; background: var(--bg); }
+.film-canvas, .film-still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.film-shade { position: absolute; inset: 0; background: linear-gradient(180deg, var(--scrim) 0%, var(--clear) 30%, var(--clear) 55%, var(--scrim) 100%); pointer-events: none; }
+.film-lines { position: absolute; left: var(--gutter); right: var(--gutter); bottom: 22vh; margin: 0; padding: 0; list-style: none; }
+.film-line { position: absolute; left: 0; right: 0; bottom: 0; max-width: 18ch; font: 300 var(--fs-h2)/var(--lh-tight) var(--font-display); letter-spacing: var(--tracking-tight); opacity: 0; transition: opacity calc(var(--dur-slow) * .75) var(--ease-in); }
+.film-line span { display: inline-block; clip-path: inset(0 0 100% 0); translate: 0 30%; transition: clip-path calc(var(--dur-slow) * .75) var(--ease-in), translate calc(var(--dur-slow) * .75) var(--ease-in); }
+.film-line.on { opacity: 1; transition: opacity var(--dur-slow) var(--ease-out); }
+.film-line.on span { clip-path: inset(0 0 -20% 0); translate: none; transition: clip-path var(--dur-reveal) var(--ease-out), translate var(--dur-reveal) var(--ease-out); }
+.film-cta { position: absolute; left: var(--gutter); bottom: 10vh; visibility: hidden; opacity: 0; translate: 0 var(--s-3); transition: opacity var(--dur-med) var(--ease-out), translate var(--dur-med) var(--ease-out), visibility 0s linear var(--dur-med); }
+.film-cta.on { visibility: visible; opacity: 1; translate: none; transition: opacity var(--dur-med) var(--ease-out), translate var(--dur-med) var(--ease-out), visibility 0s; }
+.film-skip { position: absolute; right: var(--gutter); bottom: var(--s-4); padding: var(--s-2) var(--s-3); border: 1px solid var(--border-strong); border-radius: var(--r-pill); background: var(--glass); color: var(--text-muted); font: 600 var(--fs-caption) var(--font-ui); text-decoration: none; }
+.film-skip:hover { color: var(--text); border-color: var(--text); }
+/* static fallback (reduced motion, Data Saver, weak device, load error): one still + all lines + the button */
+.film.static { height: auto; }
+.film.static .film-sticky { position: relative; height: auto; min-height: 80vh; display: flex; flex-direction: column; justify-content: flex-end; padding: var(--s-7) var(--gutter) var(--s-6); }
+.film.static .film-canvas, .film.static .film-skip { display: none; }
+.film.static .film-lines { position: relative; inset: auto; display: grid; gap: var(--s-3); margin-bottom: var(--s-5); }
+.film.static .film-line { position: relative; opacity: 1; font-size: var(--fs-h3); }
+.film.static .film-line span { clip-path: none; translate: none; }
+.film.static .film-cta { position: relative; inset: auto; visibility: visible; opacity: 1; translate: none; align-self: flex-start; }
 
 /* ==========================================================================
    Small screens

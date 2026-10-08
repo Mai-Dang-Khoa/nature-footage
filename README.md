@@ -13,7 +13,8 @@ Website tĩnh (HTML/CSS/JS thuần, không thư viện, không bước build). M
 ## Cấu trúc
 
 ```
-index.html   style.css   script.js   motion.js
+index.html   style.css   script.js   motion.js   fx.js   fx.css   film.js
+assets/sequence/    khung hình cho đoạn "hero film" (desktop/ và mobile/; hiện là dữ liệu mẫu)
 videos.json         danh sách clip
 site.json           thông tin chung: tên, email, link, collections, mood, use case, analytics…
 assets/thumbs/      thumbnail
@@ -175,6 +176,102 @@ Trình duyệt hỗ trợ `animation-timeline: view()` thì reveal chạy hoàn 
 
 Người bật "giảm chuyển động" trong hệ điều hành: không có zoom, parallax, nghiêng, marquee hay video nền tự chạy; modal và drawer chỉ mờ dần 200ms.
 
+## Mức hiệu ứng (fxLevel): off · standard · max
+
+| Mức | Gồm những gì |
+|---|---|
+| `off` | Không chuyển động trang trí; mọi thay đổi trạng thái tức thì. Không video nền tự chạy. |
+| `standard` | Bản cũ: reveal khi cuộn, hero video, hover thẻ, modal, FLIP… |
+| `max` | `standard` + toàn bộ tầng "cinematic" bên dưới (file `fx.js` + `fx.css`). |
+
+**Cách chọn mức (ưu tiên từ trên xuống):**
+1. Thêm `?fx=off`, `?fx=standard` hoặc `?fx=max` vào URL. Lựa chọn được lưu lại (localStorage).
+2. Nút **FX** trên thanh menu. Trên điện thoại nút này ẩn, mở bằng link "Motion: …" ở footer hoặc phím **Shift+F**. Đổi mức sẽ ghi sự kiện `fx_change`.
+3. Mặc định lấy `site.json → "fxLevel"` (hiện là `"max"`), rồi tự hạ theo thiết bị:
+   - Bật "giảm chuyển động" → `off`.
+   - Data Saver, CPU ≤ 4 nhân hoặc RAM ≤ 4GB → `standard`.
+   - Màn hình cảm ứng → tắt các hiệu ứng theo chuột, giữ hiệu ứng theo cuộn.
+4. **Bộ đo FPS** (3 giây đầu và trong lúc cuộn): nếu dưới 45fps hai lần liên tiếp thì tắt dần hiệu ứng nặng nhất, theo thứ tự WebGL → hạt → méo ảnh → hạt phim (grain) → về hẳn `standard` trong phiên đó. WebGL và hạt chỉ được bật sau khi trang tải xong và giữ ≥ 50fps; máy không có GPU (trình render phần mềm) không bật WebGL.
+5. `?fxlock=1` giữ nguyên mức đang chọn, không tự hạ (dùng khi test hoặc demo).
+
+### Các hiệu ứng ở mức max và nhóm để tắt riêng
+
+| Nhóm | Hiệu ứng |
+|---|---|
+| `intro` | Màn kéo mở màn lần đầu vào trang (≤ 1150ms, có nút Skip, Esc; không chặn bấm; lần sau không chạy) |
+| `webgl` | Nền hero WebGL: video làm texture, gợn sóng nhẹ, quầng sáng theo chuột, tán sắc màu ở rìa khi rê nhanh |
+| `particles` | Hạt bụi/phấn hoa có chiều sâu trên hero (Canvas 2D), lớp sương, đom đóm CSS |
+| `distort` | Nghiêng theo vận tốc cuộn (skewY ≤ 3°), gợn sóng SVG trên ảnh thẻ khi hover |
+| `grain` | Vignette, hạt phim (opacity 0.05), vệt sáng ống kính |
+| `cursor` | Con trỏ phụ đổi theo ngữ cảnh (Play/View, Drag, Buy) |
+| `tilt` | Nghiêng thẻ 6°, parallax ảnh trong thẻ, viền sáng và bóng đổ theo hướng nghiêng |
+| `magnetic` | Nút chính và ♥ hút theo chuột (≤ 10px); chỉ lớp hiển thị di chuyển, vùng bấm thật đứng yên |
+
+Các hiệu ứng `max` khác (không thuộc nhóm nào, luôn nhẹ):
+- Tiêu đề hero và tiêu đề section hiện theo từng ký tự.
+- Số thứ tự section lật vào.
+- Dòng chữ khổng lồ chạy theo vận tốc cuộn; tông nền đổi giữa các section.
+- Process cao ~4.5 màn hình, ảnh zoom chậm, số lật.
+- Modal: nền mờ dần lên 14px; mở kiểu "ống kính" khi trình duyệt không có View Transitions; vệt sáng khi đổi clip.
+- Chi tiết nhỏ: tim có vòng sóng, số shortlist lật kiểu bảng chữ sân bay, chữ nút cuộn khi hover, nhãn nhỏ xáo trộn chữ một lần, bộ đếm số clip thật, chữ thương hiệu khổng lồ ở footer.
+
+**Tắt riêng một nhóm:** trong `motion.js`, sau dòng `const off = new Set(...)`, thêm ví dụ `off.add("webgl");`. Hoặc tắt khi đang chạy bằng `Motion.fx.disable("particles")` trong console.
+
+**Trang chậm, cần tắt nhanh:** đổi `"fxLevel": "standard"` trong `site.json`. Người xem nào đã tự chọn mức qua nút FX vẫn giữ lựa chọn của họ.
+
+### Ngân sách và số đo
+
+- **Dung lượng thêm cho mức max:** `fx.js` 12.8KB + `fx.css` 5.8KB (gzip), cộng khoảng 1.6KB thay đổi ở `motion.js`/`script.js`. Tổng ~20KB, dưới ngân sách 60KB. Không thêm file video nào.
+- **Lighthouse mobile** (đo trên máy test):
+
+  | Mức | Performance | Accessibility / Best Practices / SEO | CLS |
+  |---|---|---|---|
+  | standard | 90–91 | 100 / 100 / 100 | 0.041 |
+  | max | 87–90 | 100 / 100 / 100 | 0.041 |
+  | off | 90 | 100 / 100 / 100 | 0.04 |
+
+- **FPS desktop 1440px** trên máy test **không có GPU** (render bằng CPU, 4 nhân), nên đây là trường hợp xấu nhất:
+
+  | Mức | Đứng yên | Đang cuộn |
+  |---|---|---|
+  | off | 60 | 60 |
+  | standard | 59 | 39 |
+  | max (tự động) | ~27 lúc đầu, bộ đo FPS tự tắt dần hiệu ứng rồi về standard | — |
+  | max khoá (`?fxlock=1`) | 21 | 14 |
+
+  Trên máy có GPU thật các lớp này được card đồ hoạ xử lý; tôi chưa đo được trên thiết bị thật. Hãy thử `?fx=max` trên máy của bạn và xem nút FX có tự chuyển về Standard hay không.
+
+## Đoạn "hero film" (cuộn để tua chuỗi khung hình)
+
+Ngay dưới hero có một đoạn cao khoảng 4 màn hình. Khung hình dính lại (`position: sticky`) và cuộn trang sẽ tua qua chuỗi ảnh vẽ trên `<canvas>`. Bốn dòng chữ lần lượt hiện ở các mốc 15%, 40%, 65% và 90%. Ở cuối đoạn hiện nút "Browse Collection". Có nút "Skip film" để nhảy qua.
+
+- **Dữ liệu hiện tại là MẪU:** 60 khung do `tools/make-sample-sequence.py` tạo, mỗi khung có chữ "SAMPLE FRAME". Desktop 1280×720 (552KB), mobile 640×360 (244KB).
+- **Cấu hình** nằm trong `site.json → "sequence"`: số khung (`frames`), số chữ số trong tên file (`pad`), đường dẫn desktop/mobile (`{n}` = số khung), ảnh tĩnh dự phòng (`fallback`) và mô tả cho trình đọc màn hình (`label`). **Xoá cả khối `sequence` thì đoạn này ẩn đi.**
+- **Cách tải ảnh:** khung đầu tải ngay. Các khung còn lại tải theo lô, tối đa 6 yêu cầu cùng lúc, ưu tiên khung gần vị trí đang xem. Trong lúc chờ, trang hiện khung gần nhất đã tải xong.
+- **Dự phòng:** reduced motion, Data Saver, máy yếu hoặc lỗi tải khung đầu → chỉ hiện một ảnh tĩnh kèm cả 4 dòng chữ và nút bấm, không dùng canvas.
+- **Tiếp cận:** cả 4 dòng chữ luôn nằm trong DOM (trình đọc màn hình đọc được); canvas có `aria-label`.
+- **Ngân sách:** bộ ảnh desktop ≤ 8MB, mobile ≤ 4MB. WebP từ 960×540 đến 1280×720 là đủ.
+
+### Xuất chuỗi ảnh thật từ UE5
+
+1. Trong Sequencer, dựng một cú máy chậm, liền mạch, 4–6 giây (ví dụ dolly qua cảnh).
+2. Mở **Movie Render Queue** → Output: **PNG Sequence** (hoặc EXR), độ phân giải 1920×1080, 24 hoặc 30 fps. Tên file ví dụ `shot.{frame_number}`.
+3. Chọn khoảng 90–150 khung: nhiều hơn thì mượt hơn nhưng nặng hơn.
+4. Chuyển sang WebP và đổi tên đúng mẫu:
+
+```bash
+# desktop 1280×720
+ffmpeg -framerate 30 -i shot.%04d.png -vf "scale=1280:-2" -c:v libwebp -quality 70 -start_number 1 assets/sequence/desktop/frame_%04d.webp
+# mobile 640×360
+ffmpeg -framerate 30 -i shot.%04d.png -vf "scale=640:-2" -c:v libwebp -quality 66 -start_number 1 assets/sequence/mobile/frame_%04d.webp
+# hoặc lấy khung từ một video đã render (24 khung/giây)
+ffmpeg -i shot.mp4 -vf "fps=24,scale=1280:-2" -c:v libwebp -quality 70 assets/sequence/desktop/frame_%04d.webp
+```
+
+5. Cập nhật `"frames"` trong `site.json` bằng số file vừa tạo; chọn một khung đẹp làm `"fallback"`.
+6. Kiểm tra dung lượng: `du -sh assets/sequence/desktop` (≤ 8MB). Quá nặng thì giảm `-quality` (60–65) hoặc giảm số khung.
+7. Sửa 4 dòng chữ trong `index.html` (`.film-line`) cho đúng cảnh của bạn.
+
 ## Analytics (tuỳ chọn)
 
 Mặc định tắt: không tải script, không cookie, không cần cookie banner.
@@ -189,6 +286,7 @@ Sự kiện ghi nhận:
 - `filter` (mood / category / use case / collection / từ khoá)
 - `shortlist_open`
 - `license_all`
+- `fx_change` (người xem đổi mức hiệu ứng), `fx_auto` (trang tự tắt bớt hiệu ứng vì chậm)
 - `free_download`
 - `sample_request`
 
@@ -228,6 +326,7 @@ File vẫn lớn thì tăng `-crf` (30–32) hoặc giảm `scale` (960). Previe
 - [ ] Ảnh chụp màn hình UE5 thật cho "Behind the scene": thay `assets/bts/step-1.svg` … `step-4.svg` (dùng ở cả ảnh lớn desktop lẫn ảnh từng bước mobile), sửa chữ 4 bước cho khớp quy trình của bạn.
 - [ ] `assets/free/free-sample-720p.mp4`: file mẫu thật (hoặc xoá `freeSample.file` để ẩn mục này).
 - [ ] `assets/og.png`: ảnh chia sẻ thật.
+- [ ] `assets/sequence/`: chuỗi khung hình thật xuất từ UE5 (xem phần "hero film"), sửa `site.json → sequence` và 4 dòng chữ.
 - [ ] Khi có số liệu thật: `stats`, `trustedBy`, `price`.
 - [ ] (Tuỳ chọn) analytics.
 - [ ] Chạy `python3 tools/sync-fallback.py` sau khi sửa JSON nếu muốn mở `index.html` trực tiếp.

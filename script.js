@@ -203,6 +203,11 @@
   function heartPop(btn) {
     if (reducedMotion) return;
     btn.classList.remove("pop"); void btn.offsetWidth; btn.classList.add("pop");
+    if (Motion.fx && Motion.fx.max) {
+      const ring = el("span", { class: "fav-ring", "aria-hidden": "true" });
+      ring.addEventListener("animationend", () => ring.remove(), { once: true });
+      btn.append(ring);
+    }
     btn.addEventListener("animationend", () => btn.classList.remove("pop"), { once: true });
     for (let i = 0; i < 6; i++) {
       const dot = el("span", { class: "particle", "aria-hidden": "true" });
@@ -402,6 +407,9 @@
   // Max 4° tilt (perspective 900px) plus the -4px lift; eases back with lerp (no bounce).
   // While the pointer is over the buy button the card holds still, so the button never moves under the click.
   function tilt(cardEl, buy) {
+    // max level: up to 6° and the CSS layer gets --rx/--ry for inner parallax, edge light and shadow
+    const maxFx = Motion.fx && Motion.fx.max && Motion.fx.enabled("tilt");
+    const AMP = maxFx ? 12 : 8;
     const s = { rx: 0, ry: 0, lift: 0 }, t = { rx: 0, ry: 0, lift: 0 };
     let rect = null, running = false, hold = false;
     const tick = () => {
@@ -411,6 +419,7 @@
       const done = Math.abs(s.rx - t.rx) + Math.abs(s.ry - t.ry) + Math.abs(s.lift - t.lift) < 0.01;
       if (done && !t.lift) { cardEl.style.transform = ""; cardEl.style.willChange = ""; running = false; return false; }
       cardEl.style.transform = `perspective(900px) translateY(${s.lift.toFixed(2)}px) rotateX(${s.rx.toFixed(2)}deg) rotateY(${s.ry.toFixed(2)}deg)`;
+      if (maxFx) { cardEl.style.setProperty("--rx", s.rx.toFixed(2)); cardEl.style.setProperty("--ry", s.ry.toFixed(2)); }
       running = !done;
       return running;
     };
@@ -424,8 +433,8 @@
     cardEl.addEventListener("pointermove", (e) => {
       if (e.pointerType !== "mouse" || !rect || hold) return;
       const x = (e.clientX - rect.left) / rect.width, y = (e.clientY - rect.top) / rect.height;
-      t.ry = (x - 0.5) * 8;   // ±4°
-      t.rx = (0.5 - y) * 8;
+      t.ry = (x - 0.5) * AMP;   // ±4° (±6° at max)
+      t.rx = (0.5 - y) * AMP;
       cardEl.style.setProperty("--mx", `${(x * 100).toFixed(1)}%`);
       cardEl.style.setProperty("--my", `${(y * 100).toFixed(1)}%`);
       kick();
@@ -458,10 +467,12 @@
     btn.addEventListener("pointerup", () => { pressed = false; });
     btn.addEventListener("pointerleave", () => { pressed = false; btn.style.translate = ""; });
   }
-  if (Motion.rich) $$(".btn-accent.btn-lg").forEach(magnetic);
+  // at max level fx.js runs a stronger magnetic on every main button (with a fixed hit area)
+  const fxOwns = (g) => Motion.fx && Motion.fx.max && Motion.fx.enabled(g);
+  if (Motion.rich && !fxOwns("magnetic")) $$(".btn-accent.btn-lg").forEach(magnetic);
 
   /* ---------- Cursor label over clip cards (desktop, capable devices) ---------- */
-  if (Motion.rich) {
+  if (Motion.rich && !fxOwns("cursor")) {
     const label = el("div", { class: "cursor-label", "aria-hidden": "true", text: "Play" });
     document.body.append(label);
     const pos = { x: 0, y: 0 };
@@ -787,6 +798,8 @@
       vt.finished.finally(() => { mMedia.style.viewTransitionName = ""; document.documentElement.classList.remove("vt-open"); });
     } else {
       show();
+      // no View Transitions: the effect layer can open the video like a lens from the card
+      Motion.emit("modal-open", { from: thumb ? thumb.getBoundingClientRect() : null });
     }
     history.replaceState(null, "", `#clip=${encodeURIComponent(id)}`);
     track("modal_open", { clip: id });
@@ -862,6 +875,7 @@
     modalIndex = (modalIndex + dir + modalList.length) % modalList.length;
     const v = modalList[modalIndex];
     addRecent(v.id);
+    Motion.emit("modal-step", { dir });
     if (reducedMotion) { fillModal(v); }
     else {
       const total = Motion.ms("--dur-slow"), out = total * 0.4, inn = total * 0.6;
@@ -919,6 +933,7 @@
       const vt = document.startViewTransition(() => { mMedia.style.viewTransitionName = ""; modal.close(); target.style.viewTransitionName = VT_NAME; });
       vt.finished.finally(() => { target.style.viewTransitionName = ""; document.documentElement.classList.remove("vt-close"); });
     } else if (!reducedMotion) {
+      Motion.emit("modal-close", { to: onScreen ? r : null });
       modal.classList.add("closing");
       setTimeout(() => { modal.classList.remove("closing"); modal.close(); }, Motion.ms("--dur-med") * 0.75);
     } else {
@@ -1105,10 +1120,14 @@
     const text = String(i + 1).padStart(2, "0");
     if (reducedMotion || !storyNum.animate) { storyNum.textContent = text; return; }
     const d = Motion.ms("--dur-med");
-    storyNum.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: `translateY(${-dir * 30}%)` }], { duration: d * 0.75, easing: Motion.easing("--ease-in") })
+    // max level: the number flips over like a card; otherwise it slides
+    const flip = Motion.fx && Motion.fx.max;
+    const outT = flip ? `perspective(400px) rotateX(${dir * 90}deg)` : `translateY(${-dir * 30}%)`;
+    const inT = flip ? `perspective(400px) rotateX(${-dir * 90}deg)` : `translateY(${dir * 30}%)`;
+    storyNum.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: outT }], { duration: d * 0.75, easing: Motion.easing("--ease-in") })
       .finished.then(() => {
         storyNum.textContent = text;
-        storyNum.animate([{ opacity: 0, transform: `translateY(${dir * 30}%)` }, { opacity: 1, transform: "none" }], { duration: d, easing: Motion.easing("--ease-out") });
+        storyNum.animate([{ opacity: 0, transform: inT }, { opacity: 1, transform: "none" }], { duration: d, easing: Motion.easing("--ease-out") });
       }, () => { storyNum.textContent = text; });
   }
   storySteps[0] && storySteps[0].classList.add("is-active");
@@ -1168,6 +1187,9 @@
     Motion.reveal(document);
     initHero(videos.find((x) => x.featured) || videos[0]);
     openFromHash();
+    // hand the data to the optional effect layer (fx.js)
+    window.App = { site, videos, track, toast, isReal };
+    Motion.emit("data", window.App);
   }).catch(() => {
     grid.setAttribute("aria-busy", "false");
     errorEl.hidden = false;
