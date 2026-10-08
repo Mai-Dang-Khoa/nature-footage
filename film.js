@@ -29,7 +29,9 @@
     section.hidden = false;
 
     const N = cfg.frames, pad = cfg.pad || 4;
-    const set = innerWidth < 760 && cfg.mobile ? cfg.mobile : set0; // smaller frames on phones
+    // phones get the lighter set only if its frames are tall enough to stay sharp in this frame
+    const needH = canvas.clientHeight * Math.min(window.devicePixelRatio || 1, 1.5);
+    const set = innerWidth < 760 && cfg.mobile && (cfg.mobile.height || 0) >= needH * 0.8 ? cfg.mobile : set0;
     const url = (i) => set.path.replace("{n}", String(i + 1).padStart(pad, "0"));
     if (cfg.label) canvas.setAttribute("aria-label", cfg.label);
 

@@ -249,7 +249,7 @@ details[open] .faq-a { animation: fade-in var(--dur-fade) var(--ease-out); }
 @media (max-width: 833px) { .finale { padding-block: var(--s7); } }
 
 /* ---------- Text buttons (modal, drawer) ---------- */
-.text-btn { padding: 0; border: 0; background: none; color: var(--link); font: 400 var(--fs-label)/var(--lh-label) var(--font-text); cursor: pointer; }
+.text-btn { display: inline-flex; align-items: center; min-height: var(--pill-h); padding: 0; border: 0; background: none; color: var(--link); font: 400 var(--fs-label)/var(--lh-label) var(--font-text); cursor: pointer; }
 .text-btn:hover { text-decoration: underline; }
 .text-btn:active { opacity: .7; }
 
@@ -287,3 +287,12 @@ dialog::backdrop { background: var(--black); }
 .toast { position: fixed; left: 50%; bottom: var(--s3); z-index: 60; padding: var(--s1) var(--s2); border-radius: 980px; background: var(--nav-dark); color: var(--ink-on-dark); font: 400 var(--fs-label)/var(--lh-label) var(--font-text); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); transform: translateX(-50%); opacity: 0; pointer-events: none; transition: opacity var(--dur-fade) var(--ease-out); }
 .toast.show { opacity: 1; }
 body.locked { overflow: hidden; }
+
+/* ---------- Mobile: stacked, hero type ≥ 44px, footage full-bleed ---------- */
+@media (max-width: 599px) {
+  .card-media, .split-media, .step-img, .modal-media { width: calc(100% + 2 * var(--pad-x)); max-width: none; margin-inline: calc(-1 * var(--pad-x)); border-radius: 0; }
+  .card-hit:focus-visible { border-radius: 0; }
+  .card-cap { padding-right: var(--s1); }
+  .filter { flex-direction: column; align-items: flex-start; }
+  .film-skip { bottom: var(--s4); }
+}
