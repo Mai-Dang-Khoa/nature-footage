@@ -31,3 +31,15 @@ html.js [data-reveal]:focus-within, html.js [data-reveal]:focus-within [data-rev
 @keyframes rv-soft-up { from { opacity: 0; translate: 0 var(--rise); filter: blur(var(--blur-in)); } to { opacity: 1; translate: none; filter: none; } }
 @keyframes rv-soft-fade { from { opacity: 0; filter: blur(var(--blur-in)); } to { opacity: 1; filter: none; } }
 @keyframes rv-soft-word { from { translate: 0 110%; filter: blur(3px); } to { translate: none; filter: none; } }
+
+/* ---------- 2. Images settle in: soft blur clears and a slight zoom relaxes ---------- */
+.js .card-thumb { filter: blur(12px); scale: 1.06; transition: opacity var(--dur-silk) var(--ease-soft), scale var(--dur-silk) var(--ease-soft), filter var(--dur-silk) var(--ease-soft); }
+.js .card-thumb.loaded { filter: none; scale: 1; }
+/* lazy images elsewhere (free sample, process steps): polish.js marks the ones still loading */
+.soft-img { filter: blur(10px); opacity: .6; transition: filter var(--dur-silk) var(--ease-soft), opacity var(--dur-silk) var(--ease-soft); }
+.soft-img.loaded { filter: none; opacity: 1; }
+/* modal: the picture pulls into focus as the window opens */
+@media (prefers-reduced-motion: no-preference) {
+  .modal[open] .modal-media video { animation: focus-pull 900ms var(--ease-soft) both; }
+}
+@keyframes focus-pull { from { filter: blur(10px); } to { filter: none; } }
