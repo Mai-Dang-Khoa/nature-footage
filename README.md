@@ -13,7 +13,7 @@ Website tĩnh (HTML/CSS/JS thuần, không thư viện, không bước build). M
 ## Cấu trúc
 
 ```
-index.html   style.css   script.js   motion.js   fx.js   fx.css   film.js
+index.html   style.css   script.js   motion.js   fx.js   fx.css   film.js   polish.css   polish.js
 assets/sequence/    khung hình cho đoạn "hero film" (desktop/ và mobile/; hiện là dữ liệu mẫu)
 videos.json         danh sách clip
 site.json           thông tin chung: tên, email, link, collections, mood, use case, analytics…
@@ -218,6 +218,17 @@ Các hiệu ứng `max` khác (không thuộc nhóm nào, luôn nhẹ):
 **Tắt riêng một nhóm:** trong `motion.js`, sau dòng `const off = new Set(...)`, thêm ví dụ `off.add("webgl");`. Hoặc tắt khi đang chạy bằng `Motion.fx.disable("particles")` trong console.
 
 **Trang chậm, cần tắt nhanh:** đổi `"fxLevel": "standard"` trong `site.json`. Người xem nào đã tự chọn mức qua nút FX vẫn giữ lựa chọn của họ.
+
+### Lớp "polish" (chuyển động tinh tế, chạy ở `standard` và `max`)
+
+File `polish.css` (1.9KB gzip) + `polish.js` (0.6KB gzip). Mức `off` / giảm chuyển động: tắt hết.
+
+- **Lấy nét khi hiện:** đoạn chữ và từng chữ tiêu đề hiện ra từ hơi mờ sang nét (blur 6px → 0) trong lúc trồi lên.
+- **Ảnh hiện mềm:** thumbnail và ảnh tải chậm hiện từ mờ sang nét, kèm zoom nhẹ lùi về. Video trong modal cũng lấy nét khi mở.
+- **Chiều sâu khi cuộn:** ảnh trong thẻ clip và ảnh "Free sample" trôi chậm vài % trong khung (chạy bằng CSS scroll timeline, không tốn JS; trình duyệt không hỗ trợ thì ảnh đứng yên).
+- **Hover êm hơn:** zoom ảnh thẻ chậm 1.1s, link và chip đổi màu chậm hơn, nút viền sáng dần lên khi hover. Phản hồi khi bấm vẫn tức thì.
+- **Ánh sáng "thở"** sau dòng "Find your next shot." (9s một nhịp, chỉ chạy khi section đang hiện trên màn hình).
+- Chỉnh nhanh trong `polish.css`: `--blur-in` (độ mờ), `--dur-silk` (độ chậm), `--ease-soft` (đường cong chuyển động).
 
 ### Ngân sách và số đo
 

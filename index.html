@@ -32,6 +32,7 @@
   <link rel="preload" as="image" href="assets/thumbs/sample-1.svg" fetchpriority="high">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="fx.css">
+  <link rel="stylesheet" href="polish.css">
   <script>
     // Hero text animates in only once web fonts are ready (max 1.2s), so the swap never shifts visible text.
     (function (d) {
@@ -351,7 +352,7 @@
     </section>
 
     <!-- End: one clear final action -->
-    <section class="finale">
+    <section class="finale" data-ambient>
       <h2 data-reveal="mask">Find your next shot.</h2>
       <p class="muted" data-reveal="fade" data-delay="120">Every clip in this collection is available to license on Adobe Stock.</p>
       <a class="btn btn-accent btn-lg finale-cta" data-site-href="adobeStockProfileUrl" data-utm="profile_finale" data-track="buy_click" data-clip="profile" href="#" target="_blank" rel="noopener noreferrer" hidden>See all clips on Adobe Stock</a>
@@ -726,5 +727,6 @@ Sound off</button>
   <script src="script.js" defer></script>
   <script src="fx.js" defer></script>
   <script src="film.js" defer></script>
+  <script src="polish.js" defer></script>
 </body>
 </html>
