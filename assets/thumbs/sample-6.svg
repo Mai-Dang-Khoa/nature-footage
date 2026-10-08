@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
+<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1410"/><stop offset=".6" stop-color="#b5603a"/><stop offset="1" stop-color="#ffc784"/></linearGradient>
+<radialGradient id="g" cx=".7" cy=".62" r=".5"><stop offset="0" stop-color="#ffc784" stop-opacity=".9"/><stop offset="1" stop-color="#ffc784" stop-opacity="0"/></radialGradient></defs>
+<rect width="640" height="360" fill="url(#s)"/><rect width="640" height="360" fill="url(#g)"/>
+<path d="M0,360 L0,248 L40,249 L80,229 L120,216 L160,200 L200,240 L240,228 L280,246 L320,222 L360,246 L400,216 L440,248 L480,244 L520,225 L560,232 L600,241 L640,212 L640,360 Z" fill="#b5603a" opacity=".55"/>
+<path d="M0,360 L0,261 L40,267 L80,264 L120,265 L160,263 L200,276 L240,255 L280,275 L320,243 L360,258 L400,259 L440,249 L480,281 L520,258 L560,283 L600,292 L640,255 L640,360 Z" fill="#160a07" opacity=".75"/>
+<path d="M0,360 L0,314 L40,294 L80,294 L120,309 L160,289 L200,315 L240,315 L280,289 L320,312 L360,305 L400,310 L440,321 L480,323 L520,302 L560,317 L600,315 L640,322 L640,360 Z" fill="#160a07"/>
+</svg>
