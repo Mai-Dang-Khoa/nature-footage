@@ -101,11 +101,11 @@
     const poster = el("img", { src: c.poster, alt: "", width: "640", height: "360", loading: "lazy", decoding: "async" });
     const video = el("video", { muted: true, loop: true, playsinline: true, preload: "none", "aria-hidden": "true", tabindex: "-1" });
     video.muted = true;
-    if (!autoplay) { video.controls = true; video.removeAttribute("aria-hidden"); video.removeAttribute("tabindex"); video.poster = c.poster; video.src = c.preview; video.classList.add("playing"); }
     video.addEventListener("playing", () => video.classList.add("playing"));
     const title = el(heading, { class: "frame-title" }, [document.createTextNode(c.title), c.placeholder ? el("span", { class: "tag", text: "Placeholder" }) : null]);
     const box = el("div", { class: cls, "data-id": c.id }, [
       el("div", { class: "frame-media" }, [poster, video]),
+      cls.startsWith("frame") ? el("div", { class: "proof", "aria-hidden": "true" }) : null,
       title,
       el("p", { class: "frame-meta", text: `${meta(c)} — for ${c.use}` }),
       el("div", { class: "frame-actions" }, [licenseButton(c), freeButton(c)]),
@@ -113,9 +113,23 @@
     ]);
     box._video = video;
     box._clip = c;
+    if (!autoplay) { // reduced motion: nothing plays by itself; the viewer gets controls
+      video.controls = true; video.poster = c.poster;
+      video.removeAttribute("aria-hidden"); video.removeAttribute("tabindex");
+      loadVideo(box);
+      video.classList.add("playing");
+    }
     return box;
   }
-  const loadVideo = (box) => { if (!box._video.src) box._video.src = box._clip.preview; };
+  // WebM (VP9) first when there is one, then the H.264 MP4
+  function loadVideo(box) {
+    const v = box._video, c = box._clip;
+    if (v.dataset.loaded) return;
+    v.dataset.loaded = "1";
+    if (c.previewWebm) v.append(el("source", { src: c.previewWebm, type: "video/webm" }));
+    v.append(el("source", { src: c.preview, type: "video/mp4" }));
+    v.load();
+  }
 
   /* ---------- JSON-LD (search engines) ---------- */
   (() => {
@@ -161,10 +175,12 @@
   const flight = $("#flight"), stage = $("#stage");
   const canvas = $("#scene"), ctx = canvas.getContext && canvas.getContext("2d");
   const first = $("#scene-first");
-  const set = mobile ? site.flight.mobile : site.flight.desktop;
+  // tall screens get the portrait frames, wide screens (laptops, phones turned sideways) the landscape ones
+  const portrait = innerHeight > innerWidth;
+  const set = portrait && site.flight.mobile ? site.flight.mobile : site.flight.desktop;
   const N = set.frames, pad = site.flight.pad || 4;
   const frameUrl = (i) => set.path.replace("{n}", String(i + 1).padStart(pad, "0"));
-  if (mobile) first.src = frameUrl(0);
+  if (set === site.flight.mobile) first.src = frameUrl(0);
   if (site.flight.label) canvas.setAttribute("aria-label", site.flight.label);
 
   // frames: first at once, then nearest-first, ≤ 6 requests at a time (only the next stretch is fetched early)
@@ -271,7 +287,9 @@
       let o = 0;
       if (t > -.05 && t < 1.05) o = (L.a === 0 ? 1 : ramp(0, .2, t)) * (L.b > 1 ? 1 : 1 - ramp(.8, 1, t));
       const e = ease(clamp(t));
-      const y = lerp(24, -72, e), sc = lerp(1.03, .95, e);
+      // lines float up and out as the camera passes; the last one settles and stays
+      const end = L.b > 1;
+      const y = end ? lerp(24, 0, e) : lerp(24, -72, e), sc = end ? 1 : lerp(1.03, .95, e);
       if (Math.abs(o - L.o) < .002 && Math.abs(y - L.y) < .2) return;
       L.o = o; L.y = y;
       L.n.style.opacity = o.toFixed(3);
@@ -285,7 +303,6 @@
     $("#frames").append(box);
     return box;
   });
-  const proof = $("#proof");
   let activeBox = null;
   function activeFor(p) {
     if (p >= .9) return frames.find((f) => f._clip === finalClip) || null;
@@ -297,17 +314,17 @@
     if (box === activeBox) return;
     if (activeBox) { activeBox.classList.remove("on"); activeBox._video.pause(); }
     activeBox = box;
-    proof.classList.toggle("on", !!box);
     if (!box) return;
     box.classList.add("on");
     loadVideo(box);
     box._video.play().catch(() => {});
-    buildProof(box._clip);
+    buildProof(box);
     track("clip_view", { clip: box._clip.id });
   }
   // the same preview, sitting on an editor timeline twice: where the loop joins
   let head = null, headW = 0;
-  function buildProof(c) {
+  function buildProof(box) {
+    const c = box._clip, proof = box.querySelector(".proof");
     const clip = () => { const b = el("div", { class: "tl-clip" }); b.style.backgroundImage = `url("${c.poster}")`; return b; };
     head = el("div", { class: "tl-head" });
     proof.replaceChildren(
@@ -320,7 +337,7 @@
   function movePlayhead() {
     if (!activeBox || !head) return;
     const v = activeBox._video;
-    if (!headW) headW = (proof.querySelector(".tl-clip") || {}).offsetWidth || 0;
+    if (!headW) headW = (activeBox.querySelector(".tl-clip") || {}).offsetWidth || 0;
     const t = v.duration ? v.currentTime / v.duration : 0;
     head.style.setProperty("--x", `${(t * headW).toFixed(1)}px`);
   }
@@ -402,8 +419,16 @@
   const kick = () => { if (!running && onScreen && !document.hidden) { running = true; requestAnimationFrame(tick); } };
   new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; if (!onScreen) setActive(null); kick(); }).observe(flight);
   document.addEventListener("visibilitychange", kick);
-  let rt;
-  window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { size(); kick(); }, 120); }, { passive: true });
+  let rt, lastW = innerWidth, lastH = innerHeight;
+  window.addEventListener("resize", () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => {
+      // phone address bars change the height while scrolling: ignore small height changes
+      if (innerWidth === lastW && Math.abs(innerHeight - lastH) < 120) return;
+      lastW = innerWidth; lastH = innerHeight;
+      size(); kick();
+    }, 120);
+  }, { passive: true });
 
   size();
   if (canDecode) load(0);

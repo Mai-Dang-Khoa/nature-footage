@@ -161,11 +161,15 @@ def grade(img, weather, seed=1):
 
 
 def label(img, text):
+    """Small centred tag near the bottom, so cropping on wide or tall screens never cuts it."""
     d = ImageDraw.Draw(img)
-    s = img.size[0] / 1280
-    f = font(max(11, int(16 * s)))
-    d.rectangle([0, img.size[1] - 34 * s, img.size[0], img.size[1]], fill=(0, 0, 0))
-    d.text((14 * s, img.size[1] - 26 * s), text, fill=(255, 255, 255), font=f)
+    w, h = img.size
+    s = min(w, h) / 720
+    f = font(max(10, int(14 * s)))
+    tw = d.textlength(text, font=f)
+    x0, y1 = (w - tw) / 2 - 10 * s, h * 0.86
+    d.rounded_rectangle([x0, y1 - 24 * s, x0 + tw + 20 * s, y1], radius=6 * s, fill=(0, 0, 0))
+    d.text((x0 + 10 * s, y1 - 20 * s), text, fill=(235, 235, 235), font=f)
     return img
 
 
@@ -175,7 +179,7 @@ def frames(dirname, w, h, n):
     path.mkdir(parents=True)
     for i in range(n):
         a = i / (n - 1)
-        im = label(scene(a, w, h), f"PLACEHOLDER flight frame {i + 1}/{n} — replace with a UE5 render")
+        im = label(scene(a, w, h), f"PLACEHOLDER frame {i + 1}/{n}")
         im.save(path / f"f_{i + 1:04d}.webp", quality=58, method=6)
 
 
@@ -185,11 +189,15 @@ def video(path, w, h, a, weather, title, seconds=6, fps=24):
         for i in range(n):
             drift = math.sin(i / n * 2 * math.pi)  # returns to the start: first frame = last frame
             im = grade(scene(a, w, h, shift=drift), weather, seed=i % 6)
-            label(im, f"PLACEHOLDER preview — {title}")
+            label(im, "PLACEHOLDER preview")
             im.save(f"{tmp}/{i:04d}.png")
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(fps), "-i", f"{tmp}/%04d.png",
                         "-c:v", "libx264", "-crf", "30", "-preset", "slow", "-pix_fmt", "yuv420p", "-an",
                         "-movflags", "+faststart", str(path)], check=True)
+        # WebM (VP9) next to it: plays in every browser that lacks H.264
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(fps), "-i", f"{tmp}/%04d.png",
+                        "-c:v", "libvpx-vp9", "-crf", "40", "-b:v", "0", "-pix_fmt", "yuv420p", "-an",
+                        str(path.with_suffix(".webm"))], check=True)
 
 
 CLIPS = [  # keep in sync with data.js (id, progress, weather, title)
@@ -207,11 +215,11 @@ if __name__ == "__main__":
     wdir = OUT / "flight" / "weather"
     wdir.mkdir(parents=True, exist_ok=True)
     for name in ("rain", "after", "golden", "stars"):
-        label(grade(scene(0.6, 1280, 720), name), f"PLACEHOLDER still — {name} — replace with a UE5 render").save(wdir / f"{name}.webp", quality=62, method=6)
+        label(grade(scene(0.6, 1280, 720), name), f"PLACEHOLDER still: {name}").save(wdir / f"{name}.webp", quality=62, method=6)
     (OUT / "previews").mkdir(exist_ok=True)
     (OUT / "posters").mkdir(exist_ok=True)
     for cid, a, weather, title in CLIPS:
         video(OUT / "previews" / f"{cid}.mp4", 640, 360, a, weather, title)
-        label(grade(scene(a, 640, 360), weather), f"PLACEHOLDER preview — {title}").save(OUT / "posters" / f"{cid}.webp", quality=70)
+        label(grade(scene(a, 640, 360), weather), "PLACEHOLDER preview").save(OUT / "posters" / f"{cid}.webp", quality=70)
     video(OUT / "free" / "free-sample-720p.mp4", 1280, 720, 0.56, "after", "free 720p sample")
     print("placeholder assets written")

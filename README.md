@@ -65,7 +65,9 @@ Mỗi clip:
   resolution: "4K", loop: true, people: false,   // tạo dòng "4K · seamless loop · no people" — chỉ điền đúng sự thật
   free: false,              // true = thêm nút "Download 720p" (file ở site.freeFile)
   placeholder: true,        // XOÁ khi đã có clip thật (bỏ nhãn "Placeholder")
-  preview: "assets/previews/rain-on-leaves.mp4", poster: "assets/posters/rain-on-leaves.webp",
+  preview: "assets/previews/rain-on-leaves.mp4",        // H.264 MP4 (bắt buộc)
+  previewWebm: "assets/previews/rain-on-leaves.webm",   // VP9 WebM (nên có: trình duyệt nào không chạy được H.264 sẽ dùng file này)
+  poster: "assets/posters/rain-on-leaves.webp",
   stockUrl: "https://stock.adobe.com/video/..." }
 ```
 
@@ -91,6 +93,7 @@ Mỗi clip:
 
    ```bash
    ffmpeg -i clip_4k.mp4 -t 6 -vf "scale=960:-2,fps=24" -c:v libx264 -crf 28 -preset slow -pix_fmt yuv420p -an -movflags +faststart assets/previews/rain-on-leaves.mp4
+   ffmpeg -i clip_4k.mp4 -t 6 -vf "scale=960:-2,fps=24" -c:v libvpx-vp9 -crf 38 -b:v 0 -an assets/previews/rain-on-leaves.webm
    ffmpeg -i assets/previews/rain-on-leaves.mp4 -frames:v 1 -c:v libwebp -quality 75 assets/posters/rain-on-leaves.webp
    ```
 
@@ -103,7 +106,8 @@ Muốn tạo lại bộ placeholder: `python3 tools/make-flight-placeholders.py`
 
 - Khung đường bay không tải hết lúc đầu: khung đầu tải ngay, sau đó chỉ tải đoạn kế tiếp (khoảng 18% đường bay quanh vị trí đang xem), tối đa 6 yêu cầu cùng lúc.
 - Preview chỉ tải khi clip sắp tới (±0.08). Mưa và gió chỉ chạy khi đường bay đang hiện và tab đang mở.
-- Lighthouse mobile: Performance 87–99 (dao động theo lần đo), Accessibility / Best Practices / SEO 100, LCP khoảng 2 giây. Desktop: 100 ở cả 4 mục. Không lỗi tương phản.
+- Lighthouse mobile: Performance 99, Accessibility / Best Practices / SEO 100, LCP khoảng 2 giây. Không lỗi tương phản.
+- Bộ kiểm tra tự động chạy 3 vòng trên 11 kiểu màn hình (1280×720, 1366×768, 1440×900, 1920×1080, 900×600, iPad, iPhone SE, Pixel, điện thoại xoay ngang, giảm chuyển động trên máy tính và điện thoại): không lỗi, khung clip và nút mua luôn nằm trọn trong màn hình, chữ không đè khung clip, preview chạy được.
 - Đã kiểm tra: chớp chỉ 1 lần mỗi lượt cuộn qua; gió về chỗ cũ khi chuột đứng; bấm giữ thì bay tiếp, thả là dừng; không link `#`; file free tải được; với link thật, nút mua mở đúng trang Adobe Stock có UTM ở cả máy tính, điện thoại và chế độ giảm chuyển động.
 
 ## Analytics (tuỳ chọn)
@@ -115,7 +119,7 @@ Sự kiện: `buy_click`, `free_download`, `clip_view` (clip tách ra trên màn
 
 1. Merge vào `main`.
 2. **Settings → Pages → Source: GitHub Actions** (đã bật).
-3. Workflow `.github/workflows/deploy.yml` tự deploy mỗi lần push vào `main`.
+3. Workflow `.github/workflows/deploy.yml` tự deploy mỗi lần push vào `main`. Mỗi lần deploy, đường dẫn CSS/JS được gắn mã phiên bản mới (`?v=…`), nên trình duyệt không bao giờ dùng lẫn file cũ trong bộ nhớ đệm với trang mới.
 
 ## Việc cần tự làm
 
