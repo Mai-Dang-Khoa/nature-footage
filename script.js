@@ -410,9 +410,19 @@
     modalList = list().some((x) => x.id === id) ? list() : videos;
     modalIndex = modalList.findIndex((x) => x.id === id);
     opener = from || document.activeElement;
-    fillModal(v);
-    if (!modal.open) openDialog(modal);
-    ($("#m-buy").hidden ? $("#m-fav") : $("#m-buy")).focus({ preventScroll: true });
+    const show = () => {
+      fillModal(v);
+      if (!modal.open) openDialog(modal);
+      ($("#m-buy").hidden ? $("#m-fav") : $("#m-buy")).focus({ preventScroll: true });
+    };
+    // the clicked picture grows into the player (View Transitions); other browsers get a scale-and-fade
+    const media = from && from.closest && from.closest(".card") ? from.closest(".card").querySelector(".card-media") : null;
+    const mMedia = $(".modal-media", modal);
+    if (!modal.open && media && document.startViewTransition && !reduced) {
+      media.style.viewTransitionName = "clip";
+      document.startViewTransition(() => { media.style.viewTransitionName = ""; show(); mMedia.style.viewTransitionName = "clip"; })
+        .finished.finally(() => { mMedia.style.viewTransitionName = ""; });
+    } else show();
     history.replaceState(null, "", `#clip=${encodeURIComponent(id)}`);
     track("modal_open", { clip: id });
   }

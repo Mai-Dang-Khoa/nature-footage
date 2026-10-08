@@ -1,0 +1,94 @@
+/* ==========================================================================
+   Motion layer — Apple-keynote reveals, scroll-linked hero, Telegram-style springs.
+   Only transform, opacity, filter and clip-path move. Off with "reduce motion".
+   ========================================================================== */
+:root {
+  --e-apple: cubic-bezier(.16, 1, .3, 1);      /* long, soft landing */
+  --e-spring: cubic-bezier(.34, 1.36, .64, 1);  /* small overshoot, Telegram feel */
+  --e-swift: cubic-bezier(.2, .8, .2, 1);
+}
+
+/* ---------- Words rise out of a mask (headlines) ---------- */
+.mw { display: inline-block; overflow: hidden; overflow: clip; vertical-align: top; padding-bottom: .1em; margin-bottom: -.1em; }
+.mi { display: inline-block; }
+.anim .split .mi { transform: translateY(108%); opacity: 0; filter: blur(6px); transition: transform 1s var(--e-apple), opacity .7s var(--e-apple), filter .8s var(--e-apple); transition-delay: calc(var(--w, 0) * 60ms + var(--d0, 0ms)); }
+.anim .split.in .mi { transform: none; opacity: 1; filter: none; }
+
+/* ---------- Hero: keynote entrance, then the footage folds into a card as you scroll ---------- */
+.anim .hero-media > img, .anim .hero-media > video:not([hidden]) { transform: scale(1.12); transition: transform 1.8s var(--e-apple), opacity 1s var(--e-apple); }
+.anim.fonts-ready .hero-media > img, .anim.fonts-ready .hero-media > video { transform: none; }
+.anim .hero-media { transform-origin: 50% 0; will-change: transform, clip-path; }
+.anim .hero-head { will-change: transform, opacity; }
+.anim .nav { animation: nav-in .9s var(--e-apple) .15s both; }
+@keyframes nav-in { from { transform: translateY(-100%); opacity: 0; } }
+
+/* ---------- Cards: staggered rise, image breathes in on hover, spring press ---------- */
+.anim .card.pre { opacity: 0; transform: translateY(48px) scale(.96); }
+.anim .card { transition: opacity .9s var(--e-apple), transform 1s var(--e-apple); transition-delay: calc(var(--k, 0) * 70ms); }
+.card-thumb, .card-video { transition: transform .9s var(--e-apple), opacity .3s var(--e-apple); }
+.card-hit:hover .card-thumb, .card-hit:hover .card-video { transform: scale(1.05); }
+.card-hit:active .card-media { transform: scale(.97); }
+.card-media { transition: transform .45s var(--e-spring); }
+
+/* ---------- Buttons: spring press ---------- */
+.pill, .chip, .text-btn, .more { transition: opacity .25s var(--e-apple), transform .45s var(--e-spring), color .3s var(--e-apple); }
+.pill:active, .chip:active { transform: scale(.94); transition-duration: .12s; }
+
+/* ---------- Segmented control with a sliding pill (category filter) ---------- */
+.chips.seg { position: relative; isolation: isolate; display: inline-flex; flex-wrap: nowrap; gap: 0; padding: 4px; border-radius: 980px; background: var(--white); max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.chips.seg::-webkit-scrollbar { display: none; }
+.chips.seg .chip { position: relative; z-index: 1; background: transparent; }
+.chips.seg .chip[aria-pressed="true"] { background: transparent; color: var(--ink-on-dark); }
+.seg-pill { position: absolute; z-index: 0; top: 4px; left: 0; height: calc(100% - 8px); width: 1px; border-radius: 980px; background: var(--ink-on-light); transition: transform .55s var(--e-spring), width .55s var(--e-spring); pointer-events: none; }
+
+/* ---------- Statement: words light up as you read (About) ---------- */
+.statement { max-width: 22ch; font: 600 var(--fs-section)/1.12 var(--font-display); font-stretch: 87.5%; letter-spacing: -.02em; color: var(--fg); }
+.statement .sw { opacity: .18; transition: opacity .35s var(--e-apple); }
+.statement .sw.lit { opacity: 1; }
+
+/* ---------- Free sample: picture scales up into place ---------- */
+.anim .split-media { transform-origin: 50% 60%; will-change: transform; }
+
+/* ---------- Process: the sticky picture eases in, not just fades ---------- */
+.story-img { transform: scale(1.06); transition: opacity .9s var(--e-apple), transform 1.4s var(--e-apple) !important; }
+.story-img.is-active { transform: none; }
+.step .body { transition: opacity .5s var(--e-apple), transform .6s var(--e-apple); }
+@media (min-width: 834px) { .js .step:not(.is-active) .body { transform: translateX(-8px); } }
+
+/* ---------- Modal: the picture grows out of its card ---------- */
+::view-transition-group(clip) { animation-duration: .6s; animation-timing-function: var(--e-swift); }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .35s; }
+.anim .modal[open] .modal-inner { animation: modal-in .55s var(--e-apple) both; }
+@keyframes modal-in { from { opacity: 0; transform: scale(.96); } }
+.anim .modal[open] .modal-info > * { animation: rise-in .7s var(--e-apple) both; }
+.anim .modal[open] .modal-info > :nth-child(2) { animation-delay: 60ms; }
+.anim .modal[open] .modal-info > :nth-child(3) { animation-delay: 120ms; }
+.anim .modal[open] .modal-info > :nth-child(4) { animation-delay: 180ms; }
+.anim .modal[open] .modal-info > :nth-child(5) { animation-delay: 240ms; }
+.anim .modal[open] .modal-info > :nth-child(n+6) { animation-delay: 300ms; }
+@keyframes rise-in { from { opacity: 0; transform: translateY(16px); } }
+.modal.closing .modal-inner { transform: scale(.97); transition: transform .19s var(--e-apple); }
+
+/* ---------- Badge pop (Saved count) ---------- */
+.pop { display: inline-block; animation: pop .5s var(--e-spring); }
+@keyframes pop { 40% { transform: scale(1.45); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim .split .mi, .anim .card.pre { transform: none !important; opacity: 1 !important; filter: none !important; }
+  .statement .sw { opacity: 1; }
+}
+
+/* ---------- Pointer (desktop): depth, light and pull that follow the mouse ---------- */
+.ptr .hero-media > img, .ptr .hero-media > video { translate: var(--hx, 0) var(--hy, 0); scale: 1.04; } /* a little bleed so the drift never shows an edge */
+.ptr .hero-head { translate: var(--tx, 0) var(--ty, 0); }
+/* cards tilt a few degrees toward the pointer, a soft light follows it across the picture */
+.ptr .card-media { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+.ptr .card-media::after { content: ""; position: absolute; inset: 0; z-index: 1; background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, .22), transparent 60%); opacity: 0; transition: opacity .4s var(--e-apple); pointer-events: none; }
+.ptr .card-hit:hover .card-media::after { opacity: 1; }
+.ptr .card-hit:active .card-media { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(.97); }
+/* buttons lean toward the pointer (never the buy button) */
+.ptr .magnet { translate: var(--bx, 0) var(--by, 0); }
+/* menu: a soft pill glides between the links you hover */
+.nav-links { position: relative; }
+.nav-hover { position: absolute; z-index: -1; top: 50%; left: 0; height: 30px; width: 1px; margin-top: -15px; border-radius: 980px; background: currentColor; opacity: 0; transition: transform .45s var(--e-spring), width .45s var(--e-spring), opacity .25s var(--e-apple); pointer-events: none; }
+.nav-hover.on { opacity: .12; }
