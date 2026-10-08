@@ -42,6 +42,38 @@
   heads.forEach(split);
   // hero: title, line and button get their order; CSS starts them once fonts are ready (≤ 900ms)
   $$(".hero-head > *").forEach((n, i) => n.style.setProperty("--i", i));
+
+  // hero title: every letter gets its own blur-in step (words never break mid-word)
+  const heroTitle = $(".hero-title");
+  if (heroTitle) {
+    let c = 0;
+    const label = heroTitle.textContent.replace(/\s+/g, " ").trim();
+    const wrap = (text) => {
+      const frag = document.createDocumentFragment();
+      text.split(/(\s+)/).forEach((part) => {
+        if (!part) return;
+        if (/^\s+$/.test(part)) { frag.append(document.createTextNode(part)); return; }
+        const word = document.createElement("span");
+        word.className = "cw";
+        [...part].forEach((ch) => { const s = document.createElement("span"); s.className = "ch"; s.style.setProperty("--c", c++); s.textContent = ch; word.append(s); });
+        frag.append(word);
+      });
+      return frag;
+    };
+    const walk = (n) => [...n.childNodes].forEach((x) => {
+      if (x.nodeType === 3) x.replaceWith(wrap(x.textContent));
+      else if (x.nodeType === 1 && x.tagName !== "BR" && !x.classList.contains("br-sm")) walk(x);
+    });
+    walk(heroTitle);
+    // visible letters are hidden from assistive tech; the full sentence is read once
+    const sr = document.createElement("span");
+    sr.className = "sr-only";
+    sr.textContent = label;
+    const visual = document.createElement("span");
+    visual.setAttribute("aria-hidden", "true");
+    visual.append(...heroTitle.childNodes);
+    heroTitle.append(sr, visual);
+  }
   const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -12% 0px" });
   heads.forEach((n) => io.observe(n));
 
@@ -95,7 +127,7 @@
   if (count) new MutationObserver(() => { count.classList.remove("pop"); void count.offsetWidth; count.classList.add("pop"); }).observe(count, { childList: true, characterData: true, subtree: true });
 
   /* ---------- 6. scroll-linked: hero fold, free-sample scale, About words ---------- */
-  const heroEl = $(".hero"), media = $(".hero-media"), head = $(".hero-head");
+  const heroEl = $(".hero"), media = $(".hero-media"), head = $(".hero-head"), shade = $(".hero-shade");
   let ticking = false;
   function frame() {
     ticking = false;
@@ -103,6 +135,7 @@
     // hero: the footage shrinks to a rounded card and the headline lifts and fades
     if (heroEl && y < heroEl.offsetHeight * 1.2) {
       const p = clamp(y / (vh * 0.9));
+      shade.style.background = `rgba(0, 0, 0, ${(0.35 + p * 0.3).toFixed(3)})`; // the veil deepens as the footage leaves
       const inset = (p * 5).toFixed(2), r = (p * 28).toFixed(1);
       media.style.transform = `scale(${(1 - p * 0.06).toFixed(4)})`;
       media.style.clipPath = p > 0 ? `inset(0 ${inset}% round ${r}px)` : "";
