@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="en" data-fx="standard">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Wild Frames — 4K Nature Stock Footage Made in Unreal Engine 5</title>
   <meta name="description" content="Photoreal 4K nature stock footage created in Unreal Engine 5: forests, oceans, mountains, skies and waterfalls. Preview clips and license on Adobe Stock.">
-  <meta name="theme-color" content="#070a08">
+  <meta name="theme-color" content="#000000">
   <link rel="canonical" href="https://mai-dang-khoa.github.io/nature-footage/">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
 
@@ -25,397 +25,59 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- Fonts load without blocking first paint; system fonts show until they arrive -->
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&family=Inter:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet';fontsGo()">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&family=Inter:wght@400;500;600&display=swap"></noscript>
-  <!-- Hero poster shows instantly. Keep this path equal to the poster/thumbnail of the first featured clip. -->
+  <!-- Fonts load without blocking first paint -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@87.5,600&family=Inter:wght@400;600&display=swap" onload="this.onload=null;this.rel='stylesheet';fontsGo()">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@87.5,600&family=Inter:wght@400;600&display=swap"></noscript>
+  <!-- Hero poster shows instantly. Keep this path equal to the poster of the first featured clip. -->
   <link rel="preload" as="image" href="assets/thumbs/sample-1.svg" fetchpriority="high">
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="fx.css">
-  <link rel="stylesheet" href="polish.css">
   <script>
-    // Hero text animates in only once web fonts are ready (max 1.2s), so the swap never shifts visible text.
     (function (d) {
       d.classList.add("js");
-      // Effect level (off | standard | max), decided before first paint.
-      // Priority: ?fx= in the URL > saved choice > automatic (site default "max", lowered for the device).
-      var L = /^(off|standard|max)$/, q = (location.search.match(/[?&]fx=(off|standard|max)\b/) || [])[1], saved, auto;
-      try { if (q) localStorage.setItem("fx", q); saved = localStorage.getItem("fx"); } catch (e) {}
-      try { auto = sessionStorage.getItem("fx-auto"); } catch (e) {}
-      var choice = q || (L.test(saved || "") ? saved : ""), n = navigator, c = n.connection || {};
-      var weak = !!c.saveData || (n.hardwareConcurrency > 0 && n.hardwareConcurrency <= 4) || (n.deviceMemory > 0 && n.deviceMemory <= 4);
-      var lvl = choice || "max";
-      if (!choice) {
-        if (matchMedia("(prefers-reduced-motion: reduce)").matches) lvl = "off";
-        else if (weak || auto === "standard") lvl = "standard";
-      }
-      d.setAttribute("data-fx", lvl);
-      d.setAttribute("data-fx-source", choice ? "user" : "auto");
-      // Opening curtain: max level, first visit only (never blocks the page; Skip / Esc end it)
-      var visited = "1";
-      try { visited = localStorage.getItem("visited"); localStorage.setItem("visited", "1"); } catch (e) {}
-      if (lvl === "max" && !visited) d.classList.add("intro-on");
-      // safety net for the per-letter hero title: show it even if fx.js never runs
-      setTimeout(function () { d.classList.add("chars-ready"); }, 2000);
+      // Hero text fades in once web fonts are ready (max 900ms), so the swap never moves it.
       var done = function () { d.classList.add("fonts-ready"); };
       setTimeout(done, 900);
-      // safety net: if motion.js never loads, show everything
-      setTimeout(function () { if (!window.Motion) d.classList.remove("js"); }, 4000);
       window.fontsGo = function () {
         if (!document.fonts || !document.fonts.load) return done();
-        Promise.all(["300 1em Fraunces", "italic 300 1em Fraunces", "400 1em Inter"].map(function (f) { return document.fonts.load(f); }))
-          .then(done, done);
+        Promise.all(["600 1em Archivo", "400 1em Inter"].map(function (f) { return document.fonts.load(f); })).then(done, done);
       };
+      // safety net: if motion.js never loads, show everything
+      setTimeout(function () { if (!window.Motion) d.classList.remove("js"); }, 4000);
     })(document.documentElement);
   </script>
 </head>
 <body>
-  <!-- Opening curtain (max level, first visit). Decorative: clicks pass through. -->
-  <div class="intro" id="intro" aria-hidden="true">
-    <div class="intro-curtain"></div>
-    <p class="intro-brand"><span class="intro-mask"><span class="intro-word">Wild Frames</span></span></p>
-  </div>
-  <button class="intro-skip" id="intro-skip" type="button">Skip intro</button>
-  <a class="skip" href="#rows">Skip to clips</a>
-
-  <div class="progress" id="progress" aria-hidden="true"></div>
-  <header class="nav" id="nav">
-    <a class="brand" href="#top">
-      <img src="favicon.svg" alt="" width="26" height="26"> <span data-site="brandName">Wild Frames</span>
-    </a>
-    <nav aria-label="Main">
-      <a href="#collection">Clips</a>
+  <a class="skip" href="#clips">Skip to clips</a>
+  <header class="nav" id="nav" data-theme="dark">
+    <a class="brand" href="#top" data-site="brandName">Wild Frames</a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#clips">Clips</a>
       <a href="#process">Process</a>
       <a href="#faq">FAQ</a>
-      <a href="#contact">Contact</a>
-      <span class="nav-ind" id="nav-ind" aria-hidden="true"></span>
     </nav>
   </header>
 
   <main id="top">
-    <!-- Peak: strong first impression -->
-    <section class="hero" id="hero">
-      <!-- layers: parallax wrapper (scroll) > media (slow zoom) -->
-      <div class="hero-parallax" id="hero-parallax" aria-hidden="true">
-        <div class="hero-media">
-          <img class="hero-poster" id="hero-poster" src="assets/thumbs/sample-1.svg" alt="" width="1920" height="1080" fetchpriority="high" decoding="async">
-          <video id="hero-video" class="hero-video" muted loop playsinline preload="none" tabindex="-1"></video>
-        </div>
+    <section class="hero" id="hero" data-theme="dark">
+      <div class="hero-head">
+        <h1 class="display" data-reveal>Nature,<span class="br-sm"></span> rendered.</h1>
+        <p class="body" data-reveal style="--d:100ms">Photoreal 4K stock footage,<span class="br-sm"></span> built in Unreal Engine 5.</p>
+        <a class="pill" href="#clips" data-reveal style="--d:200ms">Browse clips</a>
       </div>
-      <div class="hero-shade"></div>
-      <div class="hero-light" id="hero-light" aria-hidden="true"></div>
-      <div class="hero-inner" id="hero-inner">
-        <p class="eyebrow hero-step" style="--i:1">4K nature footage · Made in Unreal Engine 5</p>
-        <!-- each word sits in its own mask (.w) and slides up (.wi) -->
-        <h1 class="hero-title" style="--i:2"><span class="w"><span class="wi" style="--wi:0">Worlds</span></span> <span class="w"><span class="wi" style="--wi:1">that</span></span> <span class="w"><span class="wi" style="--wi:2">look</span></span> <span class="w"><span class="wi wi-em" style="--wi:3"><em data-text="real">real</em>,</span></span><br><span class="w"><span class="wi" style="--wi:4">built</span></span> <span class="w"><span class="wi" style="--wi:5">from</span></span> <span class="w"><span class="wi" style="--wi:6">nothing.</span></span></h1>
-        <p class="lede hero-step" style="--i:3" data-site="tagline">Photoreal 4K nature footage, built in Unreal Engine 5.</p>
-        <div class="hero-actions hero-step" style="--i:4">
-          <a class="btn btn-accent btn-lg" href="#rows">Browse Collection</a>
-          <a class="btn btn-outline btn-lg" href="#process">How it's made</a>
-        </div>
+      <div class="hero-media">
+        <img id="hero-poster" src="assets/thumbs/sample-1.svg" alt="" width="1920" height="1080" fetchpriority="high" decoding="async">
+        <video id="hero-video" muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>
+        <button id="hero-toggle" class="media-toggle" type="button" aria-pressed="false" hidden>Pause</button>
       </div>
-      <p class="hero-specs" id="hero-specs">3840 × 2160 · Unreal Engine 5 · Licensed via Adobe Stock</p>
-      <a class="scroll-cue" href="#rows" aria-label="Scroll to clips"><span></span></a>
-      <button id="hero-toggle" class="icon-btn hero-toggle" type="button" aria-label="Pause background video" aria-pressed="false" hidden>
-        <span class="i-pause" aria-hidden="true"></span>
-      </button>
-    </section>
-
-    <!-- Hero film: scroll scrubs through a frame sequence (hidden unless site.json has "sequence") -->
-    <section id="film" class="film" aria-labelledby="film-title" hidden>
-      <h2 id="film-title" class="sr-only">How a scene comes together</h2>
-      <div class="film-sticky">
-        <canvas class="film-canvas" id="film-canvas" role="img" aria-label="Scroll-driven frame sequence"></canvas>
-        <img class="film-still" id="film-still" alt="" width="1280" height="720" loading="lazy" decoding="async" hidden>
-        <div class="film-shade" aria-hidden="true"></div>
-        <ol class="film-lines" id="film-lines">
-          <li class="film-line" data-at="0.15"><span>Every frame starts as an empty level.</span></li>
-          <li class="film-line" data-at="0.40"><span>Terrain, rocks and trees are placed in Unreal Engine 5.</span></li>
-          <li class="film-line" data-at="0.65"><span>Light and atmosphere are tuned until it reads as real.</span></li>
-          <li class="film-line" data-at="0.90"><span>Then it is rendered, frame by frame, in 4K.</span></li>
-        </ol>
-        <a class="btn btn-accent btn-lg film-cta" id="film-cta" href="#rows">Browse Collection</a>
-        <a class="film-skip" href="#rows">Skip film</a>
-      </div>
-    </section>
-
-    <!-- Hick's Law: a short, curated first row, then one row per collection (streaming-style shelves) -->
-    <section id="rows" class="section rows-section" aria-labelledby="rows-title">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow" data-reveal="line">Start here</p>
-          <h2 id="rows-title" data-reveal="mask">Collections</h2>
-        </div>
-        <p class="muted section-aside" data-reveal="fade" data-delay="120">Hand-picked first, then sets made in the same world with matching light. Swipe or scroll sideways.</p>
-      </div>
-      <div id="rows-list" class="rows">
-        <div class="row" aria-hidden="true">
-          <div class="row-head"><span class="skeleton skeleton-line"></span></div>
-          <div class="row-track">
-            <div class="card skeleton"></div><div class="card skeleton"></div><div class="card skeleton"></div><div class="card skeleton"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Recently viewed (this device only; hidden when empty) -->
-    <section id="recent" class="section recent-section" aria-labelledby="recent-title" hidden>
-      <div class="row">
-        <div class="row-head"><h2 id="recent-title" class="row-title">Recently viewed</h2><span class="row-count" id="recent-count"></span></div>
-        <div class="row-track" id="recent-track" data-stagger="60"></div>
-      </div>
-    </section>
-
-    <!-- Relevance: start from what the buyer is making -->
-    <section id="use-cases" class="section">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow" data-reveal="line">Find by project</p>
-          <h2 data-reveal="mask">Perfect for</h2>
-        </div>
-      </div>
-      <div class="marquee" id="usecase-marquee" data-reveal="fade">
-        <div id="usecase-list" class="marquee-track"></div>
-      </div>
-      <button class="btn btn-outline btn-sm marquee-toggle" id="marquee-toggle" type="button" aria-pressed="false">Pause</button>
-    </section>
-
-    <section id="collection" class="section">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow" data-reveal="line">Everything</p>
-          <h2 data-reveal="mask">Full collection</h2>
-        </div>
-        <p class="muted" id="result-count" aria-live="polite"></p>
-      </div>
-
-      <div class="controls" data-reveal="fade">
-        <div class="filter-groups">
-          <div class="filter-group">
-            <span class="filter-label" id="mood-label">Mood</span>
-            <div class="chips" id="mood-chips" role="group" aria-labelledby="mood-label"></div>
-          </div>
-          <div class="filter-group">
-            <span class="filter-label" id="cat-label">Category</span>
-            <div class="chips" id="chips" role="group" aria-labelledby="cat-label"></div>
-          </div>
-        </div>
-        <label class="search">
-          <span class="sr-only">Search clips</span>
-          <input id="search" type="search" placeholder="Search clips, tags…" autocomplete="off">
-        </label>
-      </div>
-      <div id="active-filters" class="active-filters" hidden></div>
-
-      <div id="grid" class="grid" data-stagger="70" aria-busy="true">
-        <div class="card skeleton" aria-hidden="true"></div>
-        <div class="card skeleton" aria-hidden="true"></div>
-        <div class="card skeleton" aria-hidden="true"></div>
-        <div class="card skeleton" aria-hidden="true"></div>
-        <div class="card skeleton" aria-hidden="true"></div>
-        <div class="card skeleton" aria-hidden="true"></div>
-      </div>
-      <div class="more-wrap"><button id="show-more" class="btn btn-outline" type="button" hidden>Show more</button></div>
-      <p id="empty" class="empty" hidden>No clips match your search. <button type="button" class="link-btn" id="clear-filters">Clear filters</button></p>
-      <p id="load-error" class="empty" hidden>Could not load the clip list. Please try again later.</p>
-    </section>
-
-    <!-- Social proof: rendered only from real data in site.json -->
-    <section id="proof" class="section proof" hidden>
-      <dl id="stats" class="stats" hidden></dl>
-      <div id="trusted" class="trusted" hidden>
-        <p class="eyebrow">As used in</p>
-        <ul id="trusted-list"></ul>
-      </div>
-    </section>
-
-    <!-- Reciprocity: give something first -->
-    <section id="free-sample" class="section" hidden>
-      <div class="free" data-reveal="up">
-        <img id="free-thumb" src="assets/thumbs/sample-1.svg" alt="" width="640" height="360" loading="lazy" decoding="async">
-        <div class="free-body">
-          <p class="eyebrow" data-reveal="line">Free, no sign-up</p>
-          <h2 id="free-title">Free sample clip</h2>
-          <p id="free-desc" class="muted"></p>
-          <p class="spec-line" id="free-spec"></p>
-          <div class="free-actions">
-            <a id="free-download" class="btn btn-light" href="#" download data-track="free_download">Download free sample</a>
-            <a id="free-more" class="btn btn-outline" href="#" data-track="sample_request" data-needs="email">Ask for more samples</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Authority: show the real process -->
-    <section id="process" class="section">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow" data-reveal="line">Behind the scene</p>
-          <h2 data-reveal="mask">From empty level to 4K frame</h2>
-        </div>
-        <p class="muted section-aside" data-reveal="fade" data-delay="120">Every clip is computer-generated in Unreal Engine 5, a real-time engine — no drones, no location shoots.</p>
-      </div>
-      <!-- EDIT: replace images in assets/bts/ (both the story-img and the step img) with real UE5 screenshots,
-           and adjust the text to match your own workflow -->
-      <div class="story" id="story">
-        <div class="story-visual" aria-hidden="true">
-          <div class="story-frame">
-          <img class="story-img is-active" data-step="0" src="assets/bts/step-1.svg" alt="" width="640" height="400" loading="lazy" decoding="async">
-          <img class="story-img" data-step="1" src="assets/bts/step-2.svg" alt="" width="640" height="400" loading="lazy" decoding="async">
-          <img class="story-img" data-step="2" src="assets/bts/step-3.svg" alt="" width="640" height="400" loading="lazy" decoding="async">
-          <img class="story-img" data-step="3" src="assets/bts/step-4.svg" alt="" width="640" height="400" loading="lazy" decoding="async">
-          </div>
-          <div class="story-meta">
-            <span class="story-num" id="story-num">01</span>
-            <span class="story-total">/ 04</span>
-          </div>
-          <div class="story-line"><span id="story-fill"></span></div>
-        </div>
-        <ol class="steps story-steps">
-        <li class="step" data-step="0" data-reveal="up">
-          <img src="assets/bts/step-1.svg" alt="Placeholder for a scene-build screenshot" width="640" height="400" loading="lazy" decoding="async">
-          <span class="step-n">01</span>
-          <h3>Scene build</h3>
-          <p>Terrain, rocks and vegetation are assembled in Unreal Engine 5. High-detail geometry keeps close-ups sharp.</p>
-        </li>
-        <li class="step" data-step="1" data-reveal="up">
-          <img src="assets/bts/step-2.svg" alt="Placeholder for a lighting screenshot" width="640" height="400" loading="lazy" decoding="async">
-          <span class="step-n">02</span>
-          <h3>Lighting</h3>
-          <p>Sun, sky and atmosphere are lit with real-time global illumination, tuned for natural, photoreal light.</p>
-        </li>
-        <li class="step" data-step="2" data-reveal="up">
-          <img src="assets/bts/step-3.svg" alt="Placeholder for a camera setup screenshot" width="640" height="400" loading="lazy" decoding="async">
-          <span class="step-n">03</span>
-          <h3>Cinematic camera</h3>
-          <p>Virtual cameras with real-world lens settings move slowly and smoothly, the way a film crew would shoot.</p>
-        </li>
-        <li class="step" data-step="3" data-reveal="up">
-          <img src="assets/bts/step-4.svg" alt="Placeholder for a render output screenshot" width="640" height="400" loading="lazy" decoding="async">
-          <span class="step-n">04</span>
-          <h3>4K render</h3>
-          <p>Final frames are rendered offline at 3840 × 2160, then checked shot by shot before upload.</p>
-        </li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- Objection handling -->
-    <section id="faq" class="section faq">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow" data-reveal="line">Before you buy</p>
-          <h2 data-reveal="mask">Questions</h2>
-        </div>
-      </div>
-      <div class="faq-list" data-reveal="up">
-        <details>
-          <summary>Can I use these clips on YouTube, in ads or in a documentary?</summary>
-          <div class="faq-a"><div><p>All clips are licensed through Adobe Stock, and what you can do depends on the license you pick there. License terms are provided by Adobe Stock — <a class="text-link" data-site-href="adobeLicenseUrl" href="https://stock.adobe.com/license-terms" target="_blank" rel="noopener noreferrer">read the Adobe Stock license terms</a>.</p></div></div>
-        </details>
-        <details>
-          <summary>Is this real footage?</summary>
-          <div class="faq-a"><div><p>No. Every scene is computer-generated in Unreal Engine 5. Nothing was filmed on location.</p></div></div>
-        </details>
-        <details>
-          <summary>What file will I get?</summary>
-          <div class="faq-a"><div><p>Clips are rendered in 4K (3840 × 2160). The exact file format, frame rate and size are listed on each clip's Adobe Stock page before you buy.</p></div></div>
-        </details>
-        <details>
-          <summary>How do I download after buying?</summary>
-          <div class="faq-a"><div><p>After you license a clip on Adobe Stock, the full-resolution file is available to download from your Adobe Stock account.</p></div></div>
-        </details>
-        <details data-needs="email">
-          <summary>Can you make a custom scene or a longer version?</summary>
-          <div class="faq-a"><div><p>Get in touch by <a class="js-mailto text-link" data-subject="Custom request" href="mailto:">email</a> with what you need.</p></div></div>
-        </details>
-      </div>
-    </section>
-
-    <section id="about" class="section about">
-      <div class="section-head"><div><p class="eyebrow" data-reveal="line">About</p><h2 data-reveal="mask">The person behind the frames</h2></div></div>
-      <div class="about-body" data-reveal="up">
-        <!-- EDIT: replace with your own story -->
-        <p>Every scene in this collection is built from scratch in Unreal Engine 5 — terrain, vegetation, water, light and atmosphere — and rendered in native 4K.</p>
-        <p>The goal is photoreal nature that holds up on a large screen: believable lighting, natural motion and clean, loop-friendly shots for editors and motion designers.</p>
-        <p id="about-story" hidden></p>
-        <p>New clips are added regularly. All footage is available to license through stock marketplaces.</p>
-      </div>
-    </section>
-
-    <section id="contact" class="section">
-      <div class="section-head"><div><p class="eyebrow" data-reveal="line">Contact</p><h2 data-reveal="mask">Talk to me</h2></div></div>
-      <p class="muted">Custom scenes, questions or licensing enquiries:</p>
-      <ul class="links" id="contact-links" data-reveal="fade">
-        <li data-needs="email"><a class="js-mailto" data-subject="Hello" href="mailto:">Email</a></li>
-      </ul>
-    </section>
-
-    <!-- End: one clear final action -->
-    <section class="finale" data-ambient>
-      <h2 data-reveal="mask">Find your next shot.</h2>
-      <p class="muted" data-reveal="fade" data-delay="120">Every clip in this collection is available to license on Adobe Stock.</p>
-      <a class="btn btn-accent btn-lg finale-cta" data-site-href="adobeStockProfileUrl" data-utm="profile_finale" data-track="buy_click" data-clip="profile" href="#" target="_blank" rel="noopener noreferrer" hidden>See all clips on Adobe Stock</a>
     </section>
   </main>
 
-  <footer class="footer">
-    <p>© <span id="year">2025</span> <span id="owner-name">Wild Frames</span>. All rights reserved. Footage is licensed only through the linked stock platforms.</p>
-    <p><a class="text-link" data-site-href="adobeStockProfileUrl" data-utm="profile_footer" href="#" target="_blank" rel="noopener noreferrer" hidden>Adobe Stock profile</a></p>
+  <footer class="footer wrap" data-theme="dark">
+    <ul class="footer-links" id="footer-links">
+      <li data-needs="email"><a class="js-mailto" data-subject="Hello" href="mailto:">Email</a></li>
+    </ul>
+    <p class="small">© <span id="year">2026</span> <span id="owner-name">Wild Frames</span>. Footage is licensed only through the linked stock platforms.</p>
   </footer>
-
-  <!-- Commitment: shortlist bar (shown only when something is saved) -->
-  <div id="shortlist-bar" class="shortlist-bar" hidden>
-    <button id="shortlist-open" class="shortlist-btn" type="button" data-track="shortlist_open">
-      <span aria-hidden="true">♥</span> Your shortlist (<span id="shortlist-count">0</span>)
-    </button>
-  </div>
-
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-  <dialog id="shortlist" class="sheet drawer" role="dialog" aria-modal="true" aria-labelledby="shortlist-title">
-    <div class="sheet-head">
-      <h2 id="shortlist-title">Your shortlist</h2>
-      <button class="icon-btn" type="button" data-close aria-label="Close shortlist">✕</button>
-    </div>
-    <p class="caption">Saved on this device only.</p>
-    <ul id="shortlist-items" class="sl-items"></ul>
-    <p id="shortlist-note" class="caption shortlist-note" hidden></p>
-    <div class="sheet-foot">
-      <button id="license-all" class="btn btn-accent btn-block" type="button" data-track="license_all">License all on Adobe Stock</button>
-    </div>
-  </dialog>
-
-  <!-- Endowment: clip detail -->
-  <dialog id="clip-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="m-title">
-    <div class="modal-inner">
-      <div class="modal-media">
-        <video id="m-video" muted loop playsinline preload="none"></video>
-        <button class="icon-btn sound-btn" type="button" id="m-sound" aria-pressed="false">
-Sound off</button>
-        <button class="icon-btn nav-btn prev" type="button" id="m-prev" aria-label="Previous clip">←</button>
-        <button class="icon-btn nav-btn next" type="button" id="m-next" aria-label="Next clip">→</button>
-      </div>
-      <div class="modal-info">
-        <button class="icon-btn modal-close" type="button" data-close aria-label="Close">✕</button>
-        <p class="eyebrow" id="m-cat"></p>
-        <h2 id="m-title"></h2>
-        <dl id="m-specs" class="specs"></dl>
-        <ul id="m-tags" class="tags"></ul>
-        <p id="m-set" class="caption"></p>
-        <p id="m-price" class="price" hidden></p>
-      </div>
-      <div class="modal-cta">
-        <a id="m-buy" class="btn btn-accent btn-lg" href="#" target="_blank" rel="noopener noreferrer" data-track="buy_click">License on Adobe Stock</a>
-        <button id="m-fav" class="btn btn-outline btn-lg fav-toggle" type="button" aria-pressed="false"><span aria-hidden="true">♥</span> <span class="fav-label">Save</span></button>
-        <p class="license-note">Commercial license via Adobe Stock</p>
-      </div>
-      <div id="m-more-wrap" class="modal-more">
-        <h3 class="eyebrow">More like this</h3>
-        <ul id="m-more" class="more-list"></ul>
-      </div>
-    </div>
-  </dialog>
 
   <!-- Fallback copies of videos.json / site.json, used only when fetch() is blocked (opening index.html via file://).
        Refresh with: python3 tools/sync-fallback.py -->
@@ -604,7 +266,6 @@ Sound off</button>
   "brandName": "Wild Frames",
   "ownerName": "[YOUR_NAME]",
   "tagline": "Photoreal 4K nature footage, built in Unreal Engine 5.",
-  "fxLevel": "max",
   "sequence": {
     "_note": "SAMPLE frames generated by tools/make-sample-sequence.py. Replace with a real UE5 render (see README). Remove this block to hide the section.",
     "frames": 60,
@@ -725,8 +386,5 @@ Sound off</button>
   </script>
   <script src="motion.js" defer></script>
   <script src="script.js" defer></script>
-  <script src="fx.js" defer></script>
-  <script src="film.js" defer></script>
-  <script src="polish.js" defer></script>
 </body>
 </html>
