@@ -1,11 +1,11 @@
 /* ==========================================================================
-   Hero film — scrolling scrubs through a frame sequence drawn on a canvas.
+   Film — sticky footage: scrolling scrubs a frame sequence drawn on a canvas.
    - config in site.json → "sequence" (no config: the section stays hidden)
    - first frame loads at once, the rest in batches (≤ 6 requests at a time),
      nearest to the current position first, decoded with createImageBitmap
    - progress from getBoundingClientRect inside the shared rAF, lerp 0.12
    - native scrolling only (sticky frame inside a ~400vh section)
-   - falls back to one still + all lines (reduced motion, Data Saver, weak
+   - captions crossfade (opacity only); falls back to one still + all lines (reduced motion, Data Saver, weak
      device, no canvas/createImageBitmap, or the first frame fails)
    ========================================================================== */
 (() => {
@@ -14,7 +14,6 @@
   const M = window.Motion;
   const section = document.getElementById("film");
   if (!M || !section) return;
-  const root = document.documentElement;
   const canvas = document.getElementById("film-canvas");
   const still = document.getElementById("film-still");
   const cta = document.getElementById("film-cta");
@@ -35,9 +34,7 @@
     if (cfg.label) canvas.setAttribute("aria-label", cfg.label);
 
     const conn = navigator.connection || {};
-    // weak devices get the still, unless the visitor explicitly picked the "max" level
-    const forcedMax = root.getAttribute("data-fx-source") === "user" && root.getAttribute("data-fx") === "max";
-    const weak = M.lowPower && !forcedMax;
+    const weak = M.lowPower; // weak devices get the still
     let isStatic = false;
     function toStatic() {
       if (isStatic) return;
@@ -127,7 +124,7 @@
       // one line at a time, around its mark
       let best = null;
       lines.forEach((l) => { const d = Math.abs(smooth - l.at); if (d < 0.1 && (!best || d < best.d)) best = { l, d }; });
-      const next = best ? best.l : null;
+      const next = best && smooth < 0.92 ? best.l : null; // the button takes the caption's place at the end
       if (next !== activeLine) { if (activeLine) activeLine.li.classList.remove("on"); if (next) next.li.classList.add("on"); activeLine = next; }
       cta.classList.toggle("on", smooth >= 0.92);
       return true;

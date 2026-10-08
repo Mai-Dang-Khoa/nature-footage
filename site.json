@@ -39,17 +39,12 @@
     "id": ""
   },
   "freeSample": {
-    "title": "Free sample clip",
+    "title": "Try one clip free.",
     "file": "assets/free/free-sample-720p.mp4",
-    "note": "A short, lower-resolution version of a clip from the collection. Free to download, no sign-up.",
+    "note": "A 720p version of a real clip. No sign-up.",
     "resolution": "1280×720",
     "thumbnail": "assets/thumbs/sample-1.svg"
   },
-  "stats": {
-    "showClipCount": false,
-    "items": []
-  },
-  "trustedBy": [],
   "collections": [
     {
       "id": "forest-mornings",
@@ -68,55 +63,6 @@
       "name": "Wild Horizons (sample)",
       "description": "Peaks, dunes and wide open space.",
       "collectionUrl": ""
-    }
-  ],
-  "moods": [
-    {
-      "id": "calm",
-      "label": "Calm"
-    },
-    {
-      "id": "epic",
-      "label": "Epic"
-    },
-    {
-      "id": "moody",
-      "label": "Moody"
-    },
-    {
-      "id": "warm",
-      "label": "Warm"
-    },
-    {
-      "id": "fresh",
-      "label": "Fresh"
-    }
-  ],
-  "useCases": [
-    {
-      "id": "documentary",
-      "label": "Documentaries",
-      "description": "Establishing shots and calm cutaways."
-    },
-    {
-      "id": "youtube",
-      "label": "YouTube B-roll",
-      "description": "Clean shots to cover voice-over."
-    },
-    {
-      "id": "wellness",
-      "label": "Meditation & wellness apps",
-      "description": "Slow, loop-friendly scenes."
-    },
-    {
-      "id": "travel",
-      "label": "Travel ads",
-      "description": "Wide landscapes that sell a place."
-    },
-    {
-      "id": "presentation",
-      "label": "Presentations",
-      "description": "Backgrounds that sit behind text."
     }
   ]
 }

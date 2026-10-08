@@ -117,6 +117,7 @@
     });
     $$(".js-mailto").forEach((n) => (n.href = hasEmail() ? mailto(n.dataset.subject || "Hello") : "#"));
     $$("[data-needs='email']").forEach((n) => (n.hidden = !hasEmail()));
+    if (isReal(site.story)) { $("#about-story").textContent = site.story; $("#about-story").hidden = false; }
     $("#owner-name").textContent = isReal(site.ownerName) ? site.ownerName : (isReal(site.brandName) ? site.brandName : "Wild Frames");
 
     // footer: stock profiles and other links (only real ones)
@@ -171,6 +172,348 @@
     heroToggle.textContent = heroPausedByUser ? "Play" : "Pause";
   });
 
+  /* ---------- Buy links ---------- */
+  // Where "License" goes: the clip's own Adobe Stock page, else the profile; null when neither is filled in.
+  const buyUrl = (v) => (isReal(v.stockUrl) ? v.stockUrl : isReal(site.adobeStockProfileUrl) ? site.adobeStockProfileUrl : null);
+  const byId = (id) => videos.find((v) => v.id === id);
+  const collectionInfo = (id) => (site.collections || []).find((c) => c.id === id);
+
+  // localStorage can throw (private mode, blocked storage): fall back to memory.
+  const store = {
+    get(key, def) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; } },
+    set(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch { /* memory only */ } },
+  };
+
+  /* ---------- Toast (status message, read politely, hides after 2s) ---------- */
+  let toastTimer;
+  function toast(msg) {
+    const t = $("#toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("show"), 2000);
+  }
+
+  /* ---------- Dialogs: fade in (CSS), fade out ---------- */
+  function openDialog(d) {
+    if (!d.open) d.showModal();
+    document.body.classList.add("locked");
+  }
+  function fadeClose(d) {
+    if (!d.open || d.classList.contains("closing")) return;
+    if (reduced) { d.close(); return; }
+    d.classList.add("closing");
+    setTimeout(() => { d.classList.remove("closing"); d.close(); }, 190);
+  }
+  $$("dialog").forEach((d) => {
+    d.addEventListener("close", () => { if (!$$("dialog").some((x) => x.open)) document.body.classList.remove("locked"); });
+    d.addEventListener("cancel", (e) => { e.preventDefault(); fadeClose(d); });
+    d.addEventListener("click", (e) => { if (e.target === d) fadeClose(d); });
+    $$("[data-close]", d).forEach((b) => b.addEventListener("click", () => fadeClose(d)));
+    // keep Tab inside the open dialog
+    d.addEventListener("keydown", (e) => {
+      if (e.key !== "Tab") return;
+      const items = $$("a[href]:not([hidden]), button:not([disabled]):not([hidden])", d).filter((n) => n.offsetParent !== null);
+      if (!items.length) return;
+      const first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+  });
+
+  /* ---------- Saved (shortlist) ---------- */
+  let favs = new Set(store.get("shortlist", []).filter((x) => typeof x === "string"));
+  const isFav = (id) => favs.has(id);
+
+  function toggleFav(id) {
+    if (favs.has(id)) { favs.delete(id); toast("Removed"); }
+    else { favs.add(id); track("favorite_add", { clip: id }); toast("Saved"); }
+    store.set("shortlist", [...favs]);
+    syncFavs();
+  }
+
+  function syncFavs() {
+    favs = new Set([...favs].filter((id) => byId(id))); // drop ids no longer in videos.json
+    const n = favs.size;
+    $("#shortlist-count").textContent = n;
+    $("#shortlist-open").hidden = n === 0;
+    const mFav = $("#m-fav");
+    if (mFav.dataset.fav) {
+      const on = isFav(mFav.dataset.fav);
+      mFav.setAttribute("aria-pressed", String(on));
+      mFav.textContent = on ? "Saved" : "Save";
+    }
+    if ($("#shortlist").open) renderShortlist();
+  }
+
+  function renderShortlist() {
+    const list = [...favs].map(byId).filter(Boolean);
+    $("#shortlist-items").replaceChildren(...list.map((v) => {
+      const remove = el("button", { class: "text-btn", type: "button", "aria-label": `Remove ${v.title}`, text: "Remove" });
+      remove.addEventListener("click", () => toggleFav(v.id));
+      const url = buyUrl(v);
+      return el("li", {}, [
+        el("img", { src: v.thumbnail, alt: "", width: "96", height: "54", loading: "lazy" }),
+        el("div", {}, [
+          el("strong", { text: v.title }),
+          el("span", { class: "sl-actions" }, [
+            url ? el("a", { class: "text-btn", href: withUtm(url, v.id), target: "_blank", rel: "noopener noreferrer", "data-track": "buy_click", "data-clip": v.id, text: "License" }) : null,
+            remove,
+          ]),
+        ]),
+      ]);
+    }));
+    const linkable = list.filter((v) => buyUrl(v)).length;
+    $("#license-all").textContent = `License all (${linkable})`;
+    $("#license-all").hidden = linkable === 0;
+    if (!list.length) fadeClose($("#shortlist"));
+  }
+
+  $("#shortlist-open").addEventListener("click", () => {
+    renderShortlist();
+    $("#shortlist-note").hidden = true;
+    openDialog($("#shortlist"));
+  });
+
+  $("#license-all").addEventListener("click", () => {
+    const list = [...favs].map(byId).filter((v) => v && buyUrl(v));
+    let blocked = 0;
+    list.forEach((v) => {
+      const w = window.open(withUtm(buyUrl(v), v.id), "_blank");
+      if (w) w.opener = null; else blocked++;
+    });
+    const note = $("#shortlist-note");
+    note.hidden = blocked === 0;
+    note.textContent = `Your browser blocked ${blocked} of ${list.length} tabs. Allow pop-ups, or use each License link above.`;
+  });
+
+  /* ---------- Hover preview (mouse only, one card at a time) ---------- */
+  let current = null;
+  function stop(cardEl) {
+    const v = cardEl.querySelector(".card-video");
+    if (v) v.pause();
+    cardEl.classList.remove("playing");
+    if (current === cardEl) current = null;
+  }
+  function play(cardEl, src) {
+    if (current && current !== cardEl) stop(current);
+    current = cardEl;
+    if (reduced || !src) return;
+    let v = cardEl.querySelector(".card-video");
+    if (!v) {
+      // the preview is only downloaded on first hover
+      v = el("video", { class: "card-video", muted: true, loop: true, playsinline: true, preload: "none", "aria-hidden": "true", tabindex: "-1" });
+      v.muted = true;
+      v.addEventListener("playing", () => { if (current === cardEl) cardEl.classList.add("playing"); });
+      v.addEventListener("error", () => cardEl.classList.remove("playing"));
+      v.src = src;
+      cardEl.querySelector(".card-thumb").after(v);
+    }
+    v.play().catch(() => {});
+  }
+
+  /* ---------- Cards: picture, then a caption under it (never on it) ---------- */
+  function card(v) {
+    const meta = [v.resolution, v.duration, v.sample ? "Sample" : ""].filter(Boolean).join(" · ");
+    const thumb = el("img", { class: "card-thumb", src: v.thumbnail, alt: "", loading: "lazy", width: "640", height: "360", decoding: "async" });
+    const hit = el("button", { class: "card-hit", type: "button", "aria-label": `${v.title}, ${meta}. Preview and license` }, [
+      el("span", { class: "card-media" }, [thumb]),
+      el("span", { class: "card-cap" }, [el("span", { class: "card-title", text: v.title }), el("span", { class: "small", text: meta })]),
+    ]);
+    const cardEl = el("article", { class: "card", "data-id": v.id }, [hit]);
+    hit.addEventListener("click", () => openClip(v.id, hit));
+    if (M.finePointer) {
+      cardEl.addEventListener("mouseenter", () => play(cardEl, v.preview));
+      cardEl.addEventListener("mouseleave", () => stop(cardEl));
+    }
+    return cardEl;
+  }
+
+  /* ---------- Filter (category) + Show more. Changing the filter crossfades the grid ---------- */
+  const grid = $("#grid"), chipsEl = $("#chips"), moreBtn = $("#show-more");
+  const PAGE_SIZE = 9;
+  let category = "All", shown = PAGE_SIZE;
+  const list = () => videos.filter((v) => category === "All" || v.category === category);
+
+  function render() {
+    const all = list(), visible = all.slice(0, shown);
+    if (current) stop(current);
+    grid.replaceChildren(...visible.map(card));
+    grid.setAttribute("aria-busy", "false");
+    $("#empty").hidden = all.length > 0;
+    moreBtn.hidden = all.length <= shown;
+    $("#result-count").textContent = `${all.length} ${all.length === 1 ? "clip" : "clips"}`;
+  }
+
+  let fadeT;
+  function setCategory(c) {
+    category = c;
+    shown = PAGE_SIZE;
+    $$(".chip", chipsEl).forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.value === c)));
+    if (c !== "All") track("filter", { category: c });
+    if (reduced) { render(); return; }
+    clearTimeout(fadeT);
+    grid.classList.add("fading");
+    fadeT = setTimeout(() => { render(); grid.classList.remove("fading"); }, 150);
+  }
+
+  function buildChips() {
+    const cats = ["All", ...new Set(videos.map((v) => v.category).filter(Boolean))];
+    chipsEl.replaceChildren(...cats.map((c) => {
+      const b = el("button", { class: "chip", type: "button", "data-value": c, "aria-pressed": String(c === category), text: c });
+      b.addEventListener("click", () => setCategory(c));
+      return b;
+    }));
+    chipsEl.hidden = cats.length < 3; // one category: nothing to filter
+  }
+
+  moreBtn.addEventListener("click", () => {
+    const first = list()[shown];
+    shown += PAGE_SIZE;
+    render();
+    // keyboard users land on the first new card
+    if (first) grid.querySelector(`[data-id="${CSS.escape(first.id)}"] .card-hit`)?.focus({ preventScroll: true });
+  });
+  $("#clear-filters").addEventListener("click", () => setCategory("All"));
+
+  /* ---------- Free sample ---------- */
+  function renderFreeSample() {
+    const f = site.freeSample;
+    const file = f && (f.file || f.url);
+    if (!f || f.enabled === false || !isReal(file)) return;
+    if (f.title) $("#free-title").textContent = f.title;
+    if (f.note || f.description) $("#free-desc").textContent = f.note || f.description;
+    if (f.thumbnail) $("#free-thumb").src = f.thumbnail;
+    $("#free-download").href = file;
+    $("#free-sample").hidden = false;
+  }
+
+  /* ---------- Finale: Adobe Stock when the profile is filled in, else back to the clips ---------- */
+  function initFinale() {
+    const a = $("#finale-cta");
+    if (!isReal(site.adobeStockProfileUrl)) return;
+    a.href = withUtm(site.adobeStockProfileUrl, "profile_finale");
+    a.textContent = "License clips";
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.dataset.track = "buy_click";
+    a.dataset.clip = "profile";
+  }
+
+  /* ---------- Clip modal ---------- */
+  const modal = $("#clip-modal"), mVideo = $("#m-video");
+  let modalList = [], modalIndex = 0, opener = null, soundOn = false;
+
+  function openClip(id, from) {
+    const v = byId(id);
+    if (!v) return;
+    modalList = list().some((x) => x.id === id) ? list() : videos;
+    modalIndex = modalList.findIndex((x) => x.id === id);
+    opener = from || document.activeElement;
+    fillModal(v);
+    if (!modal.open) openDialog(modal);
+    ($("#m-buy").hidden ? $("#m-fav") : $("#m-buy")).focus({ preventScroll: true });
+    history.replaceState(null, "", `#clip=${encodeURIComponent(id)}`);
+    track("modal_open", { clip: id });
+  }
+
+  function fillModal(v) {
+    if (current) stop(current);
+    mVideo.pause();
+    mVideo.poster = v.poster || v.thumbnail;
+    mVideo.src = v.preview;
+    mVideo.controls = reduced;
+    mVideo.muted = !soundOn;
+    if (!reduced) mVideo.play().catch(() => {});
+
+    $("#m-cat").textContent = [v.category, v.sample ? "Sample" : ""].filter(Boolean).join(" · ");
+    $("#m-title").textContent = v.title;
+    const specs = [
+      ["Resolution", v.resolution],
+      ["Duration", v.duration],
+      v.fps ? ["Frame rate", `${v.fps} fps`] : null,
+      typeof v.loopable === "boolean" ? ["Loop", v.loopable ? "Seamless" : "No"] : null,
+      collectionInfo(v.collection) ? ["Set", collectionInfo(v.collection).name] : null,
+    ].filter((x) => x && x[1]);
+    $("#m-specs").replaceChildren(...specs.flatMap(([k, val]) => [el("dt", { text: k }), el("dd", { text: val })]));
+    $("#m-price").hidden = !v.price;
+    $("#m-price").textContent = v.price || "";
+
+    const buy = $("#m-buy"), url = buyUrl(v);
+    buy.hidden = !url;
+    $("#m-via").hidden = !url;
+    if (url) buy.href = withUtm(url, v.id);
+    buy.dataset.clip = v.id;
+    buy.setAttribute("aria-label", `License ${v.title} on Adobe Stock`);
+    const fav = $("#m-fav");
+    fav.dataset.fav = v.id;
+    fav.setAttribute("aria-label", `Save ${v.title}`);
+    syncFavs();
+    const many = modalList.length > 1;
+    $("#m-prev").hidden = !many;
+    $("#m-next").hidden = !many;
+  }
+
+  // previous / next: the video crossfades (no slide)
+  let stepT;
+  function step(dir) {
+    if (modalList.length < 2) return;
+    modalIndex = (modalIndex + dir + modalList.length) % modalList.length;
+    const v = modalList[modalIndex];
+    history.replaceState(null, "", `#clip=${encodeURIComponent(v.id)}`);
+    if (reduced) { fillModal(v); return; }
+    clearTimeout(stepT);
+    mVideo.classList.add("swap");
+    stepT = setTimeout(() => { fillModal(v); mVideo.classList.remove("swap"); }, 150);
+  }
+
+  $("#m-prev").addEventListener("click", () => step(-1));
+  $("#m-next").addEventListener("click", () => step(1));
+  $("#m-fav").addEventListener("click", (e) => toggleFav(e.currentTarget.dataset.fav));
+  $("#m-sound").addEventListener("click", (e) => {
+    soundOn = !soundOn;
+    mVideo.muted = !soundOn;
+    e.currentTarget.setAttribute("aria-pressed", String(soundOn));
+    e.currentTarget.textContent = soundOn ? "Sound on" : "Sound off";
+  });
+  modal.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") { e.preventDefault(); step(-1); }
+    if (e.key === "ArrowRight") { e.preventDefault(); step(1); }
+  });
+  modal.addEventListener("close", () => {
+    mVideo.pause();
+    mVideo.removeAttribute("src");
+    mVideo.load();
+    if (location.hash.startsWith("#clip=")) history.replaceState(null, "", location.pathname + location.search);
+    if (opener && opener.isConnected) opener.focus({ preventScroll: true });
+    opener = null;
+  });
+
+  function openFromHash() {
+    const m = location.hash.match(/^#clip=(.+)$/);
+    if (m) openClip(decodeURIComponent(m[1]));
+  }
+  window.addEventListener("hashchange", openFromHash);
+
+  /* ---------- Process: the sticky picture crossfades to the step being read ---------- */
+  const steps = $$("#story .step"), storyImgs = $$("#story .story-img");
+  const storyIO = new IntersectionObserver((entries) => entries.forEach((e) => {
+    if (!e.isIntersecting) return;
+    const i = steps.indexOf(e.target);
+    steps.forEach((s, k) => s.classList.toggle("is-active", k === i));
+    storyImgs.forEach((im, k) => im.classList.toggle("is-active", k === i));
+  }), { rootMargin: "-45% 0px -50% 0px" });
+  steps.forEach((s) => storyIO.observe(s));
+
+  /* ---------- Nav: mark the section being read ---------- */
+  const navLinks = $$(".nav-links a[href^='#']");
+  const navIO = new IntersectionObserver((entries) => entries.forEach((e) => {
+    if (!e.isIntersecting) return;
+    const href = `#${e.target.id}`;
+    navLinks.forEach((a) => (a.getAttribute("href") === href ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current")));
+  }), { rootMargin: "-45% 0px -50% 0px" });
+  $$("main > section[id]").forEach((sec) => navIO.observe(sec));
+
   /* ---------- JSON-LD ---------- */
   function injectJsonLd() {
     const abs = (p) => new URL(p, document.baseURI).href;
@@ -202,10 +545,19 @@
     site = s || {};
     applySite();
     initAnalytics();
+    buildChips();
+    render();
+    renderFreeSample();
+    initFinale();
+    syncFavs();
     injectJsonLd();
     initHero(videos.find((x) => x.featured) || videos[0]);
     M.reveal(document);
+    openFromHash();
     window.App = { site, videos, track, isReal };
     M.emit("data", window.App);
-  }).catch(() => {});
+  }).catch(() => {
+    grid.setAttribute("aria-busy", "false");
+    $("#load-error").hidden = false;
+  });
 })();
