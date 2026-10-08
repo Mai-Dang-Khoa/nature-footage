@@ -122,9 +122,55 @@
   }
   if (chips) { new MutationObserver(setupChips).observe(chips, { childList: true }); setupChips(); }
 
+  /* ---------- 4. a light sweep crosses each clip picture once, when it comes into view ---------- */
+  const sweepIO = new IntersectionObserver((es) => es.forEach((e) => {
+    if (!e.isIntersecting) return;
+    e.target.classList.add("swept");
+    sweepIO.unobserve(e.target);
+  }), { rootMargin: "0px 0px -15% 0px" });
+  const sweeps = () => $$(".card-media:not(.sw-on)").forEach((m, i) => { m.classList.add("sw-on"); m.style.setProperty("--k", i % 3); sweepIO.observe(m); });
+  if (grid) new MutationObserver(sweeps).observe(grid, { childList: true });
+  sweeps();
+
   /* ---------- 5. Saved count pops when it changes ---------- */
   const count = $("#shortlist-count");
   if (count) new MutationObserver(() => { count.classList.remove("pop"); void count.offsetWidth; count.classList.add("pop"); }).observe(count, { childList: true, characterData: true, subtree: true });
+
+  /* ---------- 8. GSAP + ScrollTrigger (cdnjs). Without it the CSS and JS above still work. ---------- */
+  const G = window.gsap, ST = window.ScrollTrigger;
+  const hasGsap = !!(G && ST);
+  if (hasGsap) {
+    G.registerPlugin(ST);
+    // statement: pinned for one screen while its words light up, scrubbed to the scroll
+    const aboutSec = $("#about");
+    if (aboutSec && words.length) {
+      ST.create({
+        trigger: aboutSec, start: "top top+=10%", end: "+=90%", pin: true, anticipatePin: 1,
+        scrub: 0.6,
+        onUpdate: (self) => { const n = Math.round(self.progress * words.length); words.forEach((w, i) => w.classList.toggle("lit", i < n)); },
+      });
+    }
+    // photos: slow parallax inside their frames; each column moves at its own speed so the grid feels layered
+    let parTriggers = [];
+    const parallax = () => {
+      parTriggers.forEach((t) => t.kill());
+      parTriggers = [];
+      $$(".card-media").forEach((m, i) => {
+        const img = m.querySelector(".card-thumb");
+        if (!img) return;
+        const speed = 0.6 + (i % 3) * 0.35;
+        parTriggers.push(ST.create({
+          trigger: m, start: "top bottom", end: "bottom top", scrub: true,
+          onUpdate: (self) => { img.style.translate = `0 ${((self.progress - 0.5) * 8 * speed).toFixed(2)}%`; },
+        }));
+      });
+      ST.refresh();
+    };
+    if (grid) new MutationObserver(parallax).observe(grid, { childList: true });
+    parallax();
+    const fm = $(".split-media");
+    if (fm) ST.create({ trigger: fm, start: "top bottom", end: "bottom top", scrub: true, onUpdate: (self) => { fm.style.translate = `0 ${((self.progress - 0.5) * 6).toFixed(2)}%`; } });
+  }
 
   /* ---------- 6. scroll-linked: hero fold, free-sample scale, About words ---------- */
   const heroEl = $(".hero"), media = $(".hero-media"), head = $(".hero-head"), shade = $(".hero-shade");
@@ -150,8 +196,8 @@
       n.style.scale = (0.92 + e * 0.08).toFixed(4);
       n.style.opacity = e.toFixed(3);
     });
-    // About: words light up between 85% and 40% of the screen height
-    if (words.length) {
+    // About: words light up between 85% and 40% of the screen height (GSAP does it when it is loaded)
+    if (words.length && !hasGsap) {
       const r = about.getBoundingClientRect();
       // fully lit once it has reached 35% from the top (or scrolled past), dark below the fold
       const atEnd = y + vh >= document.documentElement.scrollHeight - 4; // tall screens may never scroll it that far
@@ -190,7 +236,7 @@
       heroEl.addEventListener("pointerleave", () => ease(h, 0, 0));
     }
 
-    // cards: tilt ≤ 4°, light follows the pointer (works for cards added later too)
+    // cards: tilt ≤ 6°, light follows the pointer (works for cards added later too)
     const tilts = new WeakMap();
     document.addEventListener("pointermove", (e) => {
       const hit = e.target.closest && e.target.closest(".card-hit");
@@ -200,7 +246,7 @@
       m.style.setProperty("--mx", `${(x * 100).toFixed(1)}%`); m.style.setProperty("--my", `${(y * 100).toFixed(1)}%`);
       let t = tilts.get(m);
       if (!t) {
-        t = item((a, b) => { m.style.setProperty("--ry", `${(a * 4).toFixed(2)}deg`); m.style.setProperty("--rx", `${(-b * 4).toFixed(2)}deg`); }, 0.12);
+        t = item((a, b) => { m.style.setProperty("--ry", `${(a * 6).toFixed(2)}deg`); m.style.setProperty("--rx", `${(-b * 6).toFixed(2)}deg`); }, 0.12);
         tilts.set(m, t);
         hit.addEventListener("pointerleave", () => ease(t, 0, 0));
       }
@@ -222,6 +268,29 @@
       b.addEventListener("pointerup", () => { down = false; });
       b.addEventListener("pointerleave", () => { down = false; ease(t, 0, 0); });
     });
+
+    // cursor ring: follows the pointer with a lag, grows over cards and buttons (native cursor stays)
+    const ring = document.createElement("div");
+    ring.className = "cursor";
+    ring.setAttribute("aria-hidden", "true");
+    document.body.append(ring);
+    const cur = { x: 0, y: 0, tx: 0, ty: 0 };
+    let curRaf = 0;
+    const curLoop = () => {
+      cur.x = lerp(cur.x, cur.tx, 0.22); cur.y = lerp(cur.y, cur.ty, 0.22);
+      ring.style.transform = `translate3d(${cur.x.toFixed(1)}px, ${cur.y.toFixed(1)}px, 0)`;
+      curRaf = Math.abs(cur.x - cur.tx) + Math.abs(cur.y - cur.ty) > 0.1 ? requestAnimationFrame(curLoop) : 0;
+    };
+    document.addEventListener("pointermove", (e) => {
+      cur.tx = e.clientX; cur.ty = e.clientY;
+      if (!ring.classList.contains("on")) { cur.x = cur.tx; cur.y = cur.ty; ring.classList.add("on"); }
+      if (!curRaf) curRaf = requestAnimationFrame(curLoop);
+    }, { passive: true });
+    document.addEventListener("pointerout", (e) => { if (!e.relatedTarget) ring.classList.remove("on"); });
+    document.addEventListener("pointerover", (e) => {
+      const hit = e.target.closest && e.target.closest(".card-hit, .pill, a, button");
+      ring.classList.toggle("big", !!hit);
+    }, { passive: true });
 
     // menu: a pill glides to the link under the pointer
     const nav = $(".nav-links");

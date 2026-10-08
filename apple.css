@@ -96,7 +96,7 @@
 .ptr .hero-head { translate: var(--tx, 0) var(--ty, 0); }
 /* cards tilt a few degrees toward the pointer, a soft light follows it across the picture */
 .ptr .card-media { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
-.ptr .card-media::after { content: ""; position: absolute; inset: 0; z-index: 1; background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, .22), transparent 60%); opacity: 0; transition: opacity .4s var(--e-apple); pointer-events: none; }
+.ptr .card-media::after { content: ""; position: absolute; inset: 0; z-index: 1; background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, .3), transparent 60%); opacity: 0; transition: opacity .4s var(--e-apple); pointer-events: none; }
 .ptr .card-hit:hover .card-media::after { opacity: 1; }
 .ptr .card-hit:active .card-media { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(.97); }
 /* buttons lean toward the pointer (never the buy button) */
@@ -105,3 +105,15 @@
 .nav-links { position: relative; }
 .nav-hover { position: absolute; z-index: -1; top: 50%; left: 0; height: 30px; width: 1px; margin-top: -15px; border-radius: 980px; background: currentColor; opacity: 0; transition: transform .45s var(--e-spring), width .45s var(--e-spring), opacity .25s var(--e-apple); pointer-events: none; }
 .nav-hover.on { opacity: .12; }
+
+/* ---------- Wave 2: light sweep, parallax photos, cursor ring ---------- */
+/* a soft light band crosses each clip picture once (apple.js adds .swept when it enters the screen) */
+.card-media::before { content: ""; position: absolute; inset: 0; z-index: 2; background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .28) 50%, transparent 65%); transform: translateX(-120%); pointer-events: none; }
+.card-media.swept::before { transform: translateX(120%); transition: transform 1.3s var(--e-apple) calc(var(--k, 0) * 120ms); }
+/* parallax: the photo is a little taller than its frame, GSAP moves it with `translate` (not transform, which hover uses) */
+.card-media .card-thumb { top: -8%; height: 116%; }
+.split-media { will-change: translate; }
+/* cursor ring: decorative, mouse only, never over the click target (pointer-events: none) */
+.cursor { position: fixed; left: 0; top: 0; z-index: 90; width: 28px; height: 28px; margin: -14px 0 0 -14px; border: 1px solid rgba(255, 255, 255, .7); border-radius: 50%; pointer-events: none; opacity: 0; mix-blend-mode: difference; transition: opacity .3s var(--e-apple), width .45s var(--e-spring), height .45s var(--e-spring), margin .45s var(--e-spring), background-color .3s var(--e-apple); will-change: transform; }
+.cursor.on { opacity: 1; }
+.cursor.big { width: 64px; height: 64px; margin: -32px 0 0 -32px; background-color: rgba(255, 255, 255, .9); }
