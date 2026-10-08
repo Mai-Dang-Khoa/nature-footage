@@ -13,22 +13,26 @@ Website tĩnh (HTML/CSS/JS thuần, không thư viện, không bước build). M
 ## Cấu trúc
 
 ```
-index.html   style.css   script.js   motion.js   fx.js   fx.css   film.js   polish.css   polish.js
-assets/sequence/    khung hình cho đoạn "hero film" (desktop/ và mobile/; hiện là dữ liệu mẫu)
+index.html   style.css   script.js   motion.js   film.js
+docs/design/        quy tắc thiết kế đã khóa (DESIGN.md), copy (copy.md), moodboard, bảng chữ
+assets/sequence/    khung hình cho đoạn film (desktop/ và mobile/; hiện là dữ liệu mẫu)
 videos.json         danh sách clip
-site.json           thông tin chung: tên, email, link, collections, mood, use case, analytics…
+site.json           thông tin chung: tên, email, link, collections, free sample, analytics…
 assets/thumbs/      thumbnail
-assets/previews/    video preview (preview của clip featured đầu tiên = video nền hero)
+assets/previews/    video preview (preview của clip featured đầu tiên = footage ở hero)
 assets/free/        file mẫu miễn phí
-assets/bts/         ảnh "Behind the scene" (đang là ảnh SVG giữ chỗ)
+assets/bts/         ảnh Process (đang là ảnh SVG giữ chỗ)
 assets/og.png       ảnh chia sẻ mạng xã hội (1200×630)
 tools/sync-fallback.py   đồng bộ JSON vào index.html (chỉ cần cho file://)
+tools/design-check.js    kiểm tra trang theo DESIGN.md (cho lập trình viên, cần Node + Playwright)
 docs/screenshots/   ảnh trước/sau
 ```
 
 ## Luồng trang
 
-Hero (video) → Collections (hàng Featured + mỗi collection một hàng cuộn ngang) → Recently viewed (chỉ hiện khi đã xem clip) → Perfect for (marquee lọc theo mục đích) → Full collection (lọc Mood/Category, tìm kiếm, Show more) → Stats / As used in (chỉ hiện khi có dữ liệu thật) → Free sample → Behind the scene (cuộn kể chuyện) → FAQ → About → Contact → CTA cuối.
+Nền xen kẽ đen / xám nhạt, mỗi màn một ý, một hành động:
+
+Hero (đen: một dòng, một câu, nút **Browse clips**, footage full-bleed) → Film (đen: khung footage đứng yên, chữ đổi khi cuộn) → Clips (sáng: lọc theo category, thẻ clip, Show more) → Free sample (đen) → Process (sáng: ảnh đứng yên, 4 bước cuộn qua) → FAQ (đen) → About (sáng) → CTA cuối (đen, căn giữa) → footer.
 
 ## Thêm clip mới (`videos.json`)
 
@@ -60,18 +64,18 @@ Hero (video) → Collections (hàng Featured + mỗi collection một hàng cu�
 
 | Trường | Ý nghĩa |
 |---|---|
-| `featured` | `true` = vào hàng Featured (hàng đầu tiên). Clip featured đầu tiên làm video nền hero. Đồng thời hiện chip "Featured" ở các hàng/lưới khác. |
-| `collection` | `id` của một collection trong `site.json`. Clip cùng collection nằm chung một hàng. |
-| `mood` | `calm`, `epic`, `moody`, `warm` hoặc `fresh`. Dùng cho bộ lọc Mood. |
-| `useCases` | Mảng `id` trong `site.json` → `useCases` (`documentary`, `youtube`, `wellness`, `travel`, `presentation`). |
+| `featured` | Clip featured đầu tiên làm footage ở hero. |
+| `collection` | `id` của một collection trong `site.json`; tên bộ hiện trong modal (dòng "Set"). |
 | `fps`, `loopable` | Hiện trong modal. `loopable: true` → "Seamless". |
-| `addedAt` | `YYYY-MM-DD`. Trong 30 ngày kể từ ngày này, thẻ hiện chip "New". Cũng dùng làm `uploadDate` cho SEO. |
+| `addedAt` | `YYYY-MM-DD`, dùng làm `uploadDate` cho SEO. |
+| `mood`, `useCases`, `tags` | Không hiện trên trang (giữ lại cho SEO / sau này). |
 | `price` | Chỉ điền giá thật, dạng chữ, ví dụ `"From $79 on Adobe Stock"`. |
 | `poster` | Ảnh hiển thị trước khi video chạy (mặc định là `thumbnail`). |
-| `sample` | `true` = dữ liệu mẫu, hiện chip "Sample data". **Xoá khi dùng clip thật.** |
+| `sample` | `true` = dữ liệu mẫu, thẻ và modal ghi "Sample". **Xoá khi dùng clip thật.** |
 
-- Category hoặc mood mới tự thành chip lọc.
-- Lưới đầy đủ hiện 12 clip, nút "Show more" tải thêm 12.
+- Tên clip nên ≤ 6 từ (caption dưới ảnh).
+- Category mới tự thành chip lọc.
+- Lưới hiện 9 clip, nút "Show more" tải thêm 9.
 - Link mua tự gắn UTM: `utm_source=portfolio&utm_medium=site&utm_campaign=<id clip>`.
 - Thứ tự link mua: `stockUrl` của clip → nếu chưa có thì link profile Adobe Stock → nếu cũng chưa có thì **ẩn nút mua**.
 
@@ -81,187 +85,62 @@ Giá trị rỗng hoặc còn chứa `[YOUR_` được coi là **chưa có**: n�
 
 | Trường | Ý nghĩa |
 |---|---|
-| `brandName`, `tagline`, `ownerName` | Tên thương hiệu, dòng phụ ở hero, tên ở footer (thiếu thì dùng `brandName`). |
-| `story` | Đoạn giới thiệu bản thân ở mục About (thiếu thì ẩn). |
-| `email` | Nút Email, câu hỏi "custom scene" trong FAQ, nút "Ask for more samples". Thiếu thì ẩn cả ba; không có cách liên hệ nào thì ẩn luôn mục Contact và link Contact trên menu. |
-| `adobeStockProfileUrl` | CTA cuối trang, link footer, link dự phòng cho clip chưa có `stockUrl`. |
+| `brandName`, `ownerName` | Tên trên menu, tên ở footer (thiếu `ownerName` thì dùng `brandName`). |
+| `story` | Thêm một đoạn ngắn ở About (thiếu thì ẩn). |
+| `email` | Link Email ở footer và câu hỏi "custom scene" trong FAQ. Thiếu thì ẩn cả hai. |
+| `adobeStockProfileUrl` | Nút CTA cuối trang ("License clips"; thiếu thì nút quay về "Browse clips"), link dự phòng cho clip chưa có `stockUrl`. |
 | `adobeLicenseUrl` | Link điều khoản license của Adobe trong FAQ. |
-| `social` | `[{ "label", "url" }]` hiện ở Contact. |
-| `collections` | `[{ "id", "name", "description", "collectionUrl" }]`. Có `collectionUrl` thật thì hiện nút "View full set on Adobe Stock". |
-| `moods`, `useCases` | Nhãn hiển thị cho bộ lọc Mood và mục "Perfect for". |
-| `freeSample` | `{ "title", "file", "note", "resolution", "thumbnail" }`. Thiếu `file` thì ẩn mục Free sample. |
-| `stats` | `{ "showClipCount": false, "items": [{ "value", "label" }] }`. **Chỉ điền số thật.** Trống thì ẩn. |
-| `trustedBy` | `[{ "name", "url", "logo" }]` cho khối "As used in". **Chỉ điền khi có xác nhận thật.** |
+| `social` | `[{ "label", "url" }]` hiện ở footer. |
+| `collections` | `[{ "id", "name" }]`: tên bộ hiện trong modal. |
+| `freeSample` | `{ "title", "file", "note", "thumbnail" }`. Tiêu đề ≤ 8 từ, `note` ≤ 18 từ. Thiếu `file` thì ẩn mục Free sample. |
+| `sequence` | Đoạn film (xem bên dưới). Xoá khối này thì đoạn film ẩn. |
 | `analytics` | Xem phần Analytics. |
 
 Thẻ `<title>`, meta description, Open Graph trong `index.html` là HTML tĩnh (cho SEO), sửa trực tiếp trong file.
 
-## Hệ design token
+## Thiết kế (đã khóa)
 
-Mọi màu, cỡ chữ, khoảng cách, bo góc, thời gian chuyển động nằm ở đầu `style.css` (khối `:root`). Sửa ở đó là cả trang đổi theo.
+Mọi quy tắc nằm ở [`docs/design/DESIGN.md`](docs/design/DESIGN.md). Tóm tắt:
 
-| Nhóm | Token |
-|---|---|
-| Màu | `--bg`, `--surface`, `--surface-2`, `--text`, `--text-muted`, `--border`, `--border-strong`, `--accent`, `--accent-hover`, `--accent-ink` |
-| Chữ | `--font-display` (Fraunces), `--font-ui` (Inter), `--fs-hero` … `--fs-micro`, `--measure` (65ch) |
-| Khoảng cách | `--s-1` … `--s-8` = 4 / 8 / 16 / 24 / 40 / 64 / 96 / 140px, `--space-section` |
-| Hình khối | `--r-sm`, `--r-md`, `--r-lg`, `--r-pill`, `--tap` (48px), `--tap-lg` (56px) |
+- **Hướng:** product-cinematic. Nền chỉ `#000`, `#f5f5f7`, `#fff`. Chữ `#f5f5f7` trên tối, `#1d1d1f` trên sáng.
+- **Một màu nhấn** `#0071e3` (trên nền đen dùng `#2997ff` cho đủ tương phản), chỉ cho link và nút pill.
+- **Cấm:** icon minh họa, gradient nhiều màu, shadow, hơn 1 màu nhấn, đoạn văn trên hero, viền kẻ 1px.
+- **Chữ:** Archivo semi-condensed 600 cho tiêu đề (80px hero, 48px section), Inter 17px cho chữ thường, 12–14px cho nhãn.
+- **Lưới:** container 1024px, khoảng cách bội số 8px, section cách nhau 120px (mobile 64px), khối chiếm 5–7/12 cột.
+- **Copy:** headline ≤ 8 từ, subline ≤ 18, nút 1–2 từ, caption ≤ 6. Xem [`docs/design/copy.md`](docs/design/copy.md).
 
-**Màu nhấn** `--accent` chỉ dùng cho: nút mua, nút chính ở hero, viền focus và thanh tiến trình cuộn. Đổi màu: sửa 3 dòng
+**Đổi màu nhấn:** sửa `--accent` và `--accent-on-dark` ở đầu `style.css`. Chữ trắng trên `--accent` phải đạt ≥ 4.5:1, và `--accent-on-dark` trên nền đen cũng vậy (kiểm tra tại https://webaim.org/resources/contrastchecker/).
 
-```css
---accent: #e8b464;        /* màu nút */
---accent-hover: #f2c47c;  /* sáng hơn một chút khi rê chuột */
---accent-ink: #1a1308;    /* chữ trên nút: tương phản ≥ 4.5:1 với --accent */
-```
+**Đổi font:** thay URL Google Fonts ở 2 chỗ trong `index.html` (`preload` và `noscript`), tên font trong `fontsGo` ở `<head>`, và `--font-display` / `--font-text` trong `style.css`.
 
-Ví dụ xanh lá: `--accent: #9fd27a; --accent-hover: #b3e091; --accent-ink: #0d1a06;`. Kiểm tra tương phản tại https://webaim.org/resources/contrastchecker/.
+## Chuyển động (chỉ 4 kiểu)
 
-**Đổi font:**
-1. Chọn tối đa 2 họ font trên Google Fonts.
-2. Thay URL Google Fonts ở **cả 2 chỗ** trong `index.html`: `<link rel="preload">` và `<noscript>`.
-3. Sửa tên font trong đoạn script `fontsGo` ở `<head>`. Script này chờ font tải xong (tối đa 1.2s) rồi mới cho chữ hero hiện, để chữ không bị nhảy.
-4. Sửa `--font-display` và `--font-ui` trong `style.css`.
+1. **Hiện khi cuộn tới:** mờ → rõ và trồi lên 20px, 700ms, chạy một lần. Gắn `data-reveal` vào phần tử; trễ thêm bằng `style="--d:100ms"`.
+2. **Sticky:** khung footage đứng yên khi chữ cuộn qua (Film, Process).
+3. **Crossfade:** đổi clip trong modal, đổi ảnh Process, lọc lưới clip, chữ trong Film. Không trượt ngang.
+4. **Menu đổi màu** theo section tối/sáng nằm dưới nó; nền mờ (blur 20px) chỉ có khi đã cuộn.
 
-## Hệ chuyển động (motion)
+Không có: parallax, con trỏ riêng, màn chờ, animation lặp. Hover chỉ đổi độ mờ hoặc gạch chân. Người bật "giảm chuyển động": mọi thứ hiện ngay, không video tự chạy.
 
-### Thời gian và easing (`style.css`)
+`motion.js` chỉ làm 3 việc: reveal một lần, vòng `requestAnimationFrame` dùng chung (cho film), và màu menu.
 
-| Token | Giá trị | Dùng cho |
-|---|---|---|
-| `--dur-instant` | 100ms | bấm nút, bật tắt |
-| `--dur-fast` | 150ms | hover nhỏ, phản hồi nút |
-| `--dur-med` | 250ms | modal, drawer, menu, thẻ nâng lên |
-| `--dur-slow` | 400ms | chuyển clip, lọc, FLIP |
-| `--dur-reveal` | 700ms | reveal khi cuộn, chữ hero |
-| `--dur-hero` | 800ms | hiệu ứng vào trang dài nhất |
-| `--ease-out` / `--ease-in` / `--ease-in-out` | | đi vào / đi ra / ở trên màn suốt |
+### Số đo
 
-- Thoát (exit) dùng khoảng 75% thời gian vào.
-- Trên màn hình cảm ứng, `--dur-med`, `--dur-slow`, `--dur-reveal` chậm hơn một chút.
-- Tổng stagger mỗi nhóm ≤ 500ms (tự giảm khoảng lệch khi nhiều phần tử).
-- Chỉ nút ♥ có độ nảy (`--ease-pop`).
+- **Lighthouse mobile:** Performance 95–96, Accessibility / Best Practices / SEO 100, CLS 0 (trước đợt này: 88–90).
+- **FPS khi cuộn hết trang:** 60fps ở 390px và 1440px (máy test không có GPU).
+- **Dung lượng JS + CSS (gzip):** `script.js` 7.8KB, `style.css` 4.9KB, `film.js` 2.5KB, `motion.js` 1.6KB. Tổng ~17KB, giảm từ ~38KB.
+- **Kiểm tra thiết kế** (`tools/design-check.js`) ở 1440px và 390px: tất cả quy tắc đạt (khoảng cách 8px, cỡ chữ, tương phản, số từ, một nút mỗi màn, footage ≥ 60% màn đầu, không shadow / gradient / viền / animation lặp, hover không phóng to).
 
-### `motion.js` và data-attribute
+## Đoạn film (cuộn để tua chuỗi khung hình)
 
-`motion.js` gồm: một vòng `requestAnimationFrame` dùng chung (chỉ chạy khi có việc), một IntersectionObserver chung, `lerp`/`clamp`, và các cờ:
-- `Motion.reduced`: người dùng bật giảm chuyển động.
-- `Motion.finePointer`: có chuột.
-- `Motion.lowPower`: ≤ 4 nhân CPU, ≤ 4GB RAM hoặc bật Data Saver.
-- `Motion.rich`: có chuột, không reduced, không lowPower.
+Ngay dưới hero có một đoạn cao khoảng 4 màn hình. Khung footage đứng yên (`position: sticky`), cuộn trang sẽ tua qua chuỗi ảnh vẽ trên `<canvas>`. Chữ nằm **dưới** khung hình (không đè lên ảnh): tiêu đề bên trái, một caption bên phải đổi dần ở các mốc 12%, 37%, 62%, 84%. Cuối đoạn caption nhường chỗ cho nút "Browse clips". Có link "Skip" để nhảy qua.
 
-Gắn hiệu ứng bằng thuộc tính HTML:
-
-```html
-<h2 data-reveal="mask">Tiêu đề</h2>            <!-- từng từ trượt lên sau mặt nạ -->
-<p data-reveal="fade" data-delay="120">…</p>   <!-- mờ dần, trễ 120ms -->
-<div data-reveal="up">…</div>                  <!-- trượt lên + rõ dần -->
-<p class="eyebrow" data-reveal="line">…</p>    <!-- đường kẻ chạy ra -->
-<div data-stagger="60">…các con có data-reveal…</div>  <!-- lệch nhau 60ms -->
-```
-
-Trình duyệt hỗ trợ `animation-timeline: view()` thì reveal chạy hoàn toàn bằng CSS theo vị trí cuộn; không hỗ trợ thì dùng IntersectionObserver. `will-change` chỉ được gắn trong lúc đang animate.
-
-### Tắt hoặc giảm từng hiệu ứng
-
-| Hiệu ứng | Cách tắt |
-|---|---|
-| Tất cả hiệu ứng nặng (nghiêng thẻ, spotlight, parallax, con trỏ phụ, magnetic) | Trong `motion.js`, đổi `const rich = …` thành `const rich = false;` |
-| Video nền hero | Trong `script.js`, xoá dòng `initHero(...)` ở phần Init; trang chỉ hiện poster tĩnh |
-| Zoom chậm của hero | Xoá dòng `.js .hero-media { animation: hero-zoom … }` trong `style.css` |
-| Marquee "Perfect for" | Đặt `--dur-marquee` rất lớn, hoặc xoá dòng `animation: marquee …` trong `.marquee-track` |
-| Vệt sáng ở CTA cuối | Xoá dòng `.finale-cta::before { animation: sheen … }` |
-| View Transitions (thẻ → modal) | Trong `script.js`, cho `canVT` trả về `false` |
-| Reveal khi cuộn | Xoá `data-reveal` khỏi phần tử, hoặc xoá khối "Reveal system" trong `style.css` |
-
-Người bật "giảm chuyển động" trong hệ điều hành: không có zoom, parallax, nghiêng, marquee hay video nền tự chạy; modal và drawer chỉ mờ dần 200ms.
-
-## Mức hiệu ứng (fxLevel): off · standard · max
-
-| Mức | Gồm những gì |
-|---|---|
-| `off` | Không chuyển động trang trí; mọi thay đổi trạng thái tức thì. Không video nền tự chạy. |
-| `standard` | Bản cũ: reveal khi cuộn, hero video, hover thẻ, modal, FLIP… |
-| `max` | `standard` + toàn bộ tầng "cinematic" bên dưới (file `fx.js` + `fx.css`). |
-
-**Cách chọn mức (ưu tiên từ trên xuống):**
-1. Thêm `?fx=off`, `?fx=standard` hoặc `?fx=max` vào URL. Lựa chọn được lưu lại (localStorage).
-2. Nút **FX** trên thanh menu. Trên điện thoại nút này ẩn, mở bằng link "Motion: …" ở footer hoặc phím **Shift+F**. Đổi mức sẽ ghi sự kiện `fx_change`.
-3. Mặc định lấy `site.json → "fxLevel"` (hiện là `"max"`), rồi tự hạ theo thiết bị:
-   - Bật "giảm chuyển động" → `off`.
-   - Data Saver, CPU ≤ 4 nhân hoặc RAM ≤ 4GB → `standard`.
-   - Màn hình cảm ứng → tắt các hiệu ứng theo chuột, giữ hiệu ứng theo cuộn.
-4. **Bộ đo FPS** (3 giây đầu và trong lúc cuộn): nếu dưới 45fps hai lần liên tiếp thì tắt dần hiệu ứng nặng nhất, theo thứ tự WebGL → hạt → méo ảnh → hạt phim (grain) → về hẳn `standard` trong phiên đó. WebGL và hạt chỉ được bật sau khi trang tải xong và giữ ≥ 50fps; máy không có GPU (trình render phần mềm) không bật WebGL.
-5. `?fxlock=1` giữ nguyên mức đang chọn, không tự hạ (dùng khi test hoặc demo).
-
-### Các hiệu ứng ở mức max và nhóm để tắt riêng
-
-| Nhóm | Hiệu ứng |
-|---|---|
-| `intro` | Màn kéo mở màn lần đầu vào trang (≤ 1150ms, có nút Skip, Esc; không chặn bấm; lần sau không chạy) |
-| `webgl` | Nền hero WebGL: video làm texture, gợn sóng nhẹ, quầng sáng theo chuột, tán sắc màu ở rìa khi rê nhanh |
-| `particles` | Hạt bụi/phấn hoa có chiều sâu trên hero (Canvas 2D), lớp sương, đom đóm CSS |
-| `distort` | Nghiêng theo vận tốc cuộn (skewY ≤ 3°), gợn sóng SVG trên ảnh thẻ khi hover |
-| `grain` | Vignette, hạt phim (opacity 0.05), vệt sáng ống kính |
-| `cursor` | Con trỏ phụ đổi theo ngữ cảnh (Play/View, Drag, Buy) |
-| `tilt` | Nghiêng thẻ 6°, parallax ảnh trong thẻ, viền sáng và bóng đổ theo hướng nghiêng |
-| `magnetic` | Nút chính và ♥ hút theo chuột (≤ 10px); chỉ lớp hiển thị di chuyển, vùng bấm thật đứng yên |
-
-Các hiệu ứng `max` khác (không thuộc nhóm nào, luôn nhẹ):
-- Tiêu đề hero và tiêu đề section hiện theo từng ký tự.
-- Số thứ tự section lật vào.
-- Dòng chữ khổng lồ chạy theo vận tốc cuộn; tông nền đổi giữa các section.
-- Process cao ~4.5 màn hình, ảnh zoom chậm, số lật.
-- Modal: nền mờ dần lên 14px; mở kiểu "ống kính" khi trình duyệt không có View Transitions; vệt sáng khi đổi clip.
-- Chi tiết nhỏ: tim có vòng sóng, số shortlist lật kiểu bảng chữ sân bay, chữ nút cuộn khi hover, nhãn nhỏ xáo trộn chữ một lần, bộ đếm số clip thật, chữ thương hiệu khổng lồ ở footer.
-
-**Tắt riêng một nhóm:** trong `motion.js`, sau dòng `const off = new Set(...)`, thêm ví dụ `off.add("webgl");`. Hoặc tắt khi đang chạy bằng `Motion.fx.disable("particles")` trong console.
-
-**Trang chậm, cần tắt nhanh:** đổi `"fxLevel": "standard"` trong `site.json`. Người xem nào đã tự chọn mức qua nút FX vẫn giữ lựa chọn của họ.
-
-### Lớp "polish" (chuyển động tinh tế, chạy ở `standard` và `max`)
-
-File `polish.css` (1.9KB gzip) + `polish.js` (0.6KB gzip). Mức `off` / giảm chuyển động: tắt hết.
-
-- **Lấy nét khi hiện:** đoạn chữ và từng chữ tiêu đề hiện ra từ hơi mờ sang nét (blur 6px → 0) trong lúc trồi lên.
-- **Ảnh hiện mềm:** thumbnail và ảnh tải chậm hiện từ mờ sang nét, kèm zoom nhẹ lùi về. Video trong modal cũng lấy nét khi mở.
-- **Chiều sâu khi cuộn:** ảnh trong thẻ clip và ảnh "Free sample" trôi chậm vài % trong khung (chạy bằng CSS scroll timeline, không tốn JS; trình duyệt không hỗ trợ thì ảnh đứng yên).
-- **Hover êm hơn:** zoom ảnh thẻ chậm 1.1s, link và chip đổi màu chậm hơn, nút viền sáng dần lên khi hover. Phản hồi khi bấm vẫn tức thì.
-- **Ánh sáng "thở"** sau dòng "Find your next shot." (9s một nhịp, chỉ chạy khi section đang hiện trên màn hình).
-- Chỉnh nhanh trong `polish.css`: `--blur-in` (độ mờ), `--dur-silk` (độ chậm), `--ease-soft` (đường cong chuyển động).
-
-### Ngân sách và số đo
-
-- **Dung lượng thêm cho mức max:** `fx.js` 12.8KB + `fx.css` 5.8KB (gzip), cộng khoảng 1.6KB thay đổi ở `motion.js`/`script.js`. Tổng ~20KB, dưới ngân sách 60KB. Không thêm file video nào.
-- **Lighthouse mobile** (đo trên máy test):
-
-  | Mức | Performance | Accessibility / Best Practices / SEO | CLS |
-  |---|---|---|---|
-  | standard | 90–91 | 100 / 100 / 100 | 0.041 |
-  | max | 87–90 | 100 / 100 / 100 | 0.041 |
-  | off | 90 | 100 / 100 / 100 | 0.04 |
-
-- **FPS desktop 1440px** trên máy test **không có GPU** (render bằng CPU, 4 nhân), nên đây là trường hợp xấu nhất:
-
-  | Mức | Đứng yên | Đang cuộn |
-  |---|---|---|
-  | off | 60 | 60 |
-  | standard | 59 | 39 |
-  | max (tự động) | ~27 lúc đầu, bộ đo FPS tự tắt dần hiệu ứng rồi về standard | — |
-  | max khoá (`?fxlock=1`) | 21 | 14 |
-
-  Trên máy có GPU thật các lớp này được card đồ hoạ xử lý; tôi chưa đo được trên thiết bị thật. Hãy thử `?fx=max` trên máy của bạn và xem nút FX có tự chuyển về Standard hay không.
-
-## Đoạn "hero film" (cuộn để tua chuỗi khung hình)
-
-Ngay dưới hero có một đoạn cao khoảng 4 màn hình. Khung hình dính lại (`position: sticky`) và cuộn trang sẽ tua qua chuỗi ảnh vẽ trên `<canvas>`. Bốn dòng chữ lần lượt hiện ở các mốc 15%, 40%, 65% và 90%. Ở cuối đoạn hiện nút "Browse Collection". Có nút "Skip film" để nhảy qua.
-
-- **Dữ liệu hiện tại là MẪU:** 60 khung do `tools/make-sample-sequence.py` tạo, mỗi khung có chữ "SAMPLE FRAME". Desktop 1280×720 (552KB), mobile 640×360 (244KB).
-- **Cấu hình** nằm trong `site.json → "sequence"`: số khung (`frames`), số chữ số trong tên file (`pad`), đường dẫn desktop/mobile (`{n}` = số khung), ảnh tĩnh dự phòng (`fallback`) và mô tả cho trình đọc màn hình (`label`). **Xoá cả khối `sequence` thì đoạn này ẩn đi.**
-- **Cách tải ảnh:** khung đầu tải ngay. Các khung còn lại tải theo lô, tối đa 6 yêu cầu cùng lúc, ưu tiên khung gần vị trí đang xem. Trong lúc chờ, trang hiện khung gần nhất đã tải xong.
-- **Dự phòng:** reduced motion, Data Saver, máy yếu hoặc lỗi tải khung đầu → chỉ hiện một ảnh tĩnh kèm cả 4 dòng chữ và nút bấm, không dùng canvas.
-- **Tiếp cận:** cả 4 dòng chữ luôn nằm trong DOM (trình đọc màn hình đọc được); canvas có `aria-label`.
-- **Ngân sách:** bộ ảnh desktop ≤ 8MB, mobile ≤ 4MB. WebP từ 960×540 đến 1280×720 là đủ.
+- **Dữ liệu hiện tại là MẪU:** 60 khung do `tools/make-sample-sequence.py` tạo, mỗi khung có chữ "SAMPLE FRAME".
+- **Cấu hình** trong `site.json → "sequence"`: `frames`, `pad`, đường dẫn desktop/mobile (`{n}` = số khung, kèm `width`/`height`), ảnh tĩnh dự phòng `fallback`, mô tả `label`.
+- **Điện thoại** chỉ dùng bộ `mobile` khi khung đủ cao để ảnh còn sắc; nếu không thì dùng bộ desktop. Nên xuất bộ mobile dạng dọc 720×1080 (xem lệnh bên dưới).
+- **Cách tải:** khung đầu tải ngay, phần còn lại tải theo lô (tối đa 6 yêu cầu cùng lúc), ưu tiên khung gần vị trí đang xem.
+- **Dự phòng:** giảm chuyển động, Data Saver, máy yếu hoặc lỗi tải → một ảnh tĩnh kèm cả 4 caption và nút bấm.
+- **Ngân sách:** bộ desktop ≤ 8MB, mobile ≤ 4MB.
 
 ### Xuất chuỗi ảnh thật từ UE5
 
@@ -273,15 +152,15 @@ Ngay dưới hero có một đoạn cao khoảng 4 màn hình. Khung hình dính
 ```bash
 # desktop 1280×720
 ffmpeg -framerate 30 -i shot.%04d.png -vf "scale=1280:-2" -c:v libwebp -quality 70 -start_number 1 assets/sequence/desktop/frame_%04d.webp
-# mobile 640×360
-ffmpeg -framerate 30 -i shot.%04d.png -vf "scale=640:-2" -c:v libwebp -quality 66 -start_number 1 assets/sequence/mobile/frame_%04d.webp
+# mobile dạng dọc 720×1080 (cắt giữa khung)
+ffmpeg -framerate 30 -i shot.%04d.png -vf "crop=ih*2/3:ih,scale=720:1080" -c:v libwebp -quality 66 -start_number 1 assets/sequence/mobile/frame_%04d.webp
 # hoặc lấy khung từ một video đã render (24 khung/giây)
 ffmpeg -i shot.mp4 -vf "fps=24,scale=1280:-2" -c:v libwebp -quality 70 assets/sequence/desktop/frame_%04d.webp
 ```
 
-5. Cập nhật `"frames"` trong `site.json` bằng số file vừa tạo; chọn một khung đẹp làm `"fallback"`.
+5. Cập nhật `"frames"` trong `site.json` bằng số file vừa tạo, `"width"`/`"height"` của từng bộ (mobile: 720 / 1080); chọn một khung đẹp làm `"fallback"`.
 6. Kiểm tra dung lượng: `du -sh assets/sequence/desktop` (≤ 8MB). Quá nặng thì giảm `-quality` (60–65) hoặc giảm số khung.
-7. Sửa 4 dòng chữ trong `index.html` (`.film-line`) cho đúng cảnh của bạn.
+7. Sửa 4 caption trong `index.html` (`.film-line`, mỗi dòng ≤ 6 từ) cho đúng cảnh của bạn.
 
 ## Analytics (tuỳ chọn)
 
@@ -294,14 +173,26 @@ Sự kiện ghi nhận:
 - `buy_click` (kèm id clip)
 - `modal_open`
 - `favorite_add`
-- `filter` (mood / category / use case / collection / từ khoá)
-- `shortlist_open`
+- `filter` (category)
+- `shortlist_open` (mở danh sách Saved)
 - `license_all`
-- `fx_change` (người xem đổi mức hiệu ứng), `fx_auto` (trang tự tắt bớt hiệu ứng vì chậm)
 - `free_download`
-- `sample_request`
 
 Muốn đếm thêm nút nào, gắn `data-track="tên_sự_kiện"` (và `data-clip="..."` nếu cần).
+
+## Ảnh và footage (quyết định 70% cảm giác "đắt")
+
+- Render trên nền đồng màu với section (đen hoặc xám `#f5f5f7`). Không cắt PNG rồi đặt lên nền lệch màu.
+- Crop chặt, không để lề chết. Ở hero, footage chiếm ≥ 60% màn đầu.
+- Ảnh tĩnh xuất **AVIF hoặc WebP, gấp đôi kích thước hiển thị** (thumbnail 1280×720, poster hero 2880×1620). Poster hero ≤ 300KB mà vẫn sắc ở 1440px.
+- Không phủ gradient lên ảnh để đọc chữ: chữ luôn nằm ngoài ảnh.
+
+```bash
+# poster hero AVIF ≤ 300KB (giảm -crf nếu còn nặng: tăng số)
+ffmpeg -ss 2 -i input_4k.mp4 -frames:v 1 -vf "scale=2880:-2" -c:v libaom-av1 -still-picture 1 -crf 32 assets/thumbs/clip-01.avif
+# thumbnail WebP 1280×720
+ffmpeg -ss 2 -i input_4k.mp4 -frames:v 1 -vf "scale=1280:-2" -c:v libwebp -quality 80 assets/thumbs/clip-01.webp
+```
 
 ## Nén file preview (5–10 giây, dưới 10MB)
 
@@ -331,17 +222,17 @@ File vẫn lớn thì tăng `-crf` (30–32) hoặc giảm `scale` (960). Previe
 
 - [ ] `videos.json`: link Adobe Stock **thật** cho từng clip (`stockUrl`), thay 6 clip mẫu, xoá `"sample": true` và tag `sample`/`placeholder`.
 - [ ] `site.json`: `adobeStockProfileUrl`, `email`, `ownerName`, `story`, `social`.
-- [ ] `site.json → collections`: tên bộ thật, `collectionUrl` nếu có trên Adobe Stock.
-- [ ] Preview thật (5–10 giây, dưới 10MB) trong `assets/previews/`; thumbnail/poster thật (JPG/WebP) trong `assets/thumbs/`.
+- [ ] `site.json → collections`: tên bộ thật.
+- [ ] Preview thật (5–10 giây, dưới 10MB) trong `assets/previews/`; thumbnail/poster thật (AVIF/WebP, gấp đôi kích thước) trong `assets/thumbs/`.
 - [ ] Đường dẫn poster hero trong `index.html` (2 chỗ).
-- [ ] Ảnh chụp màn hình UE5 thật cho "Behind the scene": thay `assets/bts/step-1.svg` … `step-4.svg` (dùng ở cả ảnh lớn desktop lẫn ảnh từng bước mobile), sửa chữ 4 bước cho khớp quy trình của bạn.
+- [ ] Ảnh chụp màn hình UE5 thật cho Process: thay `assets/bts/step-1.svg` … `step-4.svg`, sửa chữ 4 bước (mỗi câu ≤ 18 từ).
 - [ ] `assets/free/free-sample-720p.mp4`: file mẫu thật (hoặc xoá `freeSample.file` để ẩn mục này).
 - [ ] `assets/og.png`: ảnh chia sẻ thật.
-- [ ] `assets/sequence/`: chuỗi khung hình thật xuất từ UE5 (xem phần "hero film"), sửa `site.json → sequence` và 4 dòng chữ.
-- [ ] Khi có số liệu thật: `stats`, `trustedBy`, `price`.
+- [ ] `assets/sequence/`: chuỗi khung hình thật xuất từ UE5 (xem phần film), sửa `site.json → sequence` và 4 caption.
+- [ ] Khi có giá thật: `price` trong `videos.json`.
 - [ ] (Tuỳ chọn) analytics.
 - [ ] Chạy `python3 tools/sync-fallback.py` sau khi sửa JSON nếu muốn mở `index.html` trực tiếp.
 
 ## Ảnh trước/sau
 
-`docs/screenshots/before-*.jpg` là bản trên `main` trước đợt nâng cấp này. `after-*.jpg` là bản mới, chụp với **link Adobe Stock thử** để thấy nút mua (với dữ liệu mẫu hiện tại, nút mua đang ẩn vì chưa có link thật).
+`docs/screenshots/before-*.jpg` là bản trên `main` trước đợt thiết kế lại này, `after-*.jpg` là bản mới (hero, lưới clip, modal; 1440px và 390px). Nút mua đang ẩn vì dữ liệu mẫu chưa có link Adobe Stock thật.

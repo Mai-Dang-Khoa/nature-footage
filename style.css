@@ -195,7 +195,7 @@ html.reduced [data-reveal] { opacity: 1 !important; transform: none !important; 
 .card-thumb, .card-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .card-video { opacity: 0; transition: opacity var(--dur-fade) var(--ease-out); }
 .card.playing .card-video { opacity: 1; }
-.card-cap { display: grid; gap: 4px; }
+.card-cap { display: grid; gap: var(--s1); }
 .card-title { font: 600 var(--fs-body)/var(--lh-body) var(--font-text); }
 .card-hit:hover .card-title { text-decoration: underline; }
 .card-hit:focus-visible { outline-offset: 6px; border-radius: var(--radius-tile); }
@@ -265,7 +265,7 @@ dialog::backdrop { background: var(--black); }
 .modal-media video { width: 100%; height: 100%; object-fit: cover; transition: opacity var(--dur-fade) var(--ease-out); }
 .modal-media video.swap { opacity: 0; transition-duration: 150ms; }
 .modal-info { grid-column: 1 / -1; display: grid; gap: var(--s2); align-content: start; }
-.specs { display: grid; grid-template-columns: auto 1fr; gap: 4px var(--s3); font: 400 var(--fs-label)/var(--lh-label) var(--font-text); }
+.specs { display: grid; grid-template-columns: auto 1fr; gap: var(--s1) var(--s3); font: 400 var(--fs-label)/var(--lh-label) var(--font-text); }
 .specs dt { color: var(--fg2); }
 .modal-cta { display: flex; align-items: center; gap: var(--s2); margin-top: var(--s1); }
 .modal-tools { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s3); }

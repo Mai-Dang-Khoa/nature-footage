@@ -66,3 +66,17 @@ Xem [`type.html`](type.html) / [`type.png`](type.png).
 4. Nav đổi nền theo section tối/sáng.
 
 Cấm: parallax, con trỏ custom, loader > 400ms, animation lặp. Giảm chuyển động: tắt cả 4.
+
+## 8. Kiểm tra trước khi xuất (1440px và 390px)
+
+Chạy bằng `tools/design-check.js` (đo trang thật, cả khi mở modal). Kết quả lần cuối: **tất cả đạt** ở cả hai kích thước.
+
+- [x] Một accent, hai nền chính (+ trắng cho tấm nổi), một nút pill mỗi màn.
+- [x] Không element "cho đủ": đã cắt các khối ghi trong `copy.md`.
+- [x] Chữ không đè lên footage (hero, film, thẻ clip, modal: chữ đều nằm ngoài ảnh).
+- [x] Hover chỉ đổi opacity hoặc gạch chân; không phóng to thẻ.
+- [x] Focus ring luôn hiện; tương phản chữ ≥ 4.5:1 (tiêu đề lớn ≥ 3:1).
+- [x] Khoảng cách đều là bội số của 8px; nav 48px; pill 44px (chip 36px), radius 980px, padding 16–22px.
+- [x] Display 80px (mobile 46px), section 48px (mobile 32–34px), body 17px / 1.47, nhãn 12–14px.
+- [x] Footage hero chiếm 62.5% màn đầu ở 1440×900, 61.8% ở 1440×800, 60.1% ở 390×844.
+- [x] Không animation lặp, không parallax, không con trỏ riêng, không màn chờ. 60fps khi cuộn ở 390px và 1440px.

@@ -316,7 +316,7 @@
   function card(v) {
     const meta = [v.resolution, v.duration, v.sample ? "Sample" : ""].filter(Boolean).join(" · ");
     const thumb = el("img", { class: "card-thumb", src: v.thumbnail, alt: "", loading: "lazy", width: "640", height: "360", decoding: "async" });
-    const hit = el("button", { class: "card-hit", type: "button", "aria-label": `${v.title}, ${meta}. Preview and license` }, [
+    const hit = el("button", { class: "card-hit", type: "button" }, [
       el("span", { class: "card-media" }, [thumb]),
       el("span", { class: "card-cap" }, [el("span", { class: "card-title", text: v.title }), el("span", { class: "small", text: meta })]),
     ]);
@@ -447,7 +447,6 @@
     buy.setAttribute("aria-label", `License ${v.title} on Adobe Stock`);
     const fav = $("#m-fav");
     fav.dataset.fav = v.id;
-    fav.setAttribute("aria-label", `Save ${v.title}`);
     syncFavs();
     const many = modalList.length > 1;
     $("#m-prev").hidden = !many;
