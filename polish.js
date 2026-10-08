@@ -15,4 +15,8 @@
     img.addEventListener("load", done, { once: true });
     img.addEventListener("error", done, { once: true });
   });
+
+  if (!("IntersectionObserver" in window)) { document.querySelectorAll("[data-ambient]").forEach((n) => n.classList.add("awake")); return; }
+  const io = new IntersectionObserver((entries) => entries.forEach((e) => e.target.classList.toggle("awake", e.isIntersecting)));
+  document.querySelectorAll("[data-ambient]").forEach((n) => io.observe(n));
 })();

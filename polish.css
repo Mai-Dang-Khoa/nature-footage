@@ -52,3 +52,19 @@ html.js [data-reveal]:focus-within, html.js [data-reveal]:focus-within [data-rev
   }
 }
 @keyframes depth-drift { from { transform: translateY(-3%) scale(1.08); } to { transform: translateY(3%) scale(1.08); } }
+
+/* ---------- 4. Calmer hovers + a slow breathing light at the end ---------- */
+/* press feedback stays instant (style.css); only the hover settle is slowed down */
+.card { transition: transform 600ms var(--ease-soft); }
+.card-video { transition: opacity var(--dur-slow) var(--ease-out), scale var(--dur-silk) var(--ease-soft); }
+.nav nav a, .chip, .text-link { transition-duration: 300ms; transition-timing-function: var(--ease-soft); }
+/* outline buttons: a faint fill glows in instead of a hard switch */
+.btn-outline { position: relative; isolation: isolate; }
+.btn-outline::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--text); opacity: 0; transition: opacity 400ms var(--ease-soft); pointer-events: none; }
+.btn-outline:hover::after { opacity: .07; }
+.btn-outline:active::after { opacity: .12; transition-duration: var(--dur-instant); }
+/* closing section: warm light breathes behind the CTA (paused while off screen) */
+.finale { position: relative; isolation: isolate; overflow: clip; }
+.finale::before { content: ""; position: absolute; left: 50%; bottom: -30%; z-index: -1; width: min(900px, 120%); aspect-ratio: 2 / 1; border-radius: 50%; background: radial-gradient(closest-side, rgba(232, 180, 100, .14), transparent); translate: -50% 0; opacity: .6; pointer-events: none; animation: breathe 9s var(--ease-silk) infinite alternate paused; }
+.finale.awake::before { animation-play-state: running; }
+@keyframes breathe { from { opacity: .45; scale: .92; } to { opacity: 1; scale: 1.06; } }
