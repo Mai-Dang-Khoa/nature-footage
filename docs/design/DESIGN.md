@@ -28,7 +28,7 @@ Xem [`type.html`](type.html) / [`type.png`](type.png).
 
 | Cấp | Font | Cỡ | Weight | Line-height | Tracking |
 |---|---|---|---|---|---|
-| Display | Archivo semi-condensed (87.5%) | 80px desktop, ≥ 44px mobile | 600 | 1.06 | −0.025em |
+| Display | Archivo semi-condensed (87.5%) | 80px desktop, ≥ 44px mobile | 600 | 1.06 | −0.02em |
 | Section | Archivo semi-condensed | 48px desktop, 32px mobile | 600 | 1.08 | −0.02em |
 | Body | Inter | 17px | 400 (600 cho tiêu đề nhỏ) | 1.47 | 0 |
 | Label / nav | Inter | 12–14px | 400–600 | 1.33 | 0 |
