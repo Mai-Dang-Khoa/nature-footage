@@ -43,3 +43,12 @@ html.js [data-reveal]:focus-within, html.js [data-reveal]:focus-within [data-rev
   .modal[open] .modal-media video { animation: focus-pull 900ms var(--ease-soft) both; }
 }
 @keyframes focus-pull { from { filter: blur(10px); } to { filter: none; } }
+
+/* ---------- 3. Depth: pictures drift slowly inside their frames while the page scrolls ---------- */
+/* scroll-driven only (runs off the main thread); browsers without it keep still pictures */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .js.sda .card-media > *, .js.sda .free img { animation: depth-drift linear both; animation-timeline: view(); animation-range: cover; }
+  }
+}
+@keyframes depth-drift { from { transform: translateY(-3%) scale(1.08); } to { transform: translateY(3%) scale(1.08); } }
