@@ -143,9 +143,13 @@ html.reduced [data-reveal] { opacity: 1 !important; transform: none !important; 
 .media-toggle:hover { opacity: .8; }
 
 /* ---------- Footer ---------- */
-.footer { display: grid; gap: var(--s2); padding-block: var(--s5); }
+.footer { display: grid; gap: var(--s2); padding-block: var(--s4) var(--s5); }
 .footer-links { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s3); }
-.footer-links a { color: var(--fg); font: 400 var(--fs-small)/var(--lh-label) var(--font-text); }
+.footer-links a { color: var(--fg); font: 400 var(--fs-small)/var(--lh-label) var(--font-text); opacity: .8; }
+.footer-links a:hover { opacity: 1; }
+/* focus: the ring always shows; pills and chips keep their own shape */
+.pill:focus-visible, .chip:focus-visible, .media-toggle:focus-visible { outline-offset: 3px; }
+.nav :focus-visible { outline-offset: 2px; }
 
 /* ---------- Film: footage stays put (sticky) while the caption crossfades ---------- */
 .film { position: relative; height: 400vh; }
