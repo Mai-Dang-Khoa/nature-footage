@@ -84,7 +84,7 @@
     background:radial-gradient(circle,rgba(255,255,255,.85) 0%,rgba(255,255,255,0) 62%);
     pointer-events:none;z-index:1;mix-blend-mode:soft-light;
   }
-  .glow{position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0}
+  .glow{position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;will-change:transform;transform:translateZ(0)}
   .g1{width:560px;height:560px;left:-140px;top:8%;background:radial-gradient(circle,rgba(120,170,255,.5),transparent 70%);animation:drift1 28s ease-in-out infinite alternate}
   .g2{width:640px;height:640px;right:-180px;bottom:-6%;background:radial-gradient(circle,rgba(190,150,255,.42),transparent 70%);animation:drift2 34s ease-in-out infinite alternate}
   .g3{width:420px;height:420px;left:38%;top:-10%;background:radial-gradient(circle,rgba(255,200,150,.35),transparent 70%);animation:drift1 24s ease-in-out infinite alternate-reverse}
@@ -268,7 +268,7 @@
   }
   .marquee{border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;padding:22px 0;background:var(--bg);position:relative;z-index:7}
   .mq-track{display:flex;width:max-content;animation:mq 26s linear infinite}
-  .mq-track span{font-size:clamp(1.3rem,2.8vw,2rem);font-weight:700;letter-spacing:-.02em;color:var(--ink);white-space:nowrap;padding-right:.5em}
+  .mq-track span{font-size:clamp(1.3rem,2.8vw,2rem);font-weight:700;letter-spacing:-.02em;color:var(--ink);white-space:nowrap;padding-right:.5em;flex-shrink:0}
   .mq-track span i{color:var(--blue);font-style:normal;padding:0 .55em}
   @keyframes mq{to{transform:translateX(-50%)}}
   .stats{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;max-width:1220px;margin:0 auto;padding:9vh 28px 4vh;position:relative;z-index:7}
