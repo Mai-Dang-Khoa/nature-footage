@@ -594,13 +594,19 @@ const nav=$("#nav"), progress=$("#progress"), hero=$("#overview"), heroIn=$("#he
 const toTop=$("#toTop"), ttFg=$("#ttFg"), TT_C=119.4;
 
 /* Scroll-robust progress: cache each section's document-relative position
-   on load/resize (when layout is stable); during scroll only scrollY is read,
-   so browser-chrome show/hide can never inject measurement noise. */
+   using offsetTop/offsetHeight (pure layout values, immune to viewport
+   changes); during scroll only scrollY is read, so browser-chrome
+   show/hide can never inject measurement noise. */
 let secCache={};
+function docTop(el){
+  let top=0;
+  while(el){ top+=el.offsetTop; el=el.offsetParent; }
+  return top;
+}
 function measureSections(){
-  const vh=document.documentElement.clientHeight||innerHeight, y=scrollY;
+  const vh=document.documentElement.clientHeight||innerHeight;
   [[scWrap,"scenes"],[colWrap,"strip"],[stWrap,"stack"]].forEach(([node,k])=>{
-    secCache[k]={top:node.getBoundingClientRect().top+y, total:node.offsetHeight-vh};
+    secCache[k]={top:docTop(node), total:node.offsetHeight-vh};
   });
 }
 function secPCached(k){
