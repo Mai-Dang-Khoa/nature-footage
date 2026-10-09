@@ -125,11 +125,30 @@
   }
   h2.mask{
     color:var(--ink);
-    text-shadow:0 0 26px rgba(0,113,227,.28),0 2px 18px rgba(0,113,227,.12);
+    text-shadow:0 0 18px rgba(0,113,227,.13);
   }
   .hero-sub{font-size:clamp(1.05rem,2vw,1.4rem);color:var(--sub);max-width:34ch;margin-bottom:44px;line-height:1.55}
   .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
   .hero-cta .btn-pill,.hero-cta .btn-ghost{font-size:16px;padding:14px 30px}
+  /* floating poster collage on the hero's right side */
+  .hero-visual{position:absolute;right:max(3vw,30px);top:50%;width:min(30vw,380px);height:min(40vw,500px);z-index:1;pointer-events:none;transition:opacity 1.1s var(--ease) .8s,transform 1.1s var(--ease) .8s}
+  body:not(.ready) .hero-visual{opacity:0;transform:translateY(-50%) translateX(46px)}
+  .hero-visual{transform:translateY(-50%)}
+  .hv-card{position:absolute;border-radius:20px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.35);animation:hvFloat 7s ease-in-out infinite alternate}
+  .hv-card img{display:block;width:100%;height:100%;object-fit:cover}
+  .hv-1{width:62%;aspect-ratio:4/5;left:0;top:8%}
+  .hv-2{width:58%;aspect-ratio:4/5;right:0;top:0;animation-delay:-2.4s}
+  .hv-3{width:54%;aspect-ratio:16/10;left:14%;bottom:2%;animation-delay:-4.8s}
+  .hv-in{width:100%;height:100%;will-change:transform}
+  @keyframes hvFloat{from{transform:translateY(-9px)}to{transform:translateY(11px)}}
+  @media(max-width:960px){.hero-visual{display:none}}
+  /* giant outlined backdrop words */
+  .bg-word{position:absolute;top:6%;left:50%;font-size:clamp(7rem,24vw,21rem);font-weight:800;letter-spacing:-.045em;line-height:1;color:transparent;-webkit-text-stroke:1.5px var(--line);opacity:.6;pointer-events:none;white-space:nowrap;z-index:0;user-select:none}
+  #collections,#spotlight{overflow:clip}
+  #collections .wrap,#spotlight .wrap{position:relative;z-index:1}
+  /* scroll-driven text fill */
+  .fill-text .fw{opacity:.13;transition:opacity .35s}
+  .fill-text .fw.on{opacity:1}
 /* Telegram-style ripple on buttons */
   .btn-pill,.btn-ghost,.btn-license{position:relative;overflow:hidden}
   .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.4);transform:scale(0);animation:rip .65s ease-out forwards;pointer-events:none}
@@ -311,7 +330,9 @@
   .ld-track i{display:block;height:100%;width:0;background:var(--blue);border-radius:99px}
   .ld-in p{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--sub);font-weight:700}
   #curDot,#curRing{position:fixed;top:0;left:0;pointer-events:none;z-index:10000;border-radius:50%;display:none}
-  #curDot{width:7px;height:7px;background:var(--blue)}
+  #curDot{width:7px;height:7px;background:var(--blue);transition:opacity .3s}
+  /* cursor stays invisible until the first real pointer move */
+  body:not(.cur-moved) #curDot,body:not(.cur-moved) #curRing{opacity:0}
   #curRing{width:36px;height:36px;border:1.5px solid var(--sub);opacity:.65;transition:width .3s var(--spring),height .3s var(--spring),opacity .3s,border-color .3s}
   #curRing.big{width:60px;height:60px;opacity:1;border-color:var(--blue)}
   #curLabel{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#fff;opacity:0;transition:opacity .25s;pointer-events:none}
@@ -343,8 +364,31 @@
   .step h4{font-size:1.25rem;font-weight:700;letter-spacing:-.02em;margin-bottom:10px}
   .step p{color:var(--sub);font-size:.95rem}
 
-  footer{border-top:1px solid var(--line);padding:44px 0 54px;color:var(--sub);font-size:13.5px}
+  footer{border-top:1px solid var(--line);padding:44px 0 54px;color:var(--sub);font-size:13.5px;margin-top:4vh}
   .foot-in{max-width:1220px;margin:0 auto;padding:0 28px;display:flex;gap:20px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  /* ---------- cinematic preview modal ---------- */
+  #pvModal{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;padding:24px;pointer-events:none}
+  .pv-box{position:relative;width:min(960px,94vw);max-height:90vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:26px;box-shadow:0 60px 160px rgba(0,0,0,.5);display:grid;grid-template-columns:1.25fr 1fr;opacity:0;transform:translateY(36px) scale(.94);transition:opacity .5s var(--ease),transform .55s var(--spring)}
+  #pvModal.show{pointer-events:auto}
+  #pvModal.show .pv-box{opacity:1;transform:none}
+  .pv-media{position:relative;min-height:320px}
+  .pv-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .pv-cap{position:absolute;left:18px;bottom:14px;color:#fff;font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;z-index:2}
+  .pv-media::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.45))}
+  .pv-info{padding:38px 34px;display:flex;flex-direction:column;gap:14px}
+  .pv-info h3{font-size:clamp(1.8rem,3.4vw,2.6rem);letter-spacing:-.03em;margin:0}
+  .pv-desc{color:var(--sub);line-height:1.65;margin:0}
+  .pv-info .meta-row{margin-top:auto;padding-top:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  #pvClose{position:absolute;top:16px;right:16px;z-index:3;width:44px;height:44px;border-radius:50%;background:rgba(10,12,16,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-size:22px;line-height:1;border:1px solid rgba(255,255,255,.16);transition:transform .35s var(--spring),background .3s}
+  #pvClose:hover{transform:rotate(90deg) scale(1.06);background:rgba(10,12,16,.8)}
+  @media(max-width:760px){.pv-box{grid-template-columns:1fr}.pv-media{min-height:220px}}
+  /* ---------- footer finale ---------- */
+  .foot-cta{text-align:center;padding:15vh 24px 11vh;position:relative}
+  .foot-giant{font-size:clamp(3.2rem,11vw,9rem);font-weight:800;letter-spacing:-.045em;line-height:.96;margin:20px 0 36px;background:linear-gradient(180deg,var(--ink) 20%,rgba(0,113,227,.78));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+  /* ---------- strip drag ---------- */
+  .strip-view{cursor:grab;touch-action:pan-y}
+  .strip-view.dragging{cursor:grabbing}
+  .strip-view.dragging .tilt{transition:none}
 
   /* ---------- bottom sheet ---------- */
   #backdrop{position:fixed;inset:0;background:rgba(10,10,14,.42);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .45s var(--ease);z-index:100}
@@ -381,7 +425,7 @@
 
   /* ---------- toast ---------- */
   #toast{
-    position:fixed;left:50%;bottom:34px;transform:translate(-50%,140%);z-index:130;
+    position:fixed;left:50%;bottom:34px;transform:translate(-50%,230%);z-index:130;
     background:var(--ink);color:var(--bg);font-size:14.5px;font-weight:500;
     padding:14px 26px;border-radius:999px;box-shadow:0 16px 50px rgba(0,0,0,.3);
     transition:transform .5s var(--spring);max-width:88vw;text-align:center;pointer-events:none;
@@ -434,6 +478,11 @@
       <a class="btn-pill magnetic" href="#collections">Browse plates</a>
       <a class="btn-ghost magnetic" href="#license">How licensing works</a>
     </div>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="hv-card hv-1"><div class="hv-in" data-base="-6" data-depth="14"><img src="assets/posters/valley-road.jpg" alt=""></div></div>
+      <div class="hv-card hv-2"><div class="hv-in" data-base="4" data-depth="26"><img src="assets/posters/data-center.jpg" alt=""></div></div>
+      <div class="hv-card hv-3"><div class="hv-in" data-base="-3" data-depth="38"><img src="assets/posters/deep-ocean.jpg" alt=""></div></div>
+    </div>
   </div>
   <div class="scroll-hint">Scroll</div>
 </header>
@@ -468,6 +517,7 @@
 
   <!-- HORIZONTAL STRIP -->
   <section id="collections">
+    <div class="bg-word" aria-hidden="true">Plates</div>
     <div class="strip-sticky">
       <div class="wrap rv">
         <p class="eyebrow">Collections</p>
@@ -481,6 +531,7 @@
 
   <!-- CENTER STACK -->
   <section id="spotlight">
+    <div class="bg-word" aria-hidden="true">Spotlight</div>
     <div class="stack-sticky">
       <div class="stack-stage" id="stackStage"></div>
     </div>
@@ -492,7 +543,7 @@
       <div class="sec-head rv">
         <p class="eyebrow">The library</p>
         <h2 class="mask"><span class="mi">Nine plates. Pick one to license.</span></h2>
-        <p>Every plate is delivered in 4K. Open any card to preview it and send a license request.</p>
+        <p class="fill-text">Every plate is delivered in 4K. Open any card to preview it and send a license request.</p>
       </div>
       <div class="grid" id="grid"></div>
     </div>
@@ -507,7 +558,7 @@
       </div>
       <div class="steps">
         <div class="step rv"><p class="n">01</p><h4>Preview</h4><p>Scrub through the plates above. Posters shown here — the full 4K plate follows on request.</p></div>
-        <div class="step rv"><p class="n">02</p><h4>Open</h4><p>Tap any card. A sheet slides up with the clip details and a short request form.</p></div>
+        <div class="step rv"><p class="n">02</p><h4>Open</h4><p>Tap any card for a cinematic preview. Hit License and a sheet slides up with the request form.</p></div>
         <div class="step rv"><p class="n">03</p><h4>Request</h4><p>Send the form. We reply with the plate, the license terms and delivery link.</p></div>
       </div>
     </div>
@@ -515,6 +566,11 @@
 </main>
 
 <footer>
+  <div class="foot-cta rv">
+    <p class="eyebrow">Ready when you are</p>
+    <h2 class="foot-giant mask"><span class="mi">Get the plates.</span></h2>
+    <a href="#library" class="btn-pill magnetic">Browse the library</a>
+  </div>
   <div class="foot-in">
     <span>Plates — a preview library for editors.</span>
     <span>All plates are 3D renders made with Unreal Engine 5. © 2026</span>
@@ -544,6 +600,21 @@
     <p class="fine">Preview only — the full 4K plate and terms follow by email.</p>
   </form>
 </section>
+
+<!-- CINEMATIC PREVIEW MODAL -->
+<div id="pvModal" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Clip preview">
+  <div class="pv-box">
+    <button id="pvClose" aria-label="Close preview">×</button>
+    <div class="pv-media"><img id="pvImg" alt=""><span class="pv-cap" id="pvCap"></span></div>
+    <div class="pv-info">
+      <p class="eyebrow" id="pvColl"></p>
+      <h3 id="pvName"></h3>
+      <p class="pv-desc" id="pvDesc"></p>
+      <div class="meta-row"><span class="meta" id="pvMeta"></span>
+      <button class="btn-license magnetic" id="pvLicense">License</button></div>
+    </div>
+  </div>
+</div>
 
 <div id="toast" role="status"></div>
 
@@ -626,6 +697,25 @@ const toTop=$("#toTop"), ttFg=$("#ttFg"), TT_C=119.4;
 /* Ken Burns targets: poster frames that breathe with scroll */
 const scenePosters=scenes.map(s=>s.querySelector(".poster")).filter(Boolean);
 const stripPosters=$$("#stripTrack .poster");
+const bgWordStrip=document.querySelector("#collections .bg-word");
+const bgWordStack=document.querySelector("#spotlight .bg-word");
+/* scroll-driven text fill (Apple-style word illumination) */
+const fillEls=$$(".fill-text").map(el=>{
+  const words=el.textContent.trim().split(/\s+/);
+  el.innerHTML=words.map(w=>`<span class="fw">${w}</span>`).join(" ");
+  return {el,words:[...el.querySelectorAll(".fw")],top:0,total:1};
+});
+function measureFill(){
+  const vh=document.documentElement.clientHeight||innerHeight;
+  fillEls.forEach(f=>{ f.top=docTop(f.el)-vh*.72; f.total=Math.max(vh*.45,1); });
+}
+function applyFill(){
+  const y=scrollY;
+  for(const f of fillEls){
+    const n=Math.round(clamp((y-f.top)/f.total,0,1)*f.words.length);
+    f.words.forEach((w,i)=>w.classList.toggle("on",i<n));
+  }
+}
 
 /* Scroll-robust progress: cache each section's document-relative position
    using offsetTop/offsetHeight (pure layout values, immune to viewport
@@ -688,13 +778,15 @@ function applyScenes(p){
   wordsEl.classList.toggle("light",dim>0.35);
 }
 function applyStrip(p){
-  track.style.transform=`translate3d(${(-p*stripMax).toFixed(1)}px,0,0)`;
-  /* Ken Burns: frames push in gently as the strip travels */
+  /* track position is handled every frame in render() (scroll + drag);
+     here only the Ken Burns breathing on the frames */
   const kb=(1+p*.07).toFixed(4);
   for(const el of stripPosters) el.style.transform=`scale(${kb})`;
+  if(bgWordStrip) bgWordStrip.style.transform=`translateX(calc(-50% + ${(p*140-70).toFixed(1)}px))`;
 }
 function applyStack(p){
   const af=p*(stackCards.length-1);
+  if(bgWordStack) bgWordStack.style.transform=`translateX(calc(-50% + ${(p*120-60).toFixed(1)}px))`;
   stackCards.forEach((c,i)=>{
     const d=i-af; let scale,yy,op;
     if(d<=0){ scale=1+d*.07; yy=d*46; op=d<-2.6?0:1; }
@@ -706,6 +798,19 @@ function applyStack(p){
   });
 }
 let needApply=true;
+/* hero collage mouse parallax (outer scope so render() can reach it) */
+let hvtx=0,hvty=0,hvx=0,hvy=0;
+const hvInEls=$$(".hv-in");
+function heroParallax(){
+  if(scrollY>innerHeight*1.3||!hvInEls.length) return;
+  hvx=lerp(hvx,hvtx,.06); hvy=lerp(hvy,hvty,.06);
+  for(const el of hvInEls){
+    const d=+el.dataset.depth||20, b=+el.dataset.base||0;
+    el.style.transform=`translate3d(${(hvx*d).toFixed(1)}px,${(hvy*d).toFixed(1)}px,0) rotate(${b}deg)`;
+  }
+}
+/* strip drag-to-scroll */
+let stripOff=0,stripOffCur=0,sDrag=false,sDragMoved=false,sStartX=0,sStartOff=0;
 /* marquee: JS-driven (not CSS animation) so weak GPUs don't need a giant
    compositor layer; whole-pixel steps kill sub-pixel shimmer. */
 const mqTrack=document.querySelector(".mq-track");
@@ -728,12 +833,36 @@ if(mqEl){
 }
 function render(now){
   mqTick(now||0);
+  heroParallax();
+  /* strip: scroll-driven travel + smoothed drag offset, every frame */
+  stripOffCur=lerp(stripOffCur,stripOff,.14);
+  if(stripMax>0){
+    const sx=clamp(-targ.strip*stripMax+stripOffCur,-stripMax,0);
+    track.style.transform=`translate3d(${sx.toFixed(1)}px,0,0)`;
+  }
   if(needApply){
     needApply=false;
     applyHero(targ.hero); applyScenes(targ.scenes); applyStrip(targ.strip); applyStack(targ.stack);
+    applyFill();
   }
   requestAnimationFrame(render);
 }
+/* strip drag-to-scroll (pointer) */
+stripView.addEventListener("pointerdown",e=>{
+  sDrag=true; sDragMoved=false; sStartX=e.clientX; sStartOff=stripOff;
+  stripView.classList.add("dragging");
+  try{ stripView.setPointerCapture(e.pointerId); }catch(_){}
+});
+stripView.addEventListener("pointermove",e=>{
+  if(!sDrag) return;
+  const dx=e.clientX-sStartX;
+  if(Math.abs(dx)>6) sDragMoved=true;
+  stripOff=clamp(sStartOff+dx*1.4,-stripMax,stripMax);
+});
+const endStripDrag=()=>{ sDrag=false; stripView.classList.remove("dragging"); };
+stripView.addEventListener("pointerup",endStripDrag);
+stripView.addEventListener("pointercancel",endStripDrag);
+stripView.addEventListener("click",e=>{ if(sDragMoved){ e.stopPropagation(); e.preventDefault(); sDragMoved=false; } },true);
 let lastY=0;
 addEventListener("scroll",()=>{
   const y=scrollY;
@@ -743,9 +872,9 @@ addEventListener("scroll",()=>{
   lastY=y;
   readTargets(); needApply=true;
 },{passive:true});
-addEventListener("resize",()=>{ measure(); measureSections(); mqMeasure(); readTargets(); needApply=true; });
-addEventListener("load",()=>{ measure(); measureSections(); mqMeasure(); readTargets(); needApply=true; });
-measure(); measureSections(); mqMeasure(); readTargets(); render();
+addEventListener("resize",()=>{ measure(); measureSections(); mqMeasure(); measureFill(); readTargets(); needApply=true; });
+addEventListener("load",()=>{ measure(); measureSections(); mqMeasure(); measureFill(); readTargets(); needApply=true; });
+measure(); measureSections(); mqMeasure(); measureFill(); readTargets(); render();
 
 /* cursor light follows (lerped) */
 let tx=innerWidth/2,ty=innerHeight/2,cx=tx,cy=ty;
@@ -868,15 +997,43 @@ function closeSheet(){
     document.body.style.overflow="";
   });
 }
+/* ---------------- cinematic preview modal ---------------- */
+const pvModal=$("#pvModal");
+function openPreview(id){
+  const c=byId(id); if(!c) return;
+  const img=$("#pvImg");
+  img.src=COLL_POSTER[c.coll]; img.alt=c.name+" — "+c.coll+" plate still";
+  $("#pvCap").textContent=c.coll+" · Preview still";
+  $("#pvColl").textContent=c.coll;
+  $("#pvName").textContent=c.name;
+  $("#pvDesc").textContent=c.desc;
+  $("#pvMeta").textContent=c.meta;
+  $("#pvLicense").dataset.lic=c.id;
+  pvModal.classList.add("show"); pvModal.setAttribute("aria-hidden","false");
+  backdrop.classList.add("show"); document.body.style.overflow="hidden";
+}
+function closePreview(){
+  if(!pvModal.classList.contains("show")) return;
+  pvModal.classList.remove("show"); pvModal.setAttribute("aria-hidden","true");
+  backdrop.classList.remove("show"); document.body.style.overflow="";
+}
+$("#pvClose").addEventListener("click",closePreview);
 document.addEventListener("click",e=>{
   const lic=e.target.closest("[data-lic]");
-  if(lic){ e.stopPropagation(); openSheet(byId(lic.dataset.lic), lic.closest("[data-clip]").querySelector(".poster")); return; }
+  if(lic){
+    e.stopPropagation();
+    const wasModal=pvModal.classList.contains("show");
+    if(wasModal) closePreview();
+    const clipEl=lic.closest("[data-clip]");
+    openSheet(byId(lic.dataset.lic), clipEl?clipEl.querySelector(".poster"):$("#pvImg"));
+    return;
+  }
   const card=e.target.closest("[data-clip]");
-  if(card && !sheet.classList.contains("open")) openSheet(byId(card.dataset.clip), card.querySelector(".poster"));
+  if(card&&!sheet.classList.contains("open")&&!pvModal.classList.contains("show")) openPreview(card.dataset.clip);
 });
 $("#sheetClose").addEventListener("click",closeSheet);
-backdrop.addEventListener("click",closeSheet);
-addEventListener("keydown",e=>{ if(e.key==="Escape") closeSheet(); });
+backdrop.addEventListener("click",()=>{ closePreview(); closeSheet(); });
+addEventListener("keydown",e=>{ if(e.key==="Escape"){ closePreview(); closeSheet(); } });
 
 /* ---------------- form + toast ---------------- */
 let toastT;
@@ -903,6 +1060,8 @@ function countUp(el){
 }
 const statIO=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ countUp(e.target); statIO.unobserve(e.target); } }),{threshold:.5});
 $$(".num").forEach(el=>statIO.observe(el));
+/* count immediately for stats already in view on load (no lonely zeros) */
+$$(".num").forEach(el=>{ const r=el.getBoundingClientRect(); if(r.top<innerHeight&&r.bottom>0){ countUp(el); statIO.unobserve(el); } });
 
 /* loader */
 (function(){
@@ -922,7 +1081,9 @@ if(matchMedia("(pointer:fine)").matches){
   const dot=$("#curDot"), ring=$("#curRing"), curLabel=$("#curLabel");
   let mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
   addEventListener("pointermove",e=>{
+    document.body.classList.add("cur-moved");
     mx=e.clientX; my=e.clientY;
+    hvtx=e.clientX/innerWidth-.5; hvty=e.clientY/innerHeight-.5;
     dot.style.transform=`translate3d(${mx-3.5}px,${my-3.5}px,0)`;
     const hov=e.target.closest&&e.target.closest("a,button,.tilt,.stack-card,input,textarea");
     ring.classList.toggle("big",!!hov);
