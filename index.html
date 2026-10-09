@@ -117,6 +117,9 @@
   .btn-pill,.btn-ghost,.btn-license{position:relative;overflow:hidden}
   .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.4);transform:scale(0);animation:rip .65s ease-out forwards;pointer-events:none}
   @keyframes rip{to{transform:scale(3.2);opacity:0}}
+/* View Transitions: disable UA default fade so only our circular wipe runs
+   (prevents stuck snapshots doubling the page) */
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
   .scroll-hint{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);z-index:2;color:var(--sub);font-size:12px;letter-spacing:.18em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:10px}
   .scroll-hint::after{content:"";width:1px;height:44px;background:linear-gradient(var(--sub),transparent);animation:hint 2.2s ease-in-out infinite}
   @keyframes hint{0%,100%{transform:scaleY(.6);opacity:.5}50%{transform:scaleY(1);opacity:1}}
@@ -877,17 +880,20 @@ if(matchMedia("(pointer:fine)").matches){
       root.classList.toggle("dark",toDark);
       try{ localStorage.setItem("plates-theme",toDark?"dark":"light"); }catch(_){}
     };
-    if(document.startViewTransition){
-      const x=e.clientX||innerWidth-70, y=e.clientY||70;
-      const tr=document.startViewTransition(apply);
-      tr.ready.then(()=>{
+    if(typeof document.startViewTransition!=="function"){ apply(); return; }
+    let tr;
+    try{ tr=document.startViewTransition(apply); }
+    catch(_){ apply(); return; }
+    const x=(e&&e.clientX)||innerWidth-70, y=(e&&e.clientY)||70;
+    tr.ready.then(()=>{
+      try{
         const r=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));
         document.documentElement.animate(
           {clipPath:[`circle(0px at ${x}px ${y}px)`,`circle(${r}px at ${x}px ${y}px)`]},
           {duration:650,easing:"cubic-bezier(.2,.7,.2,1)",pseudoElement:"::view-transition-new(root)"}
         );
-      }).catch(()=>{});
-    } else apply();
+      }catch(_){}
+    }).catch(()=>{});
   });
 })();
 
