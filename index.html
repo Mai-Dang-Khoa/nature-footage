@@ -572,12 +572,9 @@ function secP(el){
   const r=el.getBoundingClientRect(), vh=document.documentElement.clientHeight||innerHeight, total=r.height-vh;
   return total>0?clamp(-r.top/total,0,1):0;
 }
-/* ---------- buttery scroll engine ----------
-   Scroll events only set targets; a persistent rAF loop eases the
-   animated values toward those targets every frame (inertia smoothing),
-   so fast flings and touch momentum stay fluid instead of steppy. */
-const SMOOTH=0.18;
-const prog={hero:0,scenes:0,strip:0,stack:0};  /* eased currents */
+/* ---------- scroll engine: 1:1 tracking ----------
+   Animations lock exactly to the native scroll position (no lerp lag),
+   so motion stays perfectly in sync like a normal page. */
 const targ={hero:0,scenes:0,strip:0,stack:0};  /* scroll targets */
 let stripMax=0;
 function measure(){ stripMax=Math.max(track.scrollWidth-stripView.clientWidth,0); }
@@ -623,22 +620,17 @@ function applyStack(p){
     c.style.pointerEvents=Math.abs(d)<.5?"auto":"none";
   });
 }
-let firstFrame=true;
+let needApply=true;
 function render(){
-  let dirty=firstFrame;
-  for(const k of ["hero","scenes","strip","stack"]){
-    const prev=prog[k];
-    prog[k]=firstFrame?targ[k]:lerp(prog[k],targ[k],SMOOTH);
-    if(Math.abs(prog[k]-targ[k])<.0004) prog[k]=targ[k];
-    if(Math.abs(prog[k]-prev)>.00001) dirty=true;
+  if(needApply){
+    needApply=false;
+    applyHero(targ.hero); applyScenes(targ.scenes); applyStrip(targ.strip); applyStack(targ.stack);
   }
-  firstFrame=false;
-  if(dirty){ applyHero(prog.hero); applyScenes(prog.scenes); applyStrip(prog.strip); applyStack(prog.stack); }
   requestAnimationFrame(render);
 }
-addEventListener("scroll",readTargets,{passive:true});
-addEventListener("resize",()=>{ measure(); readTargets(); });
-addEventListener("load",()=>{ measure(); readTargets(); });
+addEventListener("scroll",()=>{ readTargets(); needApply=true; },{passive:true});
+addEventListener("resize",()=>{ measure(); readTargets(); needApply=true; });
+addEventListener("load",()=>{ measure(); readTargets(); needApply=true; });
 measure(); readTargets(); render();
 
 /* cursor light follows (lerped) */
