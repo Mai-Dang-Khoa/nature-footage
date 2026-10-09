@@ -47,6 +47,11 @@ Bật cho mọi người, tắt hết khi người xem bật "giảm chuyển đ
 - **Nền đổi màu theo cuộn:** mỗi section có gradient từ màu section trước sang màu section sau quanh ranh giới, nên không có vạch cắt đen/trắng. Khi bật giảm chuyển động, nền trở về màu đặc.
 - **Tiêu đề có lớp bóng:** một bản mờ của tiêu đề trôi chậm hơn phía sau, tạo chiều sâu.
 - **Nút và thẻ:** nút có ánh sáng theo con trỏ; thẻ clip đổ bóng ra xa con trỏ.
+- **Gợn sóng khi chạm (kiểu Telegram):** một vòng sáng lan ra từ điểm chạm, 700ms, phóng 0 → 2 lần, rồi mờ dần.
+- **Cửa sổ chọn trên điện thoại:** trượt lên từ đáy (0.2s, ease), kéo thanh trên cùng xuống quá 90px để đóng.
+- **Nút lưu:** tim phóng lên rồi bung 6 chấm nhỏ.
+- **Thông báo:** trượt lên từ đáy với độ nảy nhẹ.
+- Thông số lấy từ mã giao diện công khai của Telegram Web A (GPL-3). Chỉ lấy con số, không sao chép mã.
 - **Quét sáng:** một dải sáng lướt qua mỗi ảnh clip một lần khi vào khung hình.
 - **Con trỏ:** vòng tròn bám theo chuột, phình ra khi rê lên thẻ hoặc nút (chỉ máy tính).
 - **Bấm vào thẻ:** ảnh "bay" thành khung video trong cửa sổ chi tiết (View Transitions); các dòng thông tin hiện lần lượt.

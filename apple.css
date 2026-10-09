@@ -111,6 +111,22 @@
 .lite .nav.scrolled[data-theme="dark"]::before { background: rgba(0, 0, 0, .92); }
 .lite .nav.scrolled[data-theme="light"]::after { background: rgba(255, 255, 255, .95); }
 
+/* ---------- Telegram-style pieces (values measured from Telegram Web A's public stylesheet, code not copied) ---------- */
+/* ripple: a circle grows from the touch point, 700ms, scale 0 → 2, fades out after the midpoint */
+/* the ripple is clipped by clip-path on pill-shaped controls (overflow: hidden on a chip swallowed its click);
+   clip cards already clip with their own overflow */
+.rip-host { position: relative; isolation: isolate; }
+.pill.rip-host, .chip.rip-host, .more.rip-host, .text-btn.rip-host { clip-path: inset(0 round 999px); }
+.ripple { position: absolute; left: var(--rx); top: var(--ry); width: var(--rd); height: var(--rd); margin: calc(var(--rd) / -2) 0 0 calc(var(--rd) / -2); border-radius: 50%; background: var(--ripple, rgba(255, 255, 255, .08)); transform: scale(0); opacity: 1; pointer-events: none; animation: ripple-go 700ms linear forwards; z-index: 0; }
+@keyframes ripple-go { 0% { transform: scale(0); opacity: 1; } 50% { opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+[data-theme="light"] .rip-host { --ripple: rgba(0, 0, 0, .08); }
+/* save: the heart springs and throws out six small dots */
+.heart-pop { display: inline-block; animation: heart-pop .5s var(--e-spring); }
+@keyframes heart-pop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+.heart-dot { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: var(--accent-on-dark); pointer-events: none; animation: dot-out .6s var(--e-apple) forwards; }
+@keyframes dot-out { to { transform: rotate(var(--a)) translate(0, -22px) scale(.2); opacity: 0; } }
+.heart-host { position: relative; }
+
 /* ---------- Wave 3 ---------- */
 /* tone: apple.js paints a gradient over each section, so the colour blends across the seam.
    The solid theme colour stays underneath as the fallback. */

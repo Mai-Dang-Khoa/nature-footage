@@ -134,6 +134,67 @@
   if (grid) new MutationObserver(sweeps).observe(grid, { childList: true });
   sweeps();
 
+  /* ---------- 11. Telegram-style touches: ripple on press, heart burst on save, sheet drag-to-close (phones) ---------- */
+  const RIPPLE = ".pill, .chip, .more, .text-btn, .card-hit, .sl-items .text-btn, .drawer .pill";
+  document.addEventListener("pointerdown", (e) => {
+    const host = e.target.closest && e.target.closest(RIPPLE);
+    if (!host || host.disabled || e.button > 0) return;
+    // the ripple sits in the element that clips it: pick the nearest real box
+    const box = host.classList.contains("card-hit") ? host.querySelector(".card-media") : host;
+    if (!box) return;
+    box.classList.add("rip-host");
+    const r = box.getBoundingClientRect();
+    const rd = Math.ceil(Math.hypot(r.width, r.height) * 1.02);
+    const span = document.createElement("span");
+    span.className = "ripple";
+    span.setAttribute("aria-hidden", "true");
+    span.style.setProperty("--rx", `${e.clientX - r.left}px`);
+    span.style.setProperty("--ry", `${e.clientY - r.top}px`);
+    span.style.setProperty("--rd", `${rd}px`);
+    box.append(span);
+    span.addEventListener("animationend", () => span.remove(), { once: true });
+  }, { passive: true });
+
+  // save: the heart springs and six dots fly out, when the saved state turns on
+  const mFav = $("#m-fav");
+  if (mFav) {
+    mFav.classList.add("heart-host");
+    new MutationObserver(() => {
+      if (mFav.getAttribute("aria-pressed") !== "true") return;
+      const heart = mFav.querySelector("span[aria-hidden]");
+      if (heart) { heart.classList.remove("heart-pop"); void heart.offsetWidth; heart.classList.add("heart-pop"); }
+      for (let i = 0; i < 6; i++) {
+        const d = document.createElement("span");
+        d.className = "heart-dot";
+        d.setAttribute("aria-hidden", "true");
+        d.style.setProperty("--a", `${i * 60}deg`);
+        mFav.append(d);
+        d.addEventListener("animationend", () => d.remove(), { once: true });
+      }
+    }).observe(mFav, { attributes: true, attributeFilter: ["aria-pressed"] });
+  }
+
+  // sheet drag-to-close on phones: drag the top handle down; past 90px it closes, otherwise it springs back
+  const drawer = $("#shortlist"), handle = drawer && $(".drawer-head", drawer);
+  if (drawer && handle) {
+    let y0 = null, dy = 0;
+    handle.addEventListener("pointerdown", (e) => { if (window.innerWidth > 833 || e.target.closest("button")) return; y0 = e.clientY; dy = 0; drawer.style.transition = "none"; handle.setPointerCapture(e.pointerId); });
+    handle.addEventListener("pointermove", (e) => {
+      if (y0 === null) return;
+      dy = Math.max(0, e.clientY - y0);
+      drawer.style.transform = `translateY(${dy}px)`;
+    });
+    const release = () => {
+      if (y0 === null) return;
+      y0 = null;
+      drawer.style.transition = "";
+      if (dy > 90) { drawer.style.transform = ""; drawer.querySelector("[data-close]")?.click(); }
+      else { drawer.style.transition = "transform .45s cubic-bezier(.34, 1.36, .64, 1)"; drawer.style.transform = "translateY(0)"; setTimeout(() => { drawer.style.transition = ""; drawer.style.transform = ""; }, 460); }
+    };
+    handle.addEventListener("pointerup", release);
+    handle.addEventListener("pointercancel", release);
+  }
+
   /* ---------- 5. Saved count pops when it changes ---------- */
   const count = $("#shortlist-count");
   if (count) new MutationObserver(() => { count.classList.remove("pop"); void count.offsetWidth; count.classList.add("pop"); }).observe(count, { childList: true, characterData: true, subtree: true });

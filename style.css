@@ -290,14 +290,24 @@ dialog::backdrop { background: var(--black); }
 .drawer { --bg: var(--white); position: fixed; inset: 0 0 0 auto; width: min(400px, 100%); height: 100%; max-height: none; margin: 0 0 0 auto; padding: var(--s3); overflow-y: auto; }
 .drawer::backdrop { background: rgba(0, 0, 0, .4); }
 .drawer[open] { display: flex; flex-direction: column; gap: var(--s2); }
+/* phones: the saved list rises from the bottom as a sheet (0.2s ease, Telegram's modal timing), drag the top to close */
+@media (max-width: 833px) {
+  .drawer { inset: auto 0 0 0; width: 100%; height: auto; max-height: 82vh; margin: auto 0 0 0; border-radius: 18px 18px 0 0; transform: translateY(0); }
+  .drawer[open] { animation: sheet-up .2s ease both; }
+  .drawer.closing { opacity: 1; transform: translateY(100%); transition: transform .2s ease; }
+  .drawer-head { cursor: grab; touch-action: none; }
+  .drawer-head::before { content: ""; position: absolute; left: 50%; top: 6px; width: 36px; height: 4px; margin-left: -18px; border-radius: 4px; background: var(--border-strong); }
+  .drawer-head { position: relative; padding-top: var(--s1); }
+}
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .drawer-head { display: flex; align-items: baseline; justify-content: space-between; }
 .sl-items { display: grid; gap: var(--s3); flex: 1; align-content: start; }
 .sl-items li { display: grid; grid-template-columns: 96px 1fr; gap: var(--s2); align-items: center; }
 .sl-items img { width: 96px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--s1); }
 .sl-items strong { display: block; font-weight: 600; }
 .sl-actions { display: flex; gap: var(--s2); }
-.toast { position: fixed; left: 50%; bottom: var(--s3); z-index: 60; padding: var(--s1) var(--s2); border-radius: 980px; background: var(--nav-dark); color: var(--ink-on-dark); font: 400 var(--fs-label)/var(--lh-label) var(--font-text); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); transform: translateX(-50%); opacity: 0; pointer-events: none; transition: opacity var(--dur-fade) var(--ease-out); }
-.toast.show { opacity: 1; }
+.toast { position: fixed; left: 50%; bottom: var(--s3); z-index: 60; translate: -50% 0; padding: var(--s1) var(--s2); border-radius: 980px; background: var(--nav-dark); color: var(--ink-on-dark); font: 400 var(--fs-label)/var(--lh-label) var(--font-text); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); transform: translateY(24px) scale(.96); opacity: 0; pointer-events: none; transition: opacity .25s var(--ease-out), transform .45s cubic-bezier(.34, 1.36, .64, 1); }
+.toast.show { opacity: 1; transform: none; }
 body.locked { overflow: hidden; }
 
 /* ---------- Mobile: stacked, hero type ≥ 44px, footage full-bleed ---------- */
