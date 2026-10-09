@@ -136,6 +136,48 @@
   const count = $("#shortlist-count");
   if (count) new MutationObserver(() => { count.classList.remove("pop"); void count.offsetWidth; count.classList.add("pop"); }).observe(count, { childList: true, characterData: true, subtree: true });
 
+  /* ---------- 9. wave 3: backdrop colour follows the scroll between sections ---------- */
+  const tone = $("#tone");
+  const toneSecs = $$("main > section[data-theme], footer[data-theme]");
+  const hex = (v, fb) => { const h = (v || fb).trim().replace("#", ""); const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  const themeRGB = (t) => (t === "light" ? hex(getComputedStyle(root).getPropertyValue("--white"), "#fff") : hex(getComputedStyle(root).getPropertyValue("--black"), "#000"));
+  let toneOn = false, lastTone = "";
+  function paintTone() {
+    if (!toneOn) return;
+    const vh = innerHeight, c = scrollY + vh * 0.5, band = vh * 0.6; // the colour turns over a band of 60% screen height around each seam
+    let col = themeRGB(toneSecs[0].dataset.theme);
+    for (let k = 0; k + 1 < toneSecs.length; k++) {
+      const seam = toneSecs[k].getBoundingClientRect().bottom + scrollY;
+      const t = clamp((c - (seam - band / 2)) / band), e = t * t * (3 - 2 * t);
+      const next = themeRGB(toneSecs[k + 1].dataset.theme);
+      col = col.map((v, i) => v + (next[i] - v) * e);
+    }
+    const str = `rgb(${col.map((v) => Math.round(v)).join(",")})`;
+    if (str !== lastTone) { lastTone = str; tone.style.background = str; }
+  }
+  if (tone && toneSecs.length > 1) { toneOn = true; root.classList.add("tone-on"); }
+
+  /* ---------- 10. wave 3: pointer light on buttons, shadow away from the pointer on cards, depth echo on titles ---------- */
+  const echoes = []; // [title, echo] pairs, so the drift never depends on a DOM query
+  heads.filter((h) => h.classList.contains("title")).forEach((h) => {
+    const echo = document.createElement("span");
+    echo.className = "echo";
+    echo.setAttribute("aria-hidden", "true");
+    echo.textContent = h.textContent.replace(/\s+/g, " ").trim();
+    h.prepend(echo);
+    echoes.push([h, echo]);
+  });
+  const updateEchoes = () => {
+    const vh = innerHeight;
+    echoes.forEach(([h, e]) => {
+      if (!h.isConnected) return;
+      const r = h.getBoundingClientRect();
+      if (r.bottom < -vh || r.top > 2 * vh) return;
+      const p = (vh - r.top) / (vh + r.height);      // 0 as it enters from below, 1 as it leaves at the top
+      e.style.setProperty("--dy", `${((p - 0.5) * -90).toFixed(1)}px`);
+    });
+  };
+
   /* ---------- 8. GSAP + ScrollTrigger (cdnjs). Without it the CSS and JS above still work. ---------- */
   const G = window.gsap, ST = window.ScrollTrigger;
   const hasGsap = !!(G && ST);
@@ -178,6 +220,8 @@
   function frame() {
     ticking = false;
     const vh = innerHeight, y = scrollY;
+    paintTone();
+    updateEchoes();
     // hero: the footage shrinks to a rounded card and the headline lifts and fades
     if (heroEl && y < heroEl.offsetHeight * 1.2) {
       const p = clamp(y / (vh * 0.9));
@@ -246,7 +290,11 @@
       m.style.setProperty("--mx", `${(x * 100).toFixed(1)}%`); m.style.setProperty("--my", `${(y * 100).toFixed(1)}%`);
       let t = tilts.get(m);
       if (!t) {
-        t = item((a, b) => { m.style.setProperty("--ry", `${(a * 6).toFixed(2)}deg`); m.style.setProperty("--rx", `${(-b * 6).toFixed(2)}deg`); }, 0.12);
+        t = item((a, b) => {
+          m.style.setProperty("--ry", `${(a * 6).toFixed(2)}deg`); m.style.setProperty("--rx", `${(-b * 6).toFixed(2)}deg`);
+          // shadow falls away from the pointer
+          m.style.setProperty("--sx", `${(-a * 14).toFixed(1)}px`); m.style.setProperty("--sy", `${(-b * 10).toFixed(1)}px`);
+        }, 0.12);
         tilts.set(m, t);
         hit.addEventListener("pointerleave", () => ease(t, 0, 0));
       }
@@ -260,6 +308,9 @@
       const t = item((x, y) => { b.style.setProperty("--bx", `${x.toFixed(2)}px`); b.style.setProperty("--by", `${y.toFixed(2)}px`); }, 0.18);
       let down = false;
       b.addEventListener("pointermove", (e) => {
+        const r0 = b.getBoundingClientRect();
+        b.style.setProperty("--px", `${(((e.clientX - r0.left) / r0.width) * 100).toFixed(1)}%`);
+        b.style.setProperty("--py", `${(((e.clientY - r0.top) / r0.height) * 100).toFixed(1)}%`);
         if (down || b.dataset.track === "buy_click") return; // links set up later as buy links stay put
         const r = b.getBoundingClientRect();
         ease(t, ((e.clientX - r.left) / r.width - 0.5) * 12, ((e.clientY - r.top) / r.height - 0.5) * 8);
@@ -288,7 +339,8 @@
     }, { passive: true });
     document.addEventListener("pointerout", (e) => { if (!e.relatedTarget) ring.classList.remove("on"); });
     document.addEventListener("pointerover", (e) => {
-      const hit = e.target.closest && e.target.closest(".card-hit, .pill, a, button");
+      // the big ring only over clip cards: over buttons it would hide the label
+      const hit = e.target.closest && e.target.closest(".card-hit");
       ring.classList.toggle("big", !!hit);
     }, { passive: true });
 

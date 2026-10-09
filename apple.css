@@ -106,6 +106,25 @@
 .nav-hover { position: absolute; z-index: -1; top: 50%; left: 0; height: 30px; width: 1px; margin-top: -15px; border-radius: 980px; background: currentColor; opacity: 0; transition: transform .45s var(--e-spring), width .45s var(--e-spring), opacity .25s var(--e-apple); pointer-events: none; }
 .nav-hover.on { opacity: .12; }
 
+/* ---------- Wave 3 ---------- */
+/* tone: while apple.js drives the backdrop, sections become transparent so the backdrop shows through */
+.tone { position: fixed; inset: 0; z-index: -1; background: #000; pointer-events: none; display: none; }
+.tone-on .tone { display: block; }
+.tone-on main > section[data-theme], .tone-on footer[data-theme] { background: transparent; }
+
+/* pill: a soft light follows the pointer across the button (set by apple.js) */
+.pill { position: relative; isolation: isolate; }
+.pill::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: radial-gradient(140px circle at var(--px, 50%) var(--py, 50%), rgba(255, 255, 255, .38), transparent 62%); opacity: 0; transition: opacity .35s var(--e-apple); pointer-events: none; }
+.pill:hover::after { opacity: 1; }
+.pill[disabled]::after { display: none; }
+
+/* cards: the shadow shifts away from the pointer, so the card looks lifted off the page */
+.ptr .card:hover .card-media { box-shadow: calc(var(--sx, 0px)) calc(20px + var(--sy, 0px)) 44px -16px rgba(0, 0, 0, .55); }
+
+/* section titles: a dimmed echo of the same line drifts slower behind the real one (depth) */
+.title { position: relative; isolation: isolate; }
+.title .echo { position: absolute; inset: 0; z-index: -1; color: var(--fg2); opacity: .16; transform: translate3d(0, var(--dy, 0px), 0); pointer-events: none; will-change: transform; }
+
 /* ---------- Wave 2: light sweep, parallax photos, cursor ring ---------- */
 /* a soft light band crosses each clip picture once (apple.js adds .swept when it enters the screen) */
 .card-media::before { content: ""; position: absolute; inset: 0; z-index: 2; background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .28) 50%, transparent 65%); transform: translateX(-120%); pointer-events: none; }
