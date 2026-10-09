@@ -78,7 +78,7 @@
   .btn-ghost:hover{background:rgba(0,113,227,.08)}
 
   /* ---------- hero ---------- */
-  #overview{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden}
+  #overview{position:relative;min-height:100vh;min-height:100svh;display:flex;align-items:center;overflow:hidden}
   #cursorLight{
     position:absolute;top:0;left:0;width:640px;height:640px;border-radius:50%;
     background:radial-gradient(circle,rgba(255,255,255,.85) 0%,rgba(255,255,255,0) 62%);
@@ -121,7 +121,7 @@
   /* ---------- pinned scenes ---------- */
   #scenes{height:420vh}
   #dimmer{position:fixed;inset:0;background:#060608;opacity:0;pointer-events:none;z-index:5;transition:opacity .1s linear}
-  .scenes-sticky{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:6;overflow:hidden}
+  .scenes-sticky{position:sticky;top:0;height:100vh;height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:6;overflow:hidden}
   .scene-words{display:flex;gap:clamp(24px,6vw,72px);margin-bottom:4vh;color:var(--ink);transition:color .4s}
   .scene-words.light{color:#fff}
   .scene-words span{font-size:clamp(2.4rem,6vw,4.6rem);font-weight:700;letter-spacing:-.03em;opacity:.18;transition:opacity .5s,transform .5s}
@@ -193,7 +193,7 @@
 
   /* ---------- horizontal strip ---------- */
   #collections{height:320vh}
-  .strip-sticky{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+  .strip-sticky{position:sticky;top:0;height:100vh;height:100svh;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
   .strip-view{overflow:hidden}
   .strip-track{display:flex;gap:28px;width:max-content;padding:10px 8vw;will-change:transform}
   .strip-card{
@@ -214,7 +214,7 @@
 
   /* ---------- center stack ---------- */
   #spotlight{height:380vh}
-  .stack-sticky{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .stack-sticky{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;display:flex;align-items:center;justify-content:center}
   .stack-stage{position:relative;width:100%;height:100%}
   .stack-card{
     position:absolute;left:50%;top:50%;width:min(88vw,620px);
@@ -569,7 +569,7 @@ const nav=$("#nav"), progress=$("#progress"), hero=$("#overview"), heroIn=$("#he
 const toTop=$("#toTop"), ttFg=$("#ttFg"), TT_C=119.4;
 
 function secP(el){
-  const r=el.getBoundingClientRect(), total=r.height-innerHeight;
+  const r=el.getBoundingClientRect(), vh=document.documentElement.clientHeight||innerHeight, total=r.height-vh;
   return total>0?clamp(-r.top/total,0,1):0;
 }
 /* ---------- buttery scroll engine ----------
@@ -582,10 +582,10 @@ const targ={hero:0,scenes:0,strip:0,stack:0};  /* scroll targets */
 let stripMax=0;
 function measure(){ stripMax=Math.max(track.scrollWidth-stripView.clientWidth,0); }
 function readTargets(){
-  const y=scrollY, doc=document.documentElement.scrollHeight-innerHeight;
+  const y=scrollY, doc=document.documentElement.scrollHeight-innerHeight, vh=document.documentElement.clientHeight||innerHeight;
   progress.style.width=(doc>0?y/doc*100:0)+"%";
-  nav.classList.toggle("compact",y>innerHeight*.65);
-  toTop.classList.toggle("show",y>innerHeight*.8);
+  nav.classList.toggle("compact",y>vh*.65);
+  toTop.classList.toggle("show",y>vh*.8);
   ttFg.style.strokeDashoffset=(TT_C*(1-(doc>0?y/doc:0))).toFixed(1);
   targ.hero=clamp(y/(hero.offsetHeight*.92),0,1);
   targ.scenes=secP(scWrap);
