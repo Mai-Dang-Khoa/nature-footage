@@ -126,10 +126,10 @@
   .scene-words.light{color:#fff}
   .scene-words span{font-size:clamp(2.4rem,6vw,4.6rem);font-weight:700;letter-spacing:-.03em;opacity:.18;transition:opacity .5s,transform .5s}
   .scene-words span.on{opacity:1;transform:scale(1.06)}
-  .scene-frame{position:relative;width:min(88vw,1060px);aspect-ratio:16/9;border-radius:28px;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,.45);will-change:transform,border-radius}
-  .scene{position:absolute;inset:0}
-  .scene.s1{clip-path:inset(0 0 0 100%)}
-  .scene.s2{clip-path:inset(0 0 0 100%)}
+  .scene-frame{position:relative;width:min(88vw,1060px);aspect-ratio:16/9;border-radius:28px;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,.45);will-change:transform}
+  .scene{position:absolute;inset:0;will-change:transform}
+  .scene.s1{transform:translateX(102%)}
+  .scene.s2{transform:translateX(102%)}
   .scene-cap{position:absolute;left:26px;bottom:22px;color:#fff;font-size:13px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
 
   /* ---------- posters (pure CSS plates) ---------- */
@@ -594,15 +594,13 @@ function readTargets(){
 }
 function applyHero(p){
   heroIn.style.transform=`translate3d(0,${(p*90).toFixed(1)}px,0) scale(${(1-p*.1).toFixed(4)})`;
-  heroIn.style.filter=`blur(${(p*12).toFixed(2)}px)`;
   heroIn.style.opacity=(1-p*1.15).toFixed(3);
 }
 function applyScenes(p){
   frame.style.transform=`scale(${(.82+.18*p).toFixed(4)})`;
-  frame.style.borderRadius=`${(28-22*p).toFixed(1)}px`;
   for(let k=1;k<3;k++){
     const local=clamp((p-k/3)/(1/3),0,1);
-    scenes[k].style.clipPath=`inset(0 0 0 ${((1-local)*100).toFixed(2)}%)`;
+    scenes[k].style.transform=`translate3d(${((1-local)*102).toFixed(2)}%,0,0)`;
   }
   const wi=clamp(Math.floor(p*3),0,2);
   words.forEach((w,k)=>w.classList.toggle("on",k===wi));
@@ -616,13 +614,12 @@ function applyStrip(p){
 function applyStack(p){
   const af=p*(stackCards.length-1);
   stackCards.forEach((c,i)=>{
-    const d=i-af; let scale,yy,op,br=1;
-    if(d<=0){ scale=1+d*.07; yy=d*46; br=1+d*.12; op=d<-2.6?0:1; }
+    const d=i-af; let scale,yy,op;
+    if(d<=0){ scale=1+d*.07; yy=d*46; op=d<-2.6?0:1; }
     else{ scale=1-d*.08; yy=d*160; op=d>=1?0:(d>0.7?(1-d)/0.3:1); }
     c.style.transform=`translate(-50%,-50%) translate3d(0,${yy.toFixed(1)}px,0) scale(${Math.max(scale,.5).toFixed(4)})`;
     c.style.opacity=op.toFixed(3);
     c.style.zIndex=100+i;
-    c.style.filter=`brightness(${clamp(br,.55,1).toFixed(3)})`;
     c.style.pointerEvents=Math.abs(d)<.5?"auto":"none";
   });
 }
