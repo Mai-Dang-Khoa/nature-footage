@@ -82,7 +82,7 @@
   #cursorLight{
     position:absolute;top:0;left:0;width:640px;height:640px;border-radius:50%;
     background:radial-gradient(circle,rgba(255,255,255,.85) 0%,rgba(255,255,255,0) 62%);
-    pointer-events:none;z-index:1;mix-blend-mode:soft-light;
+    pointer-events:none;z-index:1;
   }
   .glow{position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;will-change:transform;transform:translateZ(0)}
   .g1{width:560px;height:560px;left:-140px;top:8%;background:radial-gradient(circle,rgba(120,170,255,.5),transparent 70%);animation:drift1 28s ease-in-out infinite alternate}
@@ -651,6 +651,12 @@ hero.addEventListener("pointermove",e=>{
   light.style.transform=`translate(${cx-320}px,${cy-320}px)`;
   requestAnimationFrame(lightLoop);
 })();
+
+/* pause hero glow drift when hero is off-screen (saves GPU) */
+const glowIO=new IntersectionObserver(es=>es.forEach(e=>{
+  $$(".glow").forEach(g=>g.style.animationPlayState=e.isIntersecting?"running":"paused");
+}),{threshold:0});
+glowIO.observe(hero);
 
 /* ---------------- reveal + spy ---------------- */
 $$(".rv").forEach(el=>{
