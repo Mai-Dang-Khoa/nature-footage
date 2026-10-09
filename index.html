@@ -593,9 +593,19 @@ const nav=$("#nav"), progress=$("#progress"), hero=$("#overview"), heroIn=$("#he
       stWrap=$("#spotlight"), stackCards=$$(".stack-card");
 const toTop=$("#toTop"), ttFg=$("#ttFg"), TT_C=119.4;
 
-function secP(el){
-  const r=el.getBoundingClientRect(), vh=document.documentElement.clientHeight||innerHeight, total=r.height-vh;
-  return total>0?clamp(-r.top/total,0,1):0;
+/* Scroll-robust progress: cache each section's document-relative position
+   on load/resize (when layout is stable); during scroll only scrollY is read,
+   so browser-chrome show/hide can never inject measurement noise. */
+let secCache={};
+function measureSections(){
+  const vh=document.documentElement.clientHeight||innerHeight, y=scrollY;
+  [[scWrap,"scenes"],[colWrap,"strip"],[stWrap,"stack"]].forEach(([node,k])=>{
+    secCache[k]={top:node.getBoundingClientRect().top+y, total:node.offsetHeight-vh};
+  });
+}
+function secPCached(k){
+  const c=secCache[k];
+  return c&&c.total>0?clamp((scrollY-c.top)/c.total,0,1):0;
 }
 /* ---------- scroll engine: 1:1 tracking ----------
    Animations lock exactly to the native scroll position (no lerp lag),
@@ -610,9 +620,9 @@ function readTargets(){
   toTop.classList.toggle("show",y>vh*.8);
   ttFg.style.strokeDashoffset=(TT_C*(1-(doc>0?y/doc:0))).toFixed(1);
   targ.hero=clamp(y/(hero.offsetHeight*.92),0,1);
-  targ.scenes=secP(scWrap);
-  targ.strip=secP(colWrap);
-  targ.stack=secP(stWrap);
+  targ.scenes=secPCached("scenes");
+  targ.strip=secPCached("strip");
+  targ.stack=secPCached("stack");
 }
 function applyHero(p){
   heroIn.style.transform=`translate3d(0,${(p*90).toFixed(1)}px,0) scale(${(1-p*.1).toFixed(4)})`;
@@ -659,9 +669,9 @@ function render(){
   requestAnimationFrame(render);
 }
 addEventListener("scroll",()=>{ readTargets(); needApply=true; },{passive:true});
-addEventListener("resize",()=>{ measure(); readTargets(); needApply=true; });
-addEventListener("load",()=>{ measure(); readTargets(); needApply=true; });
-measure(); readTargets(); render();
+addEventListener("resize",()=>{ measure(); measureSections(); readTargets(); needApply=true; });
+addEventListener("load",()=>{ measure(); measureSections(); readTargets(); needApply=true; });
+measure(); measureSections(); readTargets(); render();
 
 /* cursor light follows (lerped) */
 let tx=innerWidth/2,ty=innerHeight/2,cx=tx,cy=ty;
