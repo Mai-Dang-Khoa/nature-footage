@@ -292,10 +292,9 @@
     body.cur-on,body.cur-on a,body.cur-on button,body.cur-on .tilt,body.cur-on input,body.cur-on textarea{cursor:none}
   }
   .marquee{border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;padding:22px 0;background:var(--bg);position:relative;z-index:7}
-  .mq-track{display:flex;width:max-content;animation:mq 120s linear infinite;will-change:transform}
+  .mq-track{display:flex;width:max-content}
   .mq-track span{font-size:clamp(1.3rem,2.8vw,2rem);font-weight:700;letter-spacing:-.02em;color:var(--ink);white-space:nowrap;padding-right:.5em;flex-shrink:0}
   .mq-track span i{color:var(--blue);font-style:normal;padding:0 .55em}
-  @keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
   .stats{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;max-width:1220px;margin:0 auto;padding:9vh 28px 4vh;position:relative;z-index:7}
   .stat b{font-size:clamp(2.6rem,5.5vw,4.2rem);font-weight:700;letter-spacing:-.03em;display:block;color:var(--ink);font-variant-numeric:tabular-nums}
   .stat .lbl{color:var(--sub);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
@@ -667,7 +666,22 @@ function applyStack(p){
   });
 }
 let needApply=true;
-function render(){
+/* marquee: JS-driven (not CSS animation) so weak GPUs don't need a giant
+   compositor layer; whole-pixel steps kill sub-pixel shimmer. */
+const mqTrack=document.querySelector(".mq-track");
+const mqReduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let mqX=0, mqHalf=0, mqLast=0;
+const MQ_PX_PER_SEC=14;
+function mqMeasure(){ if(mqTrack) mqHalf=mqTrack.scrollWidth/2; }
+function mqTick(now){
+  if(mqTrack&&mqHalf>0&&!mqReduce&&!document.hidden){
+    if(mqLast) mqX=(mqX+MQ_PX_PER_SEC*(now-mqLast)/1000)%mqHalf;
+    mqTrack.style.transform=`translateX(${-Math.round(mqX)}px)`;
+  }
+  mqLast=now;
+}
+function render(now){
+  mqTick(now||0);
   if(needApply){
     needApply=false;
     applyHero(targ.hero); applyScenes(targ.scenes); applyStrip(targ.strip); applyStack(targ.stack);
@@ -675,9 +689,9 @@ function render(){
   requestAnimationFrame(render);
 }
 addEventListener("scroll",()=>{ readTargets(); needApply=true; },{passive:true});
-addEventListener("resize",()=>{ measure(); measureSections(); readTargets(); needApply=true; });
-addEventListener("load",()=>{ measure(); measureSections(); readTargets(); needApply=true; });
-measure(); measureSections(); readTargets(); render();
+addEventListener("resize",()=>{ measure(); measureSections(); mqMeasure(); readTargets(); needApply=true; });
+addEventListener("load",()=>{ measure(); measureSections(); mqMeasure(); readTargets(); needApply=true; });
+measure(); measureSections(); mqMeasure(); readTargets(); render();
 
 /* cursor light follows (lerped) */
 let tx=innerWidth/2,ty=innerHeight/2,cx=tx,cy=ty;
