@@ -113,6 +113,10 @@
   .hero-sub{font-size:clamp(1.05rem,2vw,1.4rem);color:var(--sub);max-width:34ch;margin-bottom:44px;line-height:1.55}
   .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
   .hero-cta .btn-pill,.hero-cta .btn-ghost{font-size:16px;padding:14px 30px}
+/* Telegram-style ripple on buttons */
+  .btn-pill,.btn-ghost,.btn-license{position:relative;overflow:hidden}
+  .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.4);transform:scale(0);animation:rip .65s ease-out forwards;pointer-events:none}
+  @keyframes rip{to{transform:scale(3.2);opacity:0}}
   .scroll-hint{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);z-index:2;color:var(--sub);font-size:12px;letter-spacing:.18em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:10px}
   .scroll-hint::after{content:"";width:1px;height:44px;background:linear-gradient(var(--sub),transparent);animation:hint 2.2s ease-in-out infinite}
   @keyframes hint{0%,100%{transform:scaleY(.6);opacity:.5}50%{transform:scaleY(1);opacity:1}}
@@ -847,15 +851,43 @@ if(matchMedia("(pointer:fine)").matches){
   })();
 }
 
-/* theme */
+/* theme: iOS-style circular dissolve via View Transitions */
 (function(){
   const root=document.documentElement, themeBtn=$("#themeBtn");
   try{ if(localStorage.getItem("plates-theme")==="dark") root.classList.add("dark"); }catch(_){}
-  themeBtn.addEventListener("click",()=>{
-    const dark=root.classList.toggle("dark");
-    try{ localStorage.setItem("plates-theme",dark?"dark":"light"); }catch(_){}
+  themeBtn.addEventListener("click",(e)=>{
+    const toDark=!root.classList.contains("dark");
+    const apply=()=>{
+      root.classList.toggle("dark",toDark);
+      try{ localStorage.setItem("plates-theme",toDark?"dark":"light"); }catch(_){}
+    };
+    if(document.startViewTransition){
+      const x=e.clientX||innerWidth-70, y=e.clientY||70;
+      const tr=document.startViewTransition(apply);
+      tr.ready.then(()=>{
+        const r=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));
+        document.documentElement.animate(
+          {clipPath:[`circle(0px at ${x}px ${y}px)`,`circle(${r}px at ${x}px ${y}px)`]},
+          {duration:650,easing:"cubic-bezier(.2,.7,.2,1)",pseudoElement:"::view-transition-new(root)"}
+        );
+      }).catch(()=>{});
+    } else apply();
   });
 })();
+
+/* ripple */
+$$(".btn-pill,.btn-ghost,.btn-license").forEach(b=>{
+  b.addEventListener("pointerdown",e=>{
+    const r=b.getBoundingClientRect(), s=Math.max(r.width,r.height);
+    const rip=document.createElement("span");
+    rip.className="ripple";
+    rip.style.width=rip.style.height=s+"px";
+    rip.style.left=(e.clientX-r.left-s/2)+"px";
+    rip.style.top=(e.clientY-r.top-s/2)+"px";
+    b.appendChild(rip);
+    setTimeout(()=>rip.remove(),700);
+  });
+});
 
 /* back to top */
 toTop.addEventListener("click",()=>scrollTo({top:0,behavior:reduced?"auto":"smooth"}));
