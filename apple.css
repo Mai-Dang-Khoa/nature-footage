@@ -15,7 +15,8 @@
 .anim .split.in .mi { transform: none; opacity: 1; filter: none; }
 
 /* ---------- Hero: keynote entrance, then the footage folds into a card as you scroll ---------- */
-.anim .hero-media > img, .anim .hero-media > video { transform: scale(1.12); transition: transform 1.8s var(--e-apple), opacity 1s var(--e-apple); }
+/* slow push-in: the footage settles from 108% to 100% over 2.6s, starting with the curtain */
+.anim .hero-media > img, .anim .hero-media > video { transform: scale(1.08); transition: transform 2.6s var(--e-apple), opacity 1s var(--e-apple); }
 .anim.fonts-ready .hero-media > img, .anim.fonts-ready .hero-media > video { transform: none; }
 .anim .hero-media { transform-origin: 50% 0; will-change: transform, clip-path; }
 .anim .hero-head { will-change: transform, opacity; }
@@ -25,6 +26,11 @@
 /* ---------- Hero: title, line and button arrive on a spring, 800ms, 150ms apart ---------- */
 .anim .hero-head > * { opacity: 0; transform: translateY(32px) scale(.96); transition: opacity .8s var(--e-apple), transform .8s var(--e-spring); transition-delay: calc(var(--i, 0) * 150ms + 100ms); }
 .anim.fonts-ready .hero-head > * { opacity: 1; transform: none; }
+/* the title animates per character (apple.js); the wrapper itself stays visible */
+.anim .hero-head > .hero-title { opacity: 1; transform: none; transition: none; }
+.anim .hero-title .cw { display: inline-block; white-space: nowrap; }
+.anim .hero-title .ch { display: inline-block; opacity: 0; transform: translateY(.45em); filter: blur(12px); transition: opacity .9s var(--e-apple), transform 1.1s var(--e-apple), filter 1s var(--e-apple); transition-delay: calc(var(--c, 0) * 32ms + 150ms); }
+.anim.fonts-ready .hero-title .ch { opacity: 1; transform: none; filter: none; }
 
 /* ---------- Cards: hover lifts the whole card (1.03) with a soft shadow, 400ms ---------- */
 .card { transition: transform .4s var(--e-apple); }
@@ -79,6 +85,8 @@
 @keyframes pop { 40% { transform: scale(1.45); } }
 
 @media (prefers-reduced-motion: reduce) {
+  .hero-curtain { display: none; }
+  .anim .hero-title .ch { opacity: 1 !important; transform: none !important; filter: none !important; }
   .anim .split .mi { transform: none !important; opacity: 1 !important; filter: none !important; }
   .statement .sw { opacity: 1; }
 }
@@ -88,7 +96,7 @@
 .ptr .hero-head { translate: var(--tx, 0) var(--ty, 0); }
 /* cards tilt a few degrees toward the pointer, a soft light follows it across the picture */
 .ptr .card-media { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
-.ptr .card-media::after { content: ""; position: absolute; inset: 0; z-index: 1; background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, .22), transparent 60%); opacity: 0; transition: opacity .4s var(--e-apple); pointer-events: none; }
+.ptr .card-media::after { content: ""; position: absolute; inset: 0; z-index: 1; background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, .3), transparent 60%); opacity: 0; transition: opacity .4s var(--e-apple); pointer-events: none; }
 .ptr .card-hit:hover .card-media::after { opacity: 1; }
 .ptr .card-hit:active .card-media { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(.97); }
 /* buttons lean toward the pointer (never the buy button) */
@@ -97,3 +105,33 @@
 .nav-links { position: relative; }
 .nav-hover { position: absolute; z-index: -1; top: 50%; left: 0; height: 30px; width: 1px; margin-top: -15px; border-radius: 980px; background: currentColor; opacity: 0; transition: transform .45s var(--e-spring), width .45s var(--e-spring), opacity .25s var(--e-apple); pointer-events: none; }
 .nav-hover.on { opacity: .12; }
+
+/* ---------- Wave 3 ---------- */
+/* tone: apple.js paints a gradient over each section, so the colour blends across the seam.
+   The solid theme colour stays underneath as the fallback. */
+
+/* pill: a soft light follows the pointer across the button (set by apple.js) */
+.pill { position: relative; isolation: isolate; }
+.pill::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: radial-gradient(140px circle at var(--px, 50%) var(--py, 50%), rgba(255, 255, 255, .38), transparent 62%); opacity: 0; transition: opacity .35s var(--e-apple); pointer-events: none; }
+.pill:hover::after { opacity: 1; }
+.pill[disabled]::after { display: none; }
+
+/* cards: the shadow shifts away from the pointer, so the card looks lifted off the page */
+.ptr .card:hover .card-media { box-shadow: calc(var(--sx, 0px)) calc(20px + var(--sy, 0px)) 44px -16px rgba(0, 0, 0, .55); }
+
+/* section titles: a dimmed echo of the same line drifts slower behind the real one (depth).
+   It is a pseudo-element, so screen readers and the contrast audit ignore it. */
+.title { position: relative; isolation: isolate; }
+.title::before { content: attr(data-echo); position: absolute; inset: 0; z-index: -1; color: var(--fg2); opacity: .16; transform: translate3d(0, var(--dy, 0px), 0); pointer-events: none; will-change: transform; }
+
+/* ---------- Wave 2: light sweep, parallax photos, cursor ring ---------- */
+/* a soft light band crosses each clip picture once (apple.js adds .swept when it enters the screen) */
+.card-media::before { content: ""; position: absolute; inset: 0; z-index: 2; background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .28) 50%, transparent 65%); transform: translateX(-120%); pointer-events: none; }
+.card-media.swept::before { transform: translateX(120%); transition: transform 1.3s var(--e-apple) calc(var(--k, 0) * 120ms); }
+/* parallax: the photo is a little taller than its frame, GSAP moves it with `translate` (not transform, which hover uses) */
+.card-media .card-thumb { top: -8%; height: 116%; }
+.split-media { will-change: translate; }
+/* cursor ring: decorative, mouse only, never over the click target (pointer-events: none) */
+.cursor { position: fixed; left: 0; top: 0; z-index: 90; width: 28px; height: 28px; margin: -14px 0 0 -14px; border: 1px solid rgba(255, 255, 255, .7); border-radius: 50%; pointer-events: none; opacity: 0; mix-blend-mode: difference; transition: opacity .3s var(--e-apple), width .45s var(--e-spring), height .45s var(--e-spring), margin .45s var(--e-spring), background-color .3s var(--e-apple); will-change: transform; }
+.cursor.on { opacity: 1; }
+.cursor.big { width: 64px; height: 64px; margin: -32px 0 0 -32px; background-color: rgba(255, 255, 255, .9); }

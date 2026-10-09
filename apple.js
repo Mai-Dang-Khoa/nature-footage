@@ -42,6 +42,38 @@
   heads.forEach(split);
   // hero: title, line and button get their order; CSS starts them once fonts are ready (≤ 900ms)
   $$(".hero-head > *").forEach((n, i) => n.style.setProperty("--i", i));
+
+  // hero title: every letter gets its own blur-in step (words never break mid-word)
+  const heroTitle = $(".hero-title");
+  if (heroTitle) {
+    let c = 0;
+    const label = heroTitle.textContent.replace(/\s+/g, " ").trim();
+    const wrap = (text) => {
+      const frag = document.createDocumentFragment();
+      text.split(/(\s+)/).forEach((part) => {
+        if (!part) return;
+        if (/^\s+$/.test(part)) { frag.append(document.createTextNode(part)); return; }
+        const word = document.createElement("span");
+        word.className = "cw";
+        [...part].forEach((ch) => { const s = document.createElement("span"); s.className = "ch"; s.style.setProperty("--c", c++); s.textContent = ch; word.append(s); });
+        frag.append(word);
+      });
+      return frag;
+    };
+    const walk = (n) => [...n.childNodes].forEach((x) => {
+      if (x.nodeType === 3) x.replaceWith(wrap(x.textContent));
+      else if (x.nodeType === 1 && x.tagName !== "BR" && !x.classList.contains("br-sm")) walk(x);
+    });
+    walk(heroTitle);
+    // visible letters are hidden from assistive tech; the full sentence is read once
+    const sr = document.createElement("span");
+    sr.className = "sr-only";
+    sr.textContent = label;
+    const visual = document.createElement("span");
+    visual.setAttribute("aria-hidden", "true");
+    visual.append(...heroTitle.childNodes);
+    heroTitle.append(sr, visual);
+  }
   const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -12% 0px" });
   heads.forEach((n) => io.observe(n));
 
@@ -90,19 +122,111 @@
   }
   if (chips) { new MutationObserver(setupChips).observe(chips, { childList: true }); setupChips(); }
 
+  /* ---------- 4. a light sweep crosses each clip picture once, when it comes into view ---------- */
+  const sweepIO = new IntersectionObserver((es) => es.forEach((e) => {
+    if (!e.isIntersecting) return;
+    e.target.classList.add("swept");
+    sweepIO.unobserve(e.target);
+  }), { rootMargin: "0px 0px -15% 0px" });
+  const sweeps = () => $$(".card-media:not(.sw-on)").forEach((m, i) => { m.classList.add("sw-on"); m.style.setProperty("--k", i % 3); sweepIO.observe(m); });
+  if (grid) new MutationObserver(sweeps).observe(grid, { childList: true });
+  sweeps();
+
   /* ---------- 5. Saved count pops when it changes ---------- */
   const count = $("#shortlist-count");
   if (count) new MutationObserver(() => { count.classList.remove("pop"); void count.offsetWidth; count.classList.add("pop"); }).observe(count, { childList: true, characterData: true, subtree: true });
 
+  /* ---------- 9. wave 3: section colour blends across each seam as you scroll ---------- */
+  const toneSecs = $$("main > section[data-theme], footer[data-theme]");
+  const hex = (v, fb) => { const h = (v || fb).trim().replace("#", ""); const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  const cs0 = getComputedStyle(root);
+  const themeRGB = (t) => (t === "light" ? hex(cs0.getPropertyValue("--white"), "#fff") : hex(cs0.getPropertyValue("--black"), "#000"));
+  const toneBand = () => innerHeight * 0.6; // the colour turns over a band of 60% screen height around each seam
+  // colour of the page at document position y: starts with the first section's theme, then each seam mixes into the next
+  function toneAt(y) {
+    const band = toneBand();
+    let col = themeRGB(toneSecs[0].dataset.theme);
+    for (let k = 0; k + 1 < toneSecs.length; k++) {
+      const seam = toneSecs[k].getBoundingClientRect().bottom + scrollY;
+      const t = clamp((y - (seam - band / 2)) / band), e = t * t * (3 - 2 * t);
+      const next = themeRGB(toneSecs[k + 1].dataset.theme);
+      col = col.map((v, i) => v + (next[i] - v) * e);
+    }
+    return `rgb(${col.map((v) => Math.round(v)).join(",")})`;
+  }
+  const toneCache = new Map();
+  function paintTone() {
+    if (toneSecs.length < 2) return;
+    toneSecs.forEach((sec) => {
+      const r = sec.getBoundingClientRect(), top = r.top + scrollY, h = r.height;
+      if (h <= 0 || r.bottom < -innerHeight || r.top > 2 * innerHeight) return; // only sections near the screen
+      const stops = [0, 0.25, 0.5, 0.75, 1].map((f) => `${toneAt(top + h * f)} ${Math.round(f * 100)}%`).join(", ");
+      if (toneCache.get(sec) !== stops) { toneCache.set(sec, stops); sec.style.backgroundImage = `linear-gradient(to bottom, ${stops})`; }
+    });
+  }
+  if (toneSecs.length > 1) toneSecs.forEach((sec) => sec.dataset.tone = "1");
+
+  /* ---------- 10. wave 3: pointer light on buttons, shadow away from the pointer on cards, depth echo on titles ---------- */
+  const echoes = heads.filter((h) => h.classList.contains("title"));
+  echoes.forEach((h) => { h.dataset.echo = h.textContent.replace(/\s+/g, " ").trim(); });
+  const updateEchoes = () => {
+    const vh = innerHeight;
+    echoes.forEach((h) => {
+      const r = h.getBoundingClientRect();
+      if (r.bottom < -vh || r.top > 2 * vh) return;
+      const p = (vh - r.top) / (vh + r.height);      // 0 as it enters from below, 1 as it leaves at the top
+      h.style.setProperty("--dy", `${((p - 0.5) * -90).toFixed(1)}px`);
+    });
+  };
+
+  /* ---------- 8. GSAP + ScrollTrigger (cdnjs). Without it the CSS and JS above still work. ---------- */
+  const G = window.gsap, ST = window.ScrollTrigger;
+  const hasGsap = !!(G && ST);
+  if (hasGsap) {
+    G.registerPlugin(ST);
+    // statement: pinned for one screen while its words light up, scrubbed to the scroll
+    const aboutSec = $("#about");
+    if (aboutSec && words.length) {
+      ST.create({
+        trigger: aboutSec, start: "top top+=10%", end: "+=90%", pin: true, anticipatePin: 1,
+        scrub: 0.6,
+        onUpdate: (self) => { const n = Math.round(self.progress * words.length); words.forEach((w, i) => w.classList.toggle("lit", i < n)); },
+      });
+    }
+    // photos: slow parallax inside their frames; each column moves at its own speed so the grid feels layered
+    let parTriggers = [];
+    const parallax = () => {
+      parTriggers.forEach((t) => t.kill());
+      parTriggers = [];
+      $$(".card-media").forEach((m, i) => {
+        const img = m.querySelector(".card-thumb");
+        if (!img) return;
+        const speed = 0.6 + (i % 3) * 0.35;
+        parTriggers.push(ST.create({
+          trigger: m, start: "top bottom", end: "bottom top", scrub: true,
+          onUpdate: (self) => { img.style.translate = `0 ${((self.progress - 0.5) * 8 * speed).toFixed(2)}%`; },
+        }));
+      });
+      ST.refresh();
+    };
+    if (grid) new MutationObserver(parallax).observe(grid, { childList: true });
+    parallax();
+    const fm = $(".split-media");
+    if (fm) ST.create({ trigger: fm, start: "top bottom", end: "bottom top", scrub: true, onUpdate: (self) => { fm.style.translate = `0 ${((self.progress - 0.5) * 6).toFixed(2)}%`; } });
+  }
+
   /* ---------- 6. scroll-linked: hero fold, free-sample scale, About words ---------- */
-  const heroEl = $(".hero"), media = $(".hero-media"), head = $(".hero-head");
+  const heroEl = $(".hero"), media = $(".hero-media"), head = $(".hero-head"), shade = $(".hero-shade");
   let ticking = false;
   function frame() {
     ticking = false;
     const vh = innerHeight, y = scrollY;
+    paintTone();
+    updateEchoes();
     // hero: the footage shrinks to a rounded card and the headline lifts and fades
     if (heroEl && y < heroEl.offsetHeight * 1.2) {
       const p = clamp(y / (vh * 0.9));
+      shade.style.background = `rgba(0, 0, 0, ${(0.35 + p * 0.3).toFixed(3)})`; // the veil deepens as the footage leaves
       const inset = (p * 5).toFixed(2), r = (p * 28).toFixed(1);
       media.style.transform = `scale(${(1 - p * 0.06).toFixed(4)})`;
       media.style.clipPath = p > 0 ? `inset(0 ${inset}% round ${r}px)` : "";
@@ -117,8 +241,8 @@
       n.style.scale = (0.92 + e * 0.08).toFixed(4);
       n.style.opacity = e.toFixed(3);
     });
-    // About: words light up between 85% and 40% of the screen height
-    if (words.length) {
+    // About: words light up between 85% and 40% of the screen height (GSAP does it when it is loaded)
+    if (words.length && !hasGsap) {
       const r = about.getBoundingClientRect();
       // fully lit once it has reached 35% from the top (or scrolled past), dark below the fold
       const atEnd = y + vh >= document.documentElement.scrollHeight - 4; // tall screens may never scroll it that far
@@ -157,7 +281,7 @@
       heroEl.addEventListener("pointerleave", () => ease(h, 0, 0));
     }
 
-    // cards: tilt ≤ 4°, light follows the pointer (works for cards added later too)
+    // cards: tilt ≤ 6°, light follows the pointer (works for cards added later too)
     const tilts = new WeakMap();
     document.addEventListener("pointermove", (e) => {
       const hit = e.target.closest && e.target.closest(".card-hit");
@@ -167,7 +291,11 @@
       m.style.setProperty("--mx", `${(x * 100).toFixed(1)}%`); m.style.setProperty("--my", `${(y * 100).toFixed(1)}%`);
       let t = tilts.get(m);
       if (!t) {
-        t = item((a, b) => { m.style.setProperty("--ry", `${(a * 4).toFixed(2)}deg`); m.style.setProperty("--rx", `${(-b * 4).toFixed(2)}deg`); }, 0.12);
+        t = item((a, b) => {
+          m.style.setProperty("--ry", `${(a * 6).toFixed(2)}deg`); m.style.setProperty("--rx", `${(-b * 6).toFixed(2)}deg`);
+          // shadow falls away from the pointer
+          m.style.setProperty("--sx", `${(-a * 14).toFixed(1)}px`); m.style.setProperty("--sy", `${(-b * 10).toFixed(1)}px`);
+        }, 0.12);
         tilts.set(m, t);
         hit.addEventListener("pointerleave", () => ease(t, 0, 0));
       }
@@ -181,6 +309,9 @@
       const t = item((x, y) => { b.style.setProperty("--bx", `${x.toFixed(2)}px`); b.style.setProperty("--by", `${y.toFixed(2)}px`); }, 0.18);
       let down = false;
       b.addEventListener("pointermove", (e) => {
+        const r0 = b.getBoundingClientRect();
+        b.style.setProperty("--px", `${(((e.clientX - r0.left) / r0.width) * 100).toFixed(1)}%`);
+        b.style.setProperty("--py", `${(((e.clientY - r0.top) / r0.height) * 100).toFixed(1)}%`);
         if (down || b.dataset.track === "buy_click") return; // links set up later as buy links stay put
         const r = b.getBoundingClientRect();
         ease(t, ((e.clientX - r.left) / r.width - 0.5) * 12, ((e.clientY - r.top) / r.height - 0.5) * 8);
@@ -189,6 +320,30 @@
       b.addEventListener("pointerup", () => { down = false; });
       b.addEventListener("pointerleave", () => { down = false; ease(t, 0, 0); });
     });
+
+    // cursor ring: follows the pointer with a lag, grows over cards and buttons (native cursor stays)
+    const ring = document.createElement("div");
+    ring.className = "cursor";
+    ring.setAttribute("aria-hidden", "true");
+    document.body.append(ring);
+    const cur = { x: 0, y: 0, tx: 0, ty: 0 };
+    let curRaf = 0;
+    const curLoop = () => {
+      cur.x = lerp(cur.x, cur.tx, 0.22); cur.y = lerp(cur.y, cur.ty, 0.22);
+      ring.style.transform = `translate3d(${cur.x.toFixed(1)}px, ${cur.y.toFixed(1)}px, 0)`;
+      curRaf = Math.abs(cur.x - cur.tx) + Math.abs(cur.y - cur.ty) > 0.1 ? requestAnimationFrame(curLoop) : 0;
+    };
+    document.addEventListener("pointermove", (e) => {
+      cur.tx = e.clientX; cur.ty = e.clientY;
+      if (!ring.classList.contains("on")) { cur.x = cur.tx; cur.y = cur.ty; ring.classList.add("on"); }
+      if (!curRaf) curRaf = requestAnimationFrame(curLoop);
+    }, { passive: true });
+    document.addEventListener("pointerout", (e) => { if (!e.relatedTarget) ring.classList.remove("on"); });
+    document.addEventListener("pointerover", (e) => {
+      // the big ring only over clip cards: over buttons it would hide the label
+      const hit = e.target.closest && e.target.closest(".card-hit");
+      ring.classList.toggle("big", !!hit);
+    }, { passive: true });
 
     // menu: a pill glides to the link under the pointer
     const nav = $(".nav-links");

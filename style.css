@@ -138,6 +138,12 @@ html.reduced [data-reveal] { opacity: 1 !important; transform: none !important; 
 .hero-title { font: 600 var(--fs-hero)/1.05 var(--font-display); font-stretch: 87.5%; letter-spacing: -.02em; color: var(--ink-on-dark); text-shadow: 0 2px 24px rgba(0, 0, 0, .25); }
 .hero-sub { font-size: 20px; line-height: 1.4; color: var(--hero-sub); }
 .hero-shade { position: absolute; inset: 0; background: var(--hero-veil); }
+/* opening curtain: starts black on first paint (only with motion allowed), lifts with the footage */
+.hero-curtain { position: absolute; inset: 0; z-index: 2; background: #000; opacity: 0; pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .js .hero-curtain { opacity: 1; }
+  .js.fonts-ready .hero-curtain { opacity: 0; transition: opacity 1.8s var(--ease-out) .1s; }
+}
 .ph-note { position: absolute; z-index: 1; left: 50%; bottom: var(--s3); transform: translateX(-50%); max-width: calc(100% - 2 * var(--gutter)); padding: 4px 12px; border-radius: 980px; background: rgba(0, 0, 0, .6); color: var(--ink-on-dark); font: 400 var(--fs-small)/1.4 var(--font-text); text-align: center; }
 .hero-head .pill { margin-top: var(--s1); }
 /* short laptop screens: tighter head so the footage still fills ≥ 60% */

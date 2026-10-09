@@ -42,12 +42,24 @@ Bật cho mọi người, tắt hết khi người xem bật "giảm chuyển đ
 - **Ảnh/video trong các section:** phóng từ 0.92 lên 1 và hiện dần từ 0 lên 1, gắn với vị trí cuộn (đường cong ease-out, không tuyến tính).
 - **Tiêu đề section:** từng chữ trồi lên khỏi mặt nạ, hơi mờ rồi nét (kiểu keynote).
 - **Thẻ clip:** hover phóng 1.03, bóng đổ mềm, 400ms. Có chuột: thẻ nghiêng nhẹ ≤ 4° theo chuột, có vệt sáng chạy theo con trỏ.
+- **Ghim và chữ sáng dần (GSAP):** section About ghim lại một màn, từng dòng sáng theo tiến độ cuộn.
+- **Parallax:** ảnh trong thẻ trôi chậm khác tốc độ theo cột; ảnh Free sample cũng trôi nhẹ.
+- **Nền đổi màu theo cuộn:** mỗi section có gradient từ màu section trước sang màu section sau quanh ranh giới, nên không có vạch cắt đen/trắng. Khi bật giảm chuyển động, nền trở về màu đặc.
+- **Tiêu đề có lớp bóng:** một bản mờ của tiêu đề trôi chậm hơn phía sau, tạo chiều sâu.
+- **Nút và thẻ:** nút có ánh sáng theo con trỏ; thẻ clip đổ bóng ra xa con trỏ.
+- **Quét sáng:** một dải sáng lướt qua mỗi ảnh clip một lần khi vào khung hình.
+- **Con trỏ:** vòng tròn bám theo chuột, phình ra khi rê lên thẻ hoặc nút (chỉ máy tính).
 - **Bấm vào thẻ:** ảnh "bay" thành khung video trong cửa sổ chi tiết (View Transitions); các dòng thông tin hiện lần lượt.
 - **Bộ lọc:** dạng segmented control, viên chọn trượt có độ nảy kiểu Telegram. Số "Saved" nảy khi thay đổi.
 - **About:** câu giới thiệu sáng dần từng chữ khi đọc tới.
 - **Có chuột:** nền hero dịch chiều sâu theo chuột; nút hút nhẹ ≤ 6px về phía chuột (nút mua không bao giờ di chuyển); menu có viên sáng trượt theo mục đang rê.
 - **Nút mua trên mỗi thẻ:** "Buy on Adobe Stock" (đổi tên đối tác ở `site.json → partnerName`), mở tab mới. Chưa có link thật thì nút xám, không bấm được.
 - **Placeholder:** hero và từng thẻ có nhãn ghi kích thước cần thay (video hero 3840×2160 MP4 ≤ 8MB + poster 1920×1080; thẻ: ảnh 1280×720, preview 1920×1080 MP4).
+
+## Thư viện ngoài
+
+- **GSAP 3.12.5 + ScrollTrigger** tải từ cdnjs (`index.html`, trước `apple.js`). Nếu không tải được, trang vẫn chạy bằng CSS và JS thuần; chỉ mất phần ghim và parallax.
+- Khi test trong môi trường không truy cập được cdnjs, dùng đúng file trong gói npm `gsap@3.12.5`.
 
 ## Thêm clip mới (`videos.json`)
 
