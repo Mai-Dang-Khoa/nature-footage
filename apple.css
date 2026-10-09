@@ -106,6 +106,11 @@
 .nav-hover { position: absolute; z-index: -1; top: 50%; left: 0; height: 30px; width: 1px; margin-top: -15px; border-radius: 980px; background: currentColor; opacity: 0; transition: transform .45s var(--e-spring), width .45s var(--e-spring), opacity .25s var(--e-apple); pointer-events: none; }
 .nav-hover.on { opacity: .12; }
 
+/* weak devices: solid panels instead of live backdrop blur */
+.lite .nav.scrolled, .lite .media-toggle, .lite .toast { -webkit-backdrop-filter: none; backdrop-filter: none; }
+.lite .nav.scrolled[data-theme="dark"]::before { background: rgba(0, 0, 0, .92); }
+.lite .nav.scrolled[data-theme="light"]::after { background: rgba(255, 255, 255, .95); }
+
 /* ---------- Wave 3 ---------- */
 /* tone: apple.js paints a gradient over each section, so the colour blends across the seam.
    The solid theme colour stays underneath as the fallback. */
@@ -132,6 +137,7 @@
 .card-media .card-thumb { top: -8%; height: 116%; }
 .split-media { will-change: translate; }
 /* cursor ring: decorative, mouse only, never over the click target (pointer-events: none) */
-.cursor { position: fixed; left: 0; top: 0; z-index: 90; width: 28px; height: 28px; margin: -14px 0 0 -14px; border: 1px solid rgba(255, 255, 255, .7); border-radius: 50%; pointer-events: none; opacity: 0; mix-blend-mode: difference; transition: opacity .3s var(--e-apple), width .45s var(--e-spring), height .45s var(--e-spring), margin .45s var(--e-spring), background-color .3s var(--e-apple); will-change: transform; }
+/* the ring is always 64px and only scales (transform), so growing it never triggers layout */
+.cursor { position: fixed; left: -32px; top: -32px; z-index: 90; width: 64px; height: 64px; border: 1px solid rgba(255, 255, 255, .7); border-radius: 50%; pointer-events: none; opacity: 0; mix-blend-mode: difference; transition: opacity .3s var(--e-apple), scale .45s var(--e-spring), background-color .3s var(--e-apple); scale: .44; will-change: transform; }
 .cursor.on { opacity: 1; }
-.cursor.big { width: 64px; height: 64px; margin: -32px 0 0 -32px; background-color: rgba(255, 255, 255, .9); }
+.cursor.big { scale: 1; background-color: rgba(255, 255, 255, .9); }

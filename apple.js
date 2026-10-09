@@ -9,6 +9,8 @@
 (() => {
   "use strict";
   const root = document.documentElement;
+  // weak devices (≤ 4 cores, ≤ 4 GB, Data Saver): solid panels instead of live blur, which costs a frame every scroll step
+  if (window.Motion && window.Motion.lowPower) root.classList.add("lite");
   if (!window.matchMedia || matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
   root.classList.add("anim");
   const $ = (s, r = document) => r.querySelector(s);
@@ -143,11 +145,12 @@
   const themeRGB = (t) => (t === "light" ? hex(cs0.getPropertyValue("--white"), "#fff") : hex(cs0.getPropertyValue("--black"), "#000"));
   const toneBand = () => innerHeight * 0.6; // the colour turns over a band of 60% screen height around each seam
   // colour of the page at document position y: starts with the first section's theme, then each seam mixes into the next
-  function toneAt(y) {
+  // seams are read once per frame (all reads first, then all writes) so the browser lays out only once
+  function toneAt(y, seams) {
     const band = toneBand();
     let col = themeRGB(toneSecs[0].dataset.theme);
     for (let k = 0; k + 1 < toneSecs.length; k++) {
-      const seam = toneSecs[k].getBoundingClientRect().bottom + scrollY;
+      const seam = seams[k];
       const t = clamp((y - (seam - band / 2)) / band), e = t * t * (3 - 2 * t);
       const next = themeRGB(toneSecs[k + 1].dataset.theme);
       col = col.map((v, i) => v + (next[i] - v) * e);
@@ -157,10 +160,12 @@
   const toneCache = new Map();
   function paintTone() {
     if (toneSecs.length < 2) return;
-    toneSecs.forEach((sec) => {
-      const r = sec.getBoundingClientRect(), top = r.top + scrollY, h = r.height;
-      if (h <= 0 || r.bottom < -innerHeight || r.top > 2 * innerHeight) return; // only sections near the screen
-      const stops = [0, 0.25, 0.5, 0.75, 1].map((f) => `${toneAt(top + h * f)} ${Math.round(f * 100)}%`).join(", ");
+    const boxes = toneSecs.map((sec) => { const r = sec.getBoundingClientRect(); return { top: r.top + scrollY, h: r.height, near: !(r.bottom < -innerHeight || r.top > 2 * innerHeight) }; });
+    const seams = boxes.map((b) => b.top + b.h);
+    boxes.forEach((b, i) => {
+      const sec = toneSecs[i];
+      if (b.h <= 0 || !b.near) return; // only sections near the screen
+      const stops = [0, 0.25, 0.5, 0.75, 1].map((f) => `${toneAt(b.top + b.h * f, seams)} ${Math.round(f * 100)}%`).join(", ");
       if (toneCache.get(sec) !== stops) { toneCache.set(sec, stops); sec.style.backgroundImage = `linear-gradient(to bottom, ${stops})`; }
     });
   }
@@ -171,10 +176,11 @@
   echoes.forEach((h) => { h.dataset.echo = h.textContent.replace(/\s+/g, " ").trim(); });
   const updateEchoes = () => {
     const vh = innerHeight;
-    echoes.forEach((h) => {
-      const r = h.getBoundingClientRect();
+    const rects = echoes.map((h) => h.getBoundingClientRect()); // read all first
+    echoes.forEach((h, i) => {                                   // then write all
+      const r = rects[i];
       if (r.bottom < -vh || r.top > 2 * vh) return;
-      const p = (vh - r.top) / (vh + r.height);      // 0 as it enters from below, 1 as it leaves at the top
+      const p = (vh - r.top) / (vh + r.height);
       h.style.setProperty("--dy", `${((p - 0.5) * -90).toFixed(1)}px`);
     });
   };
