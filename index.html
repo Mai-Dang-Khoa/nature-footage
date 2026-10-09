@@ -1,516 +1,862 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Wild Frames — 4K Nature Stock Footage Made in Unreal Engine 5</title>
-  <meta name="description" content="Photoreal 4K nature stock footage created in Unreal Engine 5: forests, oceans, mountains, skies and waterfalls. Preview clips and license on Adobe Stock.">
-  <meta name="theme-color" content="#000000">
-  <link rel="canonical" href="https://mai-dang-khoa.github.io/nature-footage/">
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
-
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Wild Frames — 4K Nature Stock Footage">
-  <meta property="og:description" content="Photoreal 4K nature clips created in Unreal Engine 5. Preview and license on Adobe Stock.">
-  <meta property="og:url" content="https://mai-dang-khoa.github.io/nature-footage/">
-  <meta property="og:image" content="https://mai-dang-khoa.github.io/nature-footage/assets/og.png">
-  <meta property="og:site_name" content="Wild Frames">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Wild Frames — 4K nature footage made in Unreal Engine 5">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Wild Frames — 4K Nature Stock Footage">
-  <meta name="twitter:description" content="Photoreal 4K nature clips created in Unreal Engine 5. Preview and license on Adobe Stock.">
-  <meta name="twitter:image" content="https://mai-dang-khoa.github.io/nature-footage/assets/og.png">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- Fonts load without blocking first paint -->
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@87.5,600&family=Inter:wght@400;600&display=swap" onload="this.onload=null;this.rel='stylesheet';fontsGo()">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@87.5,600&family=Inter:wght@400;600&display=swap"></noscript>
-  <!-- Hero poster shows instantly. Keep this path equal to the poster of the first featured clip. -->
-  <link rel="preload" as="image" href="assets/thumbs/sample-1.svg" fetchpriority="high">
-  <link rel="stylesheet" href="style.css?v=dev">
-  <link rel="stylesheet" href="apple.css?v=dev">
-  <script>
-    (function (d) {
-      d.classList.add("js");
-      // Hero text fades in once web fonts are ready (max 900ms), so the swap never moves it.
-      var done = function () { d.classList.add("fonts-ready"); };
-      setTimeout(done, 900);
-      window.fontsGo = function () {
-        if (!document.fonts || !document.fonts.load) return done();
-        Promise.all(["600 1em Archivo", "400 1em Inter"].map(function (f) { return document.fonts.load(f); })).then(done, done);
-      };
-      // safety net: if motion.js never loads, show everything
-      setTimeout(function () { if (!window.Motion) d.classList.remove("js"); }, 4000);
-    })(document.documentElement);
-  </script>
-</head>
-<body>
-  <a class="skip" href="#clips">Skip to clips</a>
-  <header class="nav" id="nav" data-theme="dark">
-    <a class="brand" href="#top" data-site="brandName">Wild Frames</a>
-    <nav class="nav-links" aria-label="Main">
-      <a href="#clips">Clips</a>
-      <a href="#process">Process</a>
-      <a href="#faq">FAQ</a>
-      <button id="shortlist-open" type="button" data-track="shortlist_open" hidden>Saved (<span id="shortlist-count">0</span>)</button>
-    </nav>
-  </header>
-
-  <main id="top">
-    <section class="hero" id="hero" data-theme="dark">
-      <!-- Opening curtain: black fades out as the footage arrives (decorative, never blocks clicks) -->
-      <div class="hero-curtain" aria-hidden="true"></div>
-      <!-- Full-screen footage behind the headline, muted and looping, under a 35% dark veil -->
-      <div class="hero-media">
-        <img id="hero-poster" src="assets/thumbs/sample-1.svg" alt="" width="1920" height="1080" fetchpriority="high" decoding="async">
-        <video id="hero-video" muted loop playsinline preload="none" tabindex="-1" aria-hidden="true"></video>
-        <div class="hero-shade" aria-hidden="true"></div>
-      </div>
-      <div class="hero-head">
-        <h1 class="hero-title">Nature,<span class="br-sm"></span> rendered.</h1>
-        <p class="hero-sub">Photoreal 4K stock footage,<span class="br-sm"></span> built in Unreal Engine 5.</p>
-        <a class="pill" href="#clips">Browse clips</a>
-      </div>
-      <p class="ph-note" id="hero-ph" hidden>Placeholder — replace with a 3840×2160 MP4 loop (≤ 8 MB) and a 1920×1080 poster</p>
-      <button id="hero-toggle" class="media-toggle" type="button" aria-pressed="false" hidden>Pause</button>
-    </section>
-
-    <!-- Sticky footage while the captions change (hidden unless site.json has "sequence") -->
-    <section id="film" class="film" data-theme="dark" aria-labelledby="film-title" hidden>
-      <div class="film-sticky">
-        <div class="film-frame">
-          <canvas class="film-canvas" id="film-canvas" role="img" aria-label="Scroll-driven frame sequence"></canvas>
-          <img class="film-still" id="film-still" alt="" width="1280" height="720" loading="lazy" decoding="async" hidden>
-        </div>
-        <div class="film-band wrap">
-          <h2 id="film-title" class="title">One scene,<br>start to finish.</h2>
-          <div class="film-side">
-            <ol class="film-lines" id="film-lines">
-              <li class="film-line" data-at="0.12">An empty level.</li>
-              <li class="film-line" data-at="0.37">Terrain and trees, placed by hand.</li>
-              <li class="film-line" data-at="0.62">Light tuned until it reads real.</li>
-              <li class="film-line" data-at="0.84">Rendered frame by frame in 4K.</li>
-            </ol>
-            <a class="pill film-cta" id="film-cta" href="#clips">Browse clips</a>
-          </div>
-          <a class="film-skip small" href="#clips">Skip</a>
-        </div>
-      </div>
-    </section>
-
-    <section id="clips" class="section wrap" data-theme="light" aria-labelledby="clips-title">
-      <div class="head">
-        <h2 id="clips-title" class="title" data-reveal>Every clip, one place.</h2>
-        <p class="body muted" data-reveal style="--d:100ms">Preview any scene. License it on Adobe Stock.</p>
-      </div>
-      <div class="filter" data-reveal style="--d:200ms">
-        <div class="chips" id="chips" role="group" aria-label="Filter by category"></div>
-        <p class="small" id="result-count" aria-live="polite"></p>
-      </div>
-      <div id="grid" class="clip-grid" aria-busy="true"></div>
-      <p class="grid-foot"><button id="show-more" class="more" type="button" hidden>Show more</button></p>
-      <p id="empty" class="body muted" hidden>No clips in this category yet. <button type="button" class="more" id="clear-filters">Show all</button></p>
-      <p id="load-error" class="body muted" hidden>Could not load the clip list. Please try again later.</p>
-    </section>
-
-    <section id="free-sample" class="section wrap" data-theme="dark" aria-labelledby="free-title" hidden>
-      <div class="split grid12">
-        <img class="split-media" id="free-thumb" src="assets/thumbs/sample-1.svg" alt="" width="1280" height="720" loading="lazy" decoding="async">
-        <div class="split-text">
-          <h2 id="free-title" class="title" data-reveal>Try one clip free.</h2>
-          <p id="free-desc" class="body muted" data-reveal style="--d:100ms">A 720p version of a real clip. No sign-up.</p>
-          <a id="free-download" class="pill" href="#" download data-track="free_download" data-reveal style="--d:200ms">Download</a>
-        </div>
-      </div>
-    </section>
-
-    <section id="process" class="section wrap" data-theme="light" aria-labelledby="process-title">
-      <div class="head"><h2 id="process-title" class="title" data-reveal>From empty level to 4K.</h2></div>
-      <!-- EDIT: replace the images in assets/bts/ with real UE5 screenshots -->
-      <div class="story grid12" id="story">
-        <div class="story-visual" aria-hidden="true">
-          <div class="story-frame">
-            <img class="story-img is-active" src="assets/bts/step-1.svg" alt="" width="640" height="400" loading="lazy" decoding="async">
-            <img class="story-img" src="assets/bts/step-2.svg" alt="" width="640" height="400" loading="lazy" decoding="async">
-            <img class="story-img" src="assets/bts/step-3.svg" alt="" width="640" height="400" loading="lazy" decoding="async">
-            <img class="story-img" src="assets/bts/step-4.svg" alt="" width="640" height="400" loading="lazy" decoding="async">
-          </div>
-        </div>
-        <ol class="story-steps">
-          <li class="step is-active" data-reveal>
-            <img class="step-img" src="assets/bts/step-1.svg" alt="Placeholder for a scene-build screenshot" width="640" height="400" loading="lazy" decoding="async">
-            <p class="small">01</p>
-            <p class="body"><strong>Scene build.</strong> <span class="muted">Terrain, rocks and plants are assembled in Unreal Engine 5.</span></p>
-          </li>
-          <li class="step" data-reveal>
-            <img class="step-img" src="assets/bts/step-2.svg" alt="Placeholder for a lighting screenshot" width="640" height="400" loading="lazy" decoding="async">
-            <p class="small">02</p>
-            <p class="body"><strong>Lighting.</strong> <span class="muted">Sun, sky and atmosphere, lit with real-time global illumination.</span></p>
-          </li>
-          <li class="step" data-reveal>
-            <img class="step-img" src="assets/bts/step-3.svg" alt="Placeholder for a camera setup screenshot" width="640" height="400" loading="lazy" decoding="async">
-            <p class="small">03</p>
-            <p class="body"><strong>Camera.</strong> <span class="muted">Virtual lenses with real settings, moving slowly and steadily.</span></p>
-          </li>
-          <li class="step" data-reveal>
-            <img class="step-img" src="assets/bts/step-4.svg" alt="Placeholder for a render output screenshot" width="640" height="400" loading="lazy" decoding="async">
-            <p class="small">04</p>
-            <p class="body"><strong>4K render.</strong> <span class="muted">Rendered offline at 3840 × 2160, then checked shot by shot.</span></p>
-          </li>
-        </ol>
-      </div>
-    </section>
-
-    <section id="faq" class="section wrap" data-theme="dark" aria-labelledby="faq-title">
-      <div class="head"><h2 id="faq-title" class="title" data-reveal>Licensing, answered.</h2></div>
-      <div class="faq-list" data-reveal style="--d:100ms">
-        <details>
-          <summary>Can I use clips in ads or videos?</summary>
-          <p class="faq-a body muted">Yes, within the Adobe Stock license you choose. <a data-site-href="adobeLicenseUrl" href="https://stock.adobe.com/license-terms" target="_blank" rel="noopener noreferrer">Read the license terms</a>.</p>
-        </details>
-        <details>
-          <summary>Is this real footage?</summary>
-          <p class="faq-a body muted">No. Every scene is computer-generated in Unreal Engine 5.</p>
-        </details>
-        <details>
-          <summary>What file do I get?</summary>
-          <p class="faq-a body muted">4K, 3840 × 2160. Format and frame rate are listed on each Adobe Stock page.</p>
-        </details>
-        <details>
-          <summary>How do I download?</summary>
-          <p class="faq-a body muted">After licensing, download the full file from your Adobe Stock account.</p>
-        </details>
-        <details data-needs="email">
-          <summary>Can you make a custom scene?</summary>
-          <p class="faq-a body muted">Yes. <a class="js-mailto" data-subject="Custom request" href="mailto:">Email me</a> with what you need.</p>
-        </details>
-      </div>
-    </section>
-
-    <section id="about" class="section wrap" data-theme="light" aria-labelledby="about-title">
-      <div class="head">
-        <h2 id="about-title" class="title" data-reveal>Built from scratch,<br>frame by frame.</h2>
-        <!-- EDIT: your own line; a longer story can go in site.json → "story" -->
-        <p class="body muted" data-reveal style="--d:100ms">Every scene starts as an empty level in Unreal Engine 5 and ends as native 4K.</p>
-        <p id="about-story" class="body muted" hidden></p>
-      </div>
-    </section>
-
-    <section class="finale section wrap" data-theme="dark" aria-labelledby="finale-title">
-      <h2 id="finale-title" class="display" data-reveal>Find your<span class="br-sm"></span> next shot.</h2>
-      <p class="body muted" data-reveal style="--d:100ms">Every clip is licensed through Adobe Stock.</p>
-      <a class="pill" id="finale-cta" href="#clips" data-reveal style="--d:200ms">Browse clips</a>
-    </section>
-  </main>
-
-  <footer class="footer wrap" data-theme="dark">
-    <ul class="footer-links" id="footer-links">
-      <li><a href="#clips">Clips</a></li>
-      <li><a href="#process">Process</a></li>
-      <li><a href="#faq">FAQ</a></li>
-      <li data-needs="email"><a class="js-mailto" data-subject="Hello" href="mailto:">Email</a></li>
-    </ul>
-    <p class="small">© <span id="year">2026</span> <span id="owner-name">Wild Frames</span>. Footage is licensed only through the linked stock platforms.</p>
-  </footer>
-
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-  <dialog id="shortlist" class="drawer" data-theme="light" aria-labelledby="shortlist-title">
-    <div class="drawer-head">
-      <h2 id="shortlist-title" class="title">Saved</h2>
-      <button class="text-btn" type="button" data-close>Close</button>
-    </div>
-    <p class="small">Saved on this device only.</p>
-    <ul id="shortlist-items" class="sl-items"></ul>
-    <p id="shortlist-note" class="small" hidden></p>
-    <button id="license-all" class="pill" type="button" data-track="license_all">License all</button>
-  </dialog>
-
-  <dialog id="clip-modal" class="modal" data-theme="dark" aria-labelledby="m-title">
-    <button class="text-btn modal-close" type="button" data-close>Close</button>
-    <div class="modal-inner grid12">
-      <div class="modal-media">
-        <video id="m-video" muted loop playsinline preload="none"></video>
-      </div>
-      <div class="modal-info">
-        <p class="small" id="m-cat"></p>
-        <h2 id="m-title" class="title"></h2>
-        <dl id="m-specs" class="specs"></dl>
-        <p id="m-price" class="body" hidden></p>
-        <div class="modal-cta">
-          <a id="m-buy" class="pill" href="#" target="_blank" rel="noopener noreferrer" data-track="buy_click">License</a>
-          <p class="small" id="m-via">via Adobe Stock</p>
-        </div>
-        <p class="modal-tools">
-          <button id="m-fav" class="text-btn" type="button" aria-pressed="false">Save</button>
-          <button id="m-sound" class="text-btn" type="button" aria-pressed="false">Sound off</button>
-          <button id="m-prev" class="text-btn" type="button">Previous</button>
-          <button id="m-next" class="text-btn" type="button">Next</button>
-        </p>
-      </div>
-    </div>
-  </dialog>
-
-  <!-- Fallback copies of videos.json / site.json, used only when fetch() is blocked (opening index.html via file://).
-       Refresh with: python3 tools/sync-fallback.py -->
-  <script type="application/json" id="videos-fallback">
-[
-  {
-    "id": "sample-1",
-    "title": "Sample Clip 1",
-    "sample": true,
-    "featured": true,
-    "category": "Forest",
-    "collection": "forest-mornings",
-    "mood": "calm",
-    "tags": [
-      "sample",
-      "placeholder",
-      "forest",
-      "calm"
-    ],
-    "useCases": [
-      "documentary",
-      "wellness",
-      "youtube"
-    ],
-    "resolution": "4K",
-    "fps": 24,
-    "duration": "0:12",
-    "loopable": true,
-    "addedAt": "2026-10-02",
-    "thumbnail": "assets/thumbs/sample-1.svg",
-    "poster": "assets/thumbs/sample-1.svg",
-    "preview": "assets/previews/sample-1.mp4",
-    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
-  },
-  {
-    "id": "sample-2",
-    "title": "Sample Clip 2",
-    "sample": true,
-    "featured": true,
-    "category": "Ocean",
-    "collection": "ocean-waves",
-    "mood": "fresh",
-    "tags": [
-      "sample",
-      "placeholder",
-      "ocean",
-      "waves"
-    ],
-    "useCases": [
-      "travel",
-      "wellness",
-      "youtube"
-    ],
-    "resolution": "4K",
-    "fps": 30,
-    "duration": "0:14",
-    "loopable": true,
-    "addedAt": "2026-09-25",
-    "thumbnail": "assets/thumbs/sample-2.svg",
-    "poster": "assets/thumbs/sample-2.svg",
-    "preview": "assets/previews/sample-2.mp4",
-    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
-  },
-  {
-    "id": "sample-3",
-    "title": "Sample Clip 3",
-    "sample": true,
-    "featured": true,
-    "category": "Mountains",
-    "collection": "wild-horizons",
-    "mood": "epic",
-    "tags": [
-      "sample",
-      "placeholder",
-      "mountains",
-      "aerial"
-    ],
-    "useCases": [
-      "documentary",
-      "travel",
-      "presentation"
-    ],
-    "resolution": "4K",
-    "fps": 24,
-    "duration": "0:16",
-    "loopable": false,
-    "addedAt": "2026-08-08",
-    "thumbnail": "assets/thumbs/sample-3.svg",
-    "poster": "assets/thumbs/sample-3.svg",
-    "preview": "assets/previews/sample-3.mp4",
-    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
-  },
-  {
-    "id": "sample-4",
-    "title": "Sample Clip 4",
-    "sample": true,
-    "featured": true,
-    "category": "Sky",
-    "collection": "ocean-waves",
-    "mood": "warm",
-    "tags": [
-      "sample",
-      "placeholder",
-      "sky",
-      "clouds",
-      "sunset"
-    ],
-    "useCases": [
-      "presentation",
-      "wellness",
-      "youtube"
-    ],
-    "resolution": "4K",
-    "fps": 24,
-    "duration": "0:18",
-    "loopable": true,
-    "addedAt": "2026-07-09",
-    "thumbnail": "assets/thumbs/sample-4.svg",
-    "poster": "assets/thumbs/sample-4.svg",
-    "preview": "assets/previews/sample-4.mp4",
-    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
-  },
-  {
-    "id": "sample-5",
-    "title": "Sample Clip 5",
-    "sample": true,
-    "featured": false,
-    "category": "Waterfall",
-    "collection": "forest-mornings",
-    "mood": "calm",
-    "tags": [
-      "sample",
-      "placeholder",
-      "waterfall",
-      "forest",
-      "water"
-    ],
-    "useCases": [
-      "wellness",
-      "documentary"
-    ],
-    "resolution": "4K",
-    "fps": 30,
-    "duration": "0:20",
-    "loopable": true,
-    "addedAt": "2026-06-09",
-    "thumbnail": "assets/thumbs/sample-5.svg",
-    "poster": "assets/thumbs/sample-5.svg",
-    "preview": "assets/previews/sample-5.mp4",
-    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
-  },
-  {
-    "id": "sample-6",
-    "title": "Sample Clip 6",
-    "sample": true,
-    "featured": false,
-    "category": "Desert",
-    "collection": "wild-horizons",
-    "mood": "moody",
-    "tags": [
-      "sample",
-      "placeholder",
-      "desert",
-      "dunes"
-    ],
-    "useCases": [
-      "travel",
-      "presentation",
-      "youtube"
-    ],
-    "resolution": "4K",
-    "fps": 24,
-    "duration": "0:22",
-    "loopable": false,
-    "addedAt": "2026-05-10",
-    "thumbnail": "assets/thumbs/sample-6.svg",
-    "poster": "assets/thumbs/sample-6.svg",
-    "preview": "assets/previews/sample-6.mp4",
-    "stockUrl": "https://stock.adobe.com/[YOUR_CLIP_URL]"
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plates — Cinematic plates for editors</title>
+<style>
+  :root{
+    --bg:#f5f5f7;
+    --ink:#1d1d1f;
+    --sub:#6e6e73;
+    --blue:#0071e3;
+    --blue-d:#0060c9;
+    --card:#ffffff;
+    --line:rgba(0,0,0,.08);
+    --nav:rgba(245,245,247,.55);
+    --inksoft:rgba(0,0,0,.07);
+    --field:#ececee;
+    --r:20px;
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;
+    --spring:cubic-bezier(.32,1.35,.42,1);
+    --ease:cubic-bezier(.2,.7,.2,1);
   }
-]
-  </script>
-  <script type="application/json" id="site-fallback">
-{
-  "_note": "SAMPLE DATA. Replace every [YOUR_...] value. Values that are empty or still contain [YOUR_ are treated as missing: the button or block that needs them is hidden.",
-  "brandName": "Wild Frames",
-  "partnerName": "Adobe Stock",
-  "ownerName": "[YOUR_NAME]",
-  "tagline": "Photoreal 4K nature footage, built in Unreal Engine 5.",
-  "sequence": {
-    "_note": "SAMPLE frames generated by tools/make-sample-sequence.py. Replace with a real UE5 render (see README). Remove this block to hide the section.",
-    "frames": 60,
-    "pad": 4,
-    "desktop": {
-      "path": "assets/sequence/desktop/frame_{n}.webp",
-      "width": 1280,
-      "height": 720
-    },
-    "mobile": {
-      "path": "assets/sequence/mobile/frame_{n}.webp",
-      "width": 640,
-      "height": 360
-    },
-    "fallback": "assets/sequence/desktop/frame_0060.webp",
-    "label": "Sample frames: a mountain range from night to sunrise as the camera moves forward"
-  },
-  "story": "",
-  "email": "[YOUR_EMAIL]",
-  "adobeStockProfileUrl": "https://stock.adobe.com/contributor/[YOUR_ID]",
-  "adobeLicenseUrl": "https://stock.adobe.com/license-terms",
-  "social": [
-    {
-      "label": "Adobe Stock",
-      "url": "https://stock.adobe.com/contributor/[YOUR_ID]"
-    },
-    {
-      "label": "Shutterstock",
-      "url": "https://www.shutterstock.com/g/[YOUR_ID]"
-    }
-  ],
-  "analytics": {
-    "provider": "",
-    "id": ""
-  },
-  "freeSample": {
-    "title": "Try one clip free.",
-    "file": "assets/free/free-sample-720p.mp4",
-    "note": "A 720p version of a real clip. No sign-up.",
-    "resolution": "1280×720",
-    "thumbnail": "assets/thumbs/sample-1.svg"
-  },
-  "collections": [
-    {
-      "id": "forest-mornings",
-      "name": "Forest Mornings (sample)",
-      "description": "Soft light through trees and falling water.",
-      "collectionUrl": ""
-    },
-    {
-      "id": "ocean-waves",
-      "name": "Ocean Waves (sample)",
-      "description": "Open water and evening skies.",
-      "collectionUrl": ""
-    },
-    {
-      "id": "wild-horizons",
-      "name": "Wild Horizons (sample)",
-      "description": "Peaks, dunes and wide open space.",
-      "collectionUrl": ""
-    }
-  ]
+  html.dark{
+    --bg:#0a0c0f;
+    --ink:#f4f4f6;
+    --sub:#9a9aa0;
+    --card:#14171c;
+    --line:rgba(255,255,255,.14);
+    --nav:rgba(10,12,15,.55);
+    --inksoft:rgba(255,255,255,.1);
+    --field:#1c1f25;
+    color-scheme:dark;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--font);
+    background:var(--bg);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+    line-height:1.5;
+  }
+  ::selection{background:var(--blue);color:#fff}
+  button{font-family:var(--font);cursor:pointer;border:none;background:none;color:inherit}
+  button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+
+  /* ---------- progress + nav ---------- */
+  #progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--blue);z-index:90}
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:80;
+    -webkit-backdrop-filter:saturate(1.6) blur(22px);backdrop-filter:saturate(1.6) blur(22px);
+    background:var(--nav);
+    border-bottom:1px solid rgba(0,0,0,.06);
+  }
+  .nav-in{max-width:1220px;margin:0 auto;display:flex;align-items:center;gap:30px;padding:20px 28px;transition:padding .45s var(--ease)}
+  nav.compact .nav-in{padding:11px 28px}
+  .wordmark{font-size:18px;font-weight:700;letter-spacing:-.02em;text-decoration:none;color:var(--ink);white-space:nowrap}
+  .nav-links{position:relative;display:flex;gap:4px;margin-left:auto}
+  .nav-link{position:relative;font-size:14px;color:var(--sub);text-decoration:none;padding:8px 14px;border-radius:999px;transition:color .3s;white-space:nowrap}
+  .nav-link:hover{color:var(--ink)}
+  .nav-link.active{color:var(--ink)}
+  #navInk{position:absolute;bottom:2px;height:26px;border-radius:999px;background:var(--inksoft);transition:left .45s var(--spring),width .45s var(--spring);pointer-events:none}
+  .btn-pill{
+    display:inline-flex;align-items:center;justify-content:center;
+    background:var(--blue);color:#fff;font-size:14px;font-weight:600;
+    padding:10px 22px;border-radius:999px;text-decoration:none;
+    transition:background .3s,transform .35s var(--spring);white-space:nowrap;
+  }
+  .btn-pill:hover{background:var(--blue-d)}
+  .btn-ghost{
+    display:inline-flex;align-items:center;justify-content:center;
+    font-size:14px;font-weight:600;color:var(--blue);
+    padding:10px 22px;border-radius:999px;text-decoration:none;
+    transition:transform .35s var(--spring),background .3s;
+  }
+  .btn-ghost:hover{background:rgba(0,113,227,.08)}
+
+  /* ---------- hero ---------- */
+  #overview{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden}
+  #cursorLight{
+    position:absolute;top:0;left:0;width:640px;height:640px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,255,255,.85) 0%,rgba(255,255,255,0) 62%);
+    pointer-events:none;z-index:1;mix-blend-mode:soft-light;
+  }
+  .glow{position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0}
+  .g1{width:560px;height:560px;left:-140px;top:8%;background:radial-gradient(circle,rgba(120,170,255,.5),transparent 70%);animation:drift1 28s ease-in-out infinite alternate}
+  .g2{width:640px;height:640px;right:-180px;bottom:-6%;background:radial-gradient(circle,rgba(190,150,255,.42),transparent 70%);animation:drift2 34s ease-in-out infinite alternate}
+  .g3{width:420px;height:420px;left:38%;top:-10%;background:radial-gradient(circle,rgba(255,200,150,.35),transparent 70%);animation:drift1 24s ease-in-out infinite alternate-reverse}
+  @keyframes drift1{from{transform:translate(0,0) scale(1)}to{transform:translate(120px,70px) scale(1.12)}}
+  @keyframes drift2{from{transform:translate(0,0) scale(1.05)}to{transform:translate(-140px,-60px) scale(.94)}}
+  .hero-in{position:relative;z-index:2;max-width:1220px;margin:0 auto;padding:140px 28px 80px;width:100%}
+  .eyebrow{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);margin-bottom:26px}
+  h1.hero-title{
+    font-size:clamp(3rem,8.4vw,7.2rem);font-weight:700;letter-spacing:-.035em;line-height:1.02;
+    max-width:12ch;margin-bottom:30px;
+  }
+  h1.hero-title .w{display:inline-block;opacity:0;animation:wIn 1s var(--ease) forwards}
+  @keyframes wIn{from{opacity:0;transform:translateY(.55em);filter:blur(10px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+  .hero-sub{font-size:clamp(1.05rem,2vw,1.4rem);color:var(--sub);max-width:34ch;margin-bottom:44px;line-height:1.55}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+  .hero-cta .btn-pill,.hero-cta .btn-ghost{font-size:16px;padding:14px 30px}
+  .scroll-hint{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);z-index:2;color:var(--sub);font-size:12px;letter-spacing:.18em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .scroll-hint::after{content:"";width:1px;height:44px;background:linear-gradient(var(--sub),transparent);animation:hint 2.2s ease-in-out infinite}
+  @keyframes hint{0%,100%{transform:scaleY(.6);opacity:.5}50%{transform:scaleY(1);opacity:1}}
+
+  section{position:relative}
+  .wrap{max-width:1220px;margin:0 auto;padding:0 28px}
+  .sec-head{padding:16vh 0 7vh}
+  .sec-head h2{font-size:clamp(2.2rem,5vw,4rem);font-weight:700;letter-spacing:-.03em;line-height:1.05;margin:14px 0 18px}
+  .sec-head p{color:var(--sub);font-size:1.1rem;max-width:52ch}
+
+  /* masked titles */
+  .mask{display:block;overflow:hidden}
+  .mask .mi{display:block;transform:translateY(112%);transition:transform 1s var(--ease)}
+  .in .mi{transform:translateY(0)}
+  .rv{opacity:0;transform:translateY(36px);transition:opacity .9s var(--ease),transform .9s var(--ease);transition-delay:var(--d,0s)}
+  .rv.in{opacity:1;transform:none}
+
+  /* ---------- pinned scenes ---------- */
+  #scenes{height:420vh}
+  #dimmer{position:fixed;inset:0;background:#060608;opacity:0;pointer-events:none;z-index:5;transition:opacity .1s linear}
+  .scenes-sticky{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:6;overflow:hidden}
+  .scene-words{display:flex;gap:clamp(24px,6vw,72px);margin-bottom:4vh;color:var(--ink);transition:color .4s}
+  .scene-words.light{color:#fff}
+  .scene-words span{font-size:clamp(2.4rem,6vw,4.6rem);font-weight:700;letter-spacing:-.03em;opacity:.18;transition:opacity .5s,transform .5s}
+  .scene-words span.on{opacity:1;transform:scale(1.06)}
+  .scene-frame{position:relative;width:min(88vw,1060px);aspect-ratio:16/9;border-radius:28px;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,.45);will-change:transform,border-radius}
+  .scene{position:absolute;inset:0}
+  .scene.s1{clip-path:inset(0 0 0 100%)}
+  .scene.s2{clip-path:inset(0 0 0 100%)}
+  .scene-cap{position:absolute;left:26px;bottom:22px;color:#fff;font-size:13px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+
+  /* ---------- posters (pure CSS plates) ---------- */
+  .poster{position:relative;overflow:hidden;background:#0b0d10}
+  .poster::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(0,0,0,.5));pointer-events:none}
+  .p-fog-road{background:
+    radial-gradient(90% 45% at 50% 118%, rgba(140,165,195,.4), transparent 62%),
+    linear-gradient(180deg, transparent 60%, rgba(160,190,220,.16) 68%, transparent 76%),
+    radial-gradient(70% 26% at 30% 42%, rgba(150,170,195,.28), transparent 70%),
+    radial-gradient(60% 22% at 72% 30%, rgba(150,170,195,.22), transparent 70%),
+    linear-gradient(180deg,#070b12 0%,#0d1420 46%,#18222f 62%,#090d14 100%)}
+  .p-wet-asphalt{background:
+    repeating-linear-gradient(102deg, transparent 0 7px, rgba(255,255,255,.055) 7px 8px),
+    linear-gradient(180deg, transparent 55%, rgba(170,200,235,.14) 66%, transparent 78%),
+    radial-gradient(80% 40% at 50% 115%, rgba(130,160,195,.35), transparent 60%),
+    linear-gradient(180deg,#060a10 0%,#0b1220 50%,#141c29 68%,#070b12 100%)}
+  .p-mist-line{background:
+    radial-gradient(75% 20% at 50% 34%, rgba(170,190,210,.35), transparent 70%),
+    radial-gradient(85% 22% at 50% 52%, rgba(160,180,205,.3), transparent 70%),
+    radial-gradient(90% 26% at 50% 70%, rgba(140,160,190,.28), transparent 70%),
+    linear-gradient(180deg,#0a0f16 0%,#141c28 55%,#1d2735 75%,#0a0e15 100%)}
+  .p-cold-aisle{background:
+    repeating-linear-gradient(90deg, transparent 0 44px, rgba(110,210,255,.28) 44px 48px),
+    radial-gradient(70% 60% at 50% 100%, rgba(60,180,255,.3), transparent 65%),
+    linear-gradient(180deg,#050a14 0%,#071224 60%,#0a1830 100%)}
+  .p-immersion-tank{background:
+    radial-gradient(3px 3px at 22% 68%, rgba(200,240,255,.8), transparent 60%),
+    radial-gradient(4px 4px at 38% 52%, rgba(200,240,255,.7), transparent 60%),
+    radial-gradient(3px 3px at 61% 72%, rgba(200,240,255,.75), transparent 60%),
+    radial-gradient(5px 5px at 74% 44%, rgba(200,240,255,.6), transparent 60%),
+    radial-gradient(3px 3px at 50% 30%, rgba(200,240,255,.65), transparent 60%),
+    radial-gradient(75% 55% at 50% 88%, rgba(70,220,255,.4), transparent 65%),
+    linear-gradient(180deg,#04202c 0%,#06303e 55%,#0a4556 100%)}
+  .p-subsea-cable{background:
+    radial-gradient(2px 2px at 30% 30%, rgba(160,220,255,.9), transparent 60%),
+    radial-gradient(2px 2px at 55% 46%, rgba(160,220,255,.8), transparent 60%),
+    radial-gradient(2px 2px at 72% 60%, rgba(160,220,255,.85), transparent 60%),
+    linear-gradient(115deg, transparent 47.5%, rgba(140,210,255,.55) 50%, transparent 52.5%),
+    radial-gradient(90% 60% at 80% 20%, rgba(40,120,200,.25), transparent 60%),
+    linear-gradient(180deg,#030710 0%,#061020 60%,#0a1626 100%)}
+  .p-black-smoker{background:
+    radial-gradient(34% 62% at 50% 34%, rgba(130,130,140,.5), transparent 70%),
+    radial-gradient(22% 40% at 44% 52%, rgba(110,110,120,.4), transparent 70%),
+    radial-gradient(60% 26% at 50% 102%, rgba(255,120,40,.6), transparent 70%),
+    radial-gradient(30% 14% at 50% 96%, rgba(255,170,80,.7), transparent 70%),
+    linear-gradient(180deg,#020203 0%,#060608 70%,#0c0a08 100%)}
+  .p-abyss-drift{background:
+    radial-gradient(2px 2px at 18% 24%, rgba(255,255,255,.85), transparent 60%),
+    radial-gradient(2px 2px at 42% 58%, rgba(255,255,255,.7), transparent 60%),
+    radial-gradient(3px 3px at 66% 32%, rgba(255,255,255,.6), transparent 60%),
+    radial-gradient(2px 2px at 80% 70%, rgba(255,255,255,.75), transparent 60%),
+    radial-gradient(2px 2px at 30% 80%, rgba(180,220,255,.6), transparent 60%),
+    radial-gradient(50% 34% at 78% 78%, rgba(80,140,255,.22), transparent 65%),
+    linear-gradient(180deg,#02040a 0%,#040a18 60%,#071224 100%)}
+  .p-vent-field{background:
+    radial-gradient(34% 30% at 30% 78%, rgba(255,130,50,.55), transparent 70%),
+    radial-gradient(26% 24% at 68% 70%, rgba(255,110,40,.45), transparent 70%),
+    radial-gradient(12% 10% at 30% 80%, rgba(255,190,110,.8), transparent 70%),
+    radial-gradient(70% 50% at 50% 10%, rgba(40,90,180,.3), transparent 65%),
+    linear-gradient(180deg,#030509 0%,#060a14 65%,#0b0d12 100%)}
+
+  /* ---------- horizontal strip ---------- */
+  #collections{height:320vh}
+  .strip-sticky{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+  .strip-view{overflow:hidden}
+  .strip-track{display:flex;gap:28px;width:max-content;padding:10px 8vw;will-change:transform}
+  .strip-card{
+    width:min(74vw,460px);flex-shrink:0;background:var(--card);border-radius:24px;overflow:hidden;
+    box-shadow:var(--shx,0px) var(--shy,24px) 70px rgba(0,0,0,.1);transition:transform .2s ease-out;cursor:pointer;
+  }
+  .strip-card .poster{aspect-ratio:16/10}
+  .strip-body{padding:24px 26px 28px}
+  .strip-body h3{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;margin:8px 0 10px}
+  .strip-body p{color:var(--sub);font-size:.95rem;margin-bottom:16px}
+  .meta-row{display:flex;align-items:center;justify-content:space-between}
+  .meta{font-size:12.5px;color:var(--sub);letter-spacing:.04em}
+  .btn-license{
+    background:var(--blue);color:#fff;font-size:14px;font-weight:600;
+    padding:10px 22px;border-radius:999px;transition:background .3s,transform .4s var(--spring);
+  }
+  .btn-license:hover{background:var(--blue-d)}
+
+  /* ---------- center stack ---------- */
+  #spotlight{height:380vh}
+  .stack-sticky{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .stack-stage{position:relative;width:100%;height:100%}
+  .stack-card{
+    position:absolute;left:50%;top:50%;width:min(88vw,620px);
+    background:var(--card);border-radius:26px;overflow:hidden;cursor:pointer;
+    box-shadow:0 30px 90px rgba(0,0,0,.16);will-change:transform,opacity;
+  }
+  .stack-card .poster{aspect-ratio:16/9}
+  .stack-info{padding:26px 30px 30px}
+  .stack-info h3{font-size:1.9rem;font-weight:700;letter-spacing:-.025em;margin:8px 0 10px}
+  .stack-info p{color:var(--sub);font-size:1rem;max-width:44ch}
+  .stack-num{position:absolute;top:18px;right:24px;color:rgba(255,255,255,.85);font-size:13px;font-weight:600;letter-spacing:.1em}
+
+  /* ---------- library grid ---------- */
+  #library{padding-bottom:10vh}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+  @media(max-width:960px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .card{
+    background:var(--card);border-radius:var(--r);overflow:hidden;cursor:pointer;
+    box-shadow:var(--shx,0px) var(--shy,14px) 44px rgba(0,0,0,.07);transition:transform .2s ease-out,box-shadow .3s;
+    will-change:transform;
+  }
+  .card:hover{box-shadow:var(--shx,0px) var(--shy,26px) 70px rgba(0,0,0,.13)}
+  .card .poster{aspect-ratio:16/9}
+  .card-body{padding:22px 24px 24px}
+  .card-body h3{font-size:1.35rem;font-weight:700;letter-spacing:-.02em;margin:8px 0 8px}
+  .card-body .desc{color:var(--sub);font-size:.92rem;margin-bottom:14px}
+  .card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+  .btn-open{font-size:14px;font-weight:600;color:var(--blue);padding:10px 6px}
+
+  /* ---------- license section ---------- */
+  #license{padding-bottom:18vh}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:8px}
+  /* ---------- fx: loader / cursor / marquee / stats / toTop / theme ---------- */
+  body.loading{overflow:hidden}
+  body.loading h1 .w{animation-play-state:paused}
+  #loader{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .6s var(--ease),visibility .6s}
+  #loader.done{opacity:0;visibility:hidden}
+  .ld-in{text-align:center}
+  .ld-num{font-size:clamp(3rem,8vw,5rem);font-weight:700;letter-spacing:-.04em;color:var(--ink);font-variant-numeric:tabular-nums}
+  .ld-track{width:min(60vw,280px);height:3px;border-radius:99px;background:var(--line);margin:18px auto 14px;overflow:hidden}
+  .ld-track i{display:block;height:100%;width:0;background:var(--blue);border-radius:99px}
+  .ld-in p{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--sub);font-weight:700}
+  #curDot,#curRing{position:fixed;top:0;left:0;pointer-events:none;z-index:10000;border-radius:50%;display:none}
+  #curDot{width:7px;height:7px;background:var(--blue)}
+  #curRing{width:36px;height:36px;border:1.5px solid var(--sub);opacity:.65;transition:width .3s var(--spring),height .3s var(--spring),opacity .3s,border-color .3s}
+  #curRing.big{width:60px;height:60px;opacity:1;border-color:var(--blue)}
+  @media(pointer:fine){
+    #curDot,#curRing{display:block}
+    body.cur-on,body.cur-on a,body.cur-on button,body.cur-on .tilt,body.cur-on input,body.cur-on textarea{cursor:none}
+  }
+  .marquee{border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;padding:22px 0;background:var(--bg);position:relative;z-index:7}
+  .mq-track{display:flex;width:max-content;animation:mq 26s linear infinite}
+  .mq-track span{font-size:clamp(1.3rem,2.8vw,2rem);font-weight:700;letter-spacing:-.02em;color:var(--ink);white-space:nowrap;padding-right:.5em}
+  .mq-track span i{color:var(--blue);font-style:normal;padding:0 .55em}
+  @keyframes mq{to{transform:translateX(-50%)}}
+  .stats{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;max-width:1220px;margin:0 auto;padding:9vh 28px 4vh;position:relative;z-index:7}
+  .stat b{font-size:clamp(2.6rem,5.5vw,4.2rem);font-weight:700;letter-spacing:-.03em;display:block;color:var(--ink);font-variant-numeric:tabular-nums}
+  .stat .lbl{color:var(--sub);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+  #toTop{position:fixed;right:26px;bottom:26px;width:54px;height:54px;border-radius:50%;background:var(--card);box-shadow:0 12px 34px rgba(0,0,0,.18);z-index:85;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(16px);pointer-events:none;transition:opacity .4s var(--ease),transform .4s var(--ease)}
+  #toTop.show{opacity:1;transform:none;pointer-events:auto}
+  #toTop svg{position:absolute;inset:5px;width:44px;height:44px;transform:rotate(-90deg)}
+  .tt-bg{fill:none;stroke:var(--line);stroke-width:3}
+  .tt-fg{fill:none;stroke:var(--blue);stroke-width:3;stroke-linecap:round;stroke-dasharray:119.4;stroke-dashoffset:119.4}
+  .tt-arrow{font-size:20px;font-weight:700;color:var(--ink);line-height:1}
+  .theme-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);color:var(--ink);font-size:17px;display:inline-flex;align-items:center;justify-content:center;transition:transform .45s var(--spring),background .3s;flex-shrink:0}
+  .theme-btn:hover{transform:rotate(30deg) scale(1.07);background:var(--inksoft)}
+
+  @media(max-width:760px){.steps{grid-template-columns:1fr}}
+  .step{background:var(--card);border-radius:var(--r);padding:32px 30px;box-shadow:0 14px 44px rgba(0,0,0,.06)}
+  .step .n{font-size:13px;font-weight:700;letter-spacing:.14em;color:var(--blue);margin-bottom:14px}
+  .step h4{font-size:1.25rem;font-weight:700;letter-spacing:-.02em;margin-bottom:10px}
+  .step p{color:var(--sub);font-size:.95rem}
+
+  footer{border-top:1px solid var(--line);padding:44px 0 54px;color:var(--sub);font-size:13.5px}
+  .foot-in{max-width:1220px;margin:0 auto;padding:0 28px;display:flex;gap:20px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+
+  /* ---------- bottom sheet ---------- */
+  #backdrop{position:fixed;inset:0;background:rgba(10,10,14,.42);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .45s var(--ease);z-index:100}
+  #backdrop.show{opacity:1;pointer-events:auto}
+  #sheet{
+    position:fixed;left:50%;bottom:0;width:min(100%,660px);max-height:92vh;overflow-y:auto;
+    background:var(--card);border-radius:26px 26px 0 0;z-index:101;
+    transform:translate(-50%,106%);transition:transform .6s cubic-bezier(.3,1.28,.4,1);
+    box-shadow:0 -20px 80px rgba(0,0,0,.25);padding:14px 30px 40px;
+  }
+  #sheet.open{transform:translate(-50%,0)}
+  .sheet-handle{width:44px;height:5px;border-radius:99px;background:var(--inksoft);margin:2px auto 18px}
+  #sheetClose{
+    position:absolute;top:16px;right:18px;width:34px;height:34px;border-radius:50%;
+    background:var(--inksoft);display:flex;align-items:center;justify-content:center;transition:background .3s,transform .3s var(--spring);
+  }
+  #sheetClose:hover{background:var(--line);transform:scale(1.08)}
+  #sheetClose svg{width:14px;height:14px}
+  .sheet-thumb{border-radius:16px;aspect-ratio:16/9;margin-bottom:22px}
+  #sheetName{font-size:1.9rem;font-weight:700;letter-spacing:-.025em;margin:8px 0 10px}
+  #sheetDesc{color:var(--sub);font-size:1rem;margin-bottom:16px}
+  .chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px}
+  .chip{font-size:12.5px;font-weight:600;background:var(--inksoft);padding:7px 14px;border-radius:999px;color:var(--ink)}
+  #licForm{display:grid;gap:16px}
+  #licForm label{display:grid;gap:8px;font-size:13px;font-weight:600;letter-spacing:.02em}
+  #licForm input,#licForm textarea{
+    font-family:var(--font);font-size:15px;padding:13px 16px;border-radius:14px;
+    border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%;resize:vertical;
+  }
+  #licForm input[readonly]{background:var(--field);color:var(--sub)}
+  #licForm input:focus,#licForm textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px rgba(0,113,227,.14)}
+  #licForm .btn-pill{font-size:16px;padding:15px;margin-top:6px;width:100%}
+  .fine{font-size:12.5px;color:var(--sub);text-align:center}
+
+  /* ---------- toast ---------- */
+  #toast{
+    position:fixed;left:50%;bottom:34px;transform:translate(-50%,140%);z-index:130;
+    background:var(--ink);color:var(--bg);font-size:14.5px;font-weight:500;
+    padding:14px 26px;border-radius:999px;box-shadow:0 16px 50px rgba(0,0,0,.3);
+    transition:transform .5s var(--spring);max-width:88vw;text-align:center;pointer-events:none;
+  }
+  #toast.show{transform:translate(-50%,0)}
+
+  @media(max-width:760px){
+    .nav-links{display:none}
+    .hero-in{padding-top:120px}
+    .strip-card{width:82vw}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body class="loading">
+<div id="loader" aria-hidden="true"><div class="ld-in"><div class="ld-num" id="ldNum">0</div><div class="ld-track"><i id="ldBar"></i></div><p>Loading plates</p></div></div>
+<div id="curDot" aria-hidden="true"></div><div id="curRing" aria-hidden="true"></div>
+
+<div id="progress"></div>
+
+<nav id="nav">
+  <div class="nav-in">
+    <a class="wordmark" href="#overview">Plates</a>
+    <div class="nav-links" id="navLinks">
+      <div id="navInk"></div>
+      <a class="nav-link" data-sec="overview" href="#overview">Overview</a>
+      <a class="nav-link" data-sec="scenes" href="#scenes">Scenes</a>
+      <a class="nav-link" data-sec="collections" href="#collections">Collections</a>
+      <a class="nav-link" data-sec="spotlight" href="#spotlight">Spotlight</a>
+      <a class="nav-link" data-sec="library" href="#library">Library</a>
+      <a class="nav-link" data-sec="license" href="#license">License</a>
+    </div>
+    <button id="themeBtn" class="theme-btn" aria-label="Toggle dark mode" title="Dark mode">◐</button>
+    <a class="btn-pill magnetic" href="#library" style="margin-left:auto">Get plates</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header id="overview">
+  <div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div>
+  <div id="cursorLight"></div>
+  <div class="hero-in" id="heroIn">
+    <p class="eyebrow">A preview library · For editors</p>
+    <h1 class="hero-title"><span class="w-split">Cinematic plates for editors.</span></h1>
+    <p class="hero-sub">Nine atmospheric plates — rain, machine halls, deep water. Preview each clip, then request a license.</p>
+    <div class="hero-cta">
+      <a class="btn-pill magnetic" href="#collections">Browse plates</a>
+      <a class="btn-ghost magnetic" href="#license">How licensing works</a>
+    </div>
+  </div>
+  <div class="scroll-hint">Scroll</div>
+</header>
+
+<div class="marquee" aria-hidden="true"><div class="mq-track">
+<span>4K Ultra HD <i>·</i> 24 FPS <i>·</i> 3D Render <i>·</i> Unreal Engine 5 <i>·</i> Seamless Loops <i>·</i>&nbsp;</span><span>4K Ultra HD <i>·</i> 24 FPS <i>·</i> 3D Render <i>·</i> Unreal Engine 5 <i>·</i> Seamless Loops <i>·</i>&nbsp;</span>
+</div></div>
+
+<div class="stats">
+  <div class="stat rv"><b><span class="num" data-n="9">0</span></b><span class="lbl">Plates</span></div>
+  <div class="stat rv"><b><span class="num" data-n="3">0</span></b><span class="lbl">Collections</span></div>
+  <div class="stat rv"><b><span class="num" data-n="24">0</span></b><span class="lbl">FPS</span></div>
+  <div class="stat rv"><b><span class="num" data-n="4">0</span>K</b><span class="lbl">Resolution</span></div>
+</div>
+
+<main>
+  <!-- PINNED SCENES -->
+  <section id="scenes">
+    <div class="scenes-sticky">
+      <div class="scene-words" id="sceneWords">
+        <span data-w="0" class="on">Fog</span>
+        <span data-w="1">Cold</span>
+        <span data-w="2">Depth</span>
+      </div>
+      <div class="scene-frame" id="sceneFrame">
+        <div class="scene s0"><div class="poster p-mist-line" style="position:absolute;inset:0"></div><span class="scene-cap">Valley Road · Night plate</span></div>
+        <div class="scene s1"><div class="poster p-cold-aisle" style="position:absolute;inset:0"></div><span class="scene-cap">Data Center · Cold aisle</span></div>
+        <div class="scene s2"><div class="poster p-black-smoker" style="position:absolute;inset:0"></div><span class="scene-cap">Deep Ocean · Black smoker</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HORIZONTAL STRIP -->
+  <section id="collections">
+    <div class="strip-sticky">
+      <div class="wrap rv">
+        <p class="eyebrow">Collections</p>
+        <h2 class="mask" style="font-size:clamp(2rem,4.6vw,3.6rem);font-weight:700;letter-spacing:-.03em;margin-bottom:4vh"><span class="mi">Keep scrolling — the plates move sideways.</span></h2>
+      </div>
+      <div class="strip-view">
+        <div class="strip-track" id="stripTrack"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CENTER STACK -->
+  <section id="spotlight">
+    <div class="stack-sticky">
+      <div class="stack-stage" id="stackStage"></div>
+    </div>
+  </section>
+
+  <!-- LIBRARY GRID -->
+  <section id="library">
+    <div class="wrap">
+      <div class="sec-head rv">
+        <p class="eyebrow">The library</p>
+        <h2 class="mask"><span class="mi">Nine plates. Pick one to license.</span></h2>
+        <p>Every plate is delivered in 4K. Open any card to preview it and send a license request.</p>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+
+  <!-- LICENSE -->
+  <section id="license">
+    <div class="wrap">
+      <div class="sec-head rv">
+        <p class="eyebrow">Licensing</p>
+        <h2 class="mask"><span class="mi">Three steps to the plate.</span></h2>
+      </div>
+      <div class="steps">
+        <div class="step rv"><p class="n">01</p><h4>Preview</h4><p>Scrub through the plates above. Posters shown here — the full 4K plate follows on request.</p></div>
+        <div class="step rv"><p class="n">02</p><h4>Open</h4><p>Tap any card. A sheet slides up with the clip details and a short request form.</p></div>
+        <div class="step rv"><p class="n">03</p><h4>Request</h4><p>Send the form. We reply with the plate, the license terms and delivery link.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="foot-in">
+    <span>Plates — a preview library for editors.</span>
+    <span>All plates are 3D renders made with Unreal Engine 5. © 2026</span>
+  </div>
+</footer>
+
+<div id="dimmer"></div>
+<div id="backdrop"></div>
+
+<!-- BOTTOM SHEET -->
+<section id="sheet" aria-hidden="true" role="dialog" aria-label="License request">
+  <div class="sheet-handle"></div>
+  <button id="sheetClose" aria-label="Close">
+    <svg viewBox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  </button>
+  <div id="sheetThumb" class="sheet-thumb poster"></div>
+  <p class="eyebrow" id="sheetColl"></p>
+  <h3 id="sheetName"></h3>
+  <p id="sheetDesc"></p>
+  <div class="chips" id="sheetMeta"></div>
+  <form id="licForm">
+    <label>Name<input name="name" type="text" autocomplete="name" required></label>
+    <label>Email<input name="email" type="email" autocomplete="email" required></label>
+    <label>Clip<input id="clipField" type="text" readonly tabindex="-1"></label>
+    <label>Notes<textarea name="notes" rows="3" placeholder="Project, cut length, territory…"></textarea></label>
+    <button class="btn-pill magnetic" type="submit">Send request</button>
+    <p class="fine">Preview only — the full 4K plate and terms follow by email.</p>
+  </form>
+</section>
+
+<div id="toast" role="status"></div>
+
+<button id="toTop" aria-label="Back to top"><svg viewBox="0 0 44 44"><circle class="tt-bg" cx="22" cy="22" r="19"/><circle class="tt-fg" id="ttFg" cx="22" cy="22" r="19"/></svg><span class="tt-arrow">↑</span></button>
+
+<script>
+(function(){
+"use strict";
+const $=(s,c=document)=>c.querySelector(s);
+const $$=(s,c=document)=>[...c.querySelectorAll(s)];
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+
+/* ---------------- data ---------------- */
+const CLIPS=[
+ {id:"fog-road",   name:"Fog Road",    coll:"Valley Road", meta:"4K · 24 fps · 12 s", desc:"Empty asphalt at night. Rain, wet reflections, drifting mist. 3D render, Unreal Engine 5."},
+ {id:"wet-asphalt",name:"Wet Asphalt", coll:"Valley Road", meta:"4K · 24 fps · 10 s", desc:"Low tracking shot over soaked tarmac. Sheets of rain in the dark. 3D render, Unreal Engine 5."},
+ {id:"mist-line",  name:"Mist Line",   coll:"Valley Road", meta:"4K · 24 fps · 14 s", desc:"A valley road dissolving into mist. Slow push through layered fog. 3D render, Unreal Engine 5."},
+ {id:"cold-aisle", name:"Cold Aisle",  coll:"Data Center", meta:"4K · 24 fps · 10 s", desc:"Cold aisle containment. Server rows, cyan status light, chilled haze. 3D render, Unreal Engine 5."},
+ {id:"immersion-tank",name:"Immersion Tank",coll:"Data Center",meta:"4K · 24 fps · 12 s", desc:"Immersion cooling tank. Boards submerged in dielectric fluid, slow bubbles. 3D render, Unreal Engine 5."},
+ {id:"subsea-cable",name:"Subsea Cable",coll:"Data Center", meta:"4K · 24 fps · 15 s", desc:"Undersea cable run. Dark water, faint guide lights along the line. 3D render, Unreal Engine 5."},
+ {id:"black-smoker",name:"Black Smoker",coll:"Deep Ocean",  meta:"4K · 24 fps · 12 s", desc:"Black smoker vent. Mineral smoke rising through crushing dark. 3D render, Unreal Engine 5."},
+ {id:"abyss-drift",name:"Abyss Drift", coll:"Deep Ocean",  meta:"4K · 24 fps · 14 s", desc:"Slow drift above the abyssal plain. Marine snow, distant bioluminescence. 3D render, Unreal Engine 5."},
+ {id:"vent-field", name:"Vent Field",  coll:"Deep Ocean",  meta:"4K · 24 fps · 10 s", desc:"Hydrothermal vent field. Orange glow against blue-black water. 3D render, Unreal Engine 5."}
+];
+const STACK_IDS=["fog-road","cold-aisle","subsea-cable","black-smoker"];
+const byId=id=>CLIPS.find(c=>c.id===id);
+
+/* ---------------- render cards ---------------- */
+function stripCard(c){
+  return `<article class="strip-card tilt" data-clip="${c.id}">
+    <div class="poster p-${c.id}" data-poster="${c.id}"></div>
+    <div class="strip-body">
+      <p class="eyebrow">${c.coll}</p><h3>${c.name}</h3><p>${c.desc}</p>
+      <div class="meta-row"><span class="meta">${c.meta}</span>
+      <button class="btn-license magnetic" data-lic="${c.id}">License</button></div>
+    </div></article>`;
 }
-  </script>
-  <script src="motion.js?v=dev" defer></script>
-  <script src="script.js?v=dev" defer></script>
-  <script src="film.js?v=dev" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
-  <script src="apple.js?v=dev" defer></script>
+function gridCard(c){
+  return `<article class="card tilt" data-clip="${c.id}">
+    <div class="poster p-${c.id}" data-poster="${c.id}"></div>
+    <div class="card-body">
+      <p class="eyebrow">${c.coll}</p>
+      <h3 class="mask"><span class="mi">${c.name}</span></h3>
+      <p class="desc">${c.desc}</p>
+      <div class="card-foot"><span class="meta">${c.meta}</span>
+      <button class="btn-license magnetic" data-lic="${c.id}">License</button></div>
+    </div></article>`;
+}
+function stackCard(c,i){
+  return `<article class="stack-card" data-clip="${c.id}">
+    <span class="stack-num">0${i+1} / 04</span>
+    <div class="poster p-${c.id}" data-poster="${c.id}"></div>
+    <div class="stack-info">
+      <p class="eyebrow">${c.coll} · Spotlight</p><h3>${c.name}</h3><p>${c.desc}</p>
+      <div class="meta-row" style="margin-top:18px"><span class="meta">${c.meta}</span>
+      <button class="btn-license magnetic" data-lic="${c.id}">License</button></div>
+    </div></article>`;
+}
+$("#stripTrack").innerHTML=CLIPS.map(stripCard).join("");
+$("#grid").innerHTML=CLIPS.map(gridCard).join("");
+$("#stackStage").innerHTML=STACK_IDS.map((id,i)=>stackCard(byId(id),i)).join("");
+
+/* ---------------- hero word split ---------------- */
+$$(".w-split").forEach(el=>{
+  const words=el.textContent.trim().split(/\s+/);
+  el.innerHTML=words.map((w,i)=>`<span class="w" style="animation-delay:${.25+i*.1}s">${w}</span>`).join(" ");
+});
+
+/* ---------------- scroll engine ---------------- */
+const nav=$("#nav"), progress=$("#progress"), hero=$("#overview"), heroIn=$("#heroIn"),
+      light=$("#cursorLight"), dimmer=$("#dimmer"),
+      scWrap=$("#scenes"), frame=$("#sceneFrame"), wordsEl=$("#sceneWords"),
+      words=$$("#sceneWords span"), scenes=[$(".s0"),$(".s1"),$(".s2")],
+      colWrap=$("#collections"), track=$("#stripTrack"), stripView=$(".strip-view"),
+      stWrap=$("#spotlight"), stackCards=$$(".stack-card");
+const toTop=$("#toTop"), ttFg=$("#ttFg"), TT_C=119.4;
+
+function secP(el){
+  const r=el.getBoundingClientRect(), total=r.height-innerHeight;
+  return total>0?clamp(-r.top/total,0,1):0;
+}
+/* ---------- buttery scroll engine ----------
+   Scroll events only set targets; a persistent rAF loop eases the
+   animated values toward those targets every frame (inertia smoothing),
+   so fast flings and touch momentum stay fluid instead of steppy. */
+const SMOOTH=0.18;
+const prog={hero:0,scenes:0,strip:0,stack:0};  /* eased currents */
+const targ={hero:0,scenes:0,strip:0,stack:0};  /* scroll targets */
+let stripMax=0;
+function measure(){ stripMax=Math.max(track.scrollWidth-stripView.clientWidth,0); }
+function readTargets(){
+  const y=scrollY, doc=document.documentElement.scrollHeight-innerHeight;
+  progress.style.width=(doc>0?y/doc*100:0)+"%";
+  nav.classList.toggle("compact",y>innerHeight*.65);
+  toTop.classList.toggle("show",y>innerHeight*.8);
+  ttFg.style.strokeDashoffset=(TT_C*(1-(doc>0?y/doc:0))).toFixed(1);
+  targ.hero=clamp(y/(hero.offsetHeight*.92),0,1);
+  targ.scenes=secP(scWrap);
+  targ.strip=secP(colWrap);
+  targ.stack=secP(stWrap);
+}
+function applyHero(p){
+  heroIn.style.transform=`translate3d(0,${(p*90).toFixed(1)}px,0) scale(${(1-p*.1).toFixed(4)})`;
+  heroIn.style.filter=`blur(${(p*12).toFixed(2)}px)`;
+  heroIn.style.opacity=(1-p*1.15).toFixed(3);
+}
+function applyScenes(p){
+  frame.style.transform=`scale(${(.82+.18*p).toFixed(4)})`;
+  frame.style.borderRadius=`${(28-22*p).toFixed(1)}px`;
+  for(let k=1;k<3;k++){
+    const local=clamp((p-k/3)/(1/3),0,1);
+    scenes[k].style.clipPath=`inset(0 0 0 ${((1-local)*100).toFixed(2)}%)`;
+  }
+  const wi=clamp(Math.floor(p*3),0,2);
+  words.forEach((w,k)=>w.classList.toggle("on",k===wi));
+  const dim=Math.sin(p*Math.PI);
+  dimmer.style.opacity=dim.toFixed(3);
+  wordsEl.classList.toggle("light",dim>0.35);
+}
+function applyStrip(p){
+  track.style.transform=`translate3d(${(-p*stripMax).toFixed(1)}px,0,0)`;
+}
+function applyStack(p){
+  const af=p*(stackCards.length-1);
+  stackCards.forEach((c,i)=>{
+    const d=i-af; let scale,yy,op,br=1;
+    if(d<=0){ scale=1+d*.07; yy=d*46; br=1+d*.12; op=d<-2.6?0:1; }
+    else{ scale=1-d*.08; yy=d*160; op=d>=1?0:(d>0.7?(1-d)/0.3:1); }
+    c.style.transform=`translate(-50%,-50%) translate3d(0,${yy.toFixed(1)}px,0) scale(${Math.max(scale,.5).toFixed(4)})`;
+    c.style.opacity=op.toFixed(3);
+    c.style.zIndex=100+i;
+    c.style.filter=`brightness(${clamp(br,.55,1).toFixed(3)})`;
+    c.style.pointerEvents=Math.abs(d)<.5?"auto":"none";
+  });
+}
+let firstFrame=true;
+function render(){
+  let dirty=firstFrame;
+  for(const k of ["hero","scenes","strip","stack"]){
+    const prev=prog[k];
+    prog[k]=firstFrame?targ[k]:lerp(prog[k],targ[k],SMOOTH);
+    if(Math.abs(prog[k]-targ[k])<.0004) prog[k]=targ[k];
+    if(Math.abs(prog[k]-prev)>.00001) dirty=true;
+  }
+  firstFrame=false;
+  if(dirty){ applyHero(prog.hero); applyScenes(prog.scenes); applyStrip(prog.strip); applyStack(prog.stack); }
+  requestAnimationFrame(render);
+}
+addEventListener("scroll",readTargets,{passive:true});
+addEventListener("resize",()=>{ measure(); readTargets(); });
+addEventListener("load",()=>{ measure(); readTargets(); });
+measure(); readTargets(); render();
+
+/* cursor light follows (lerped) */
+let tx=innerWidth/2,ty=innerHeight/2,cx=tx,cy=ty;
+hero.addEventListener("pointermove",e=>{
+  const r=hero.getBoundingClientRect(); tx=e.clientX-r.left; ty=e.clientY-r.top;
+});
+(function lightLoop(){
+  cx=lerp(cx,tx,.07); cy=lerp(cy,ty,.07);
+  light.style.transform=`translate(${cx-320}px,${cy-320}px)`;
+  requestAnimationFrame(lightLoop);
+})();
+
+/* ---------------- reveal + spy ---------------- */
+$$(".rv").forEach(el=>{
+  const sibs=[...el.parentNode.children].filter(c=>c.classList&&c.classList.contains("rv"));
+  el.style.setProperty("--d",(sibs.indexOf(el)*.09).toFixed(2)+"s");
+});
+const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ const t=e.target; t.classList.add("in"); const mi=t.querySelector(".mi"); if(mi&&!mi.dataset.sc){ mi.dataset.sc="1"; scramble(mi); } io.unobserve(t); } }),{threshold:.18});
+$$(".rv,.mask").forEach(el=>io.observe(el));
+
+const links=$$(".nav-link"), ink=$("#navInk"), navLinks=$("#navLinks");
+function setActive(id){
+  links.forEach(a=>a.classList.toggle("active",a.dataset.sec===id));
+  const a=links.find(l=>l.dataset.sec===id);
+  if(a){ ink.style.left=a.offsetLeft+"px"; ink.style.width=a.offsetWidth+"px"; }
+}
+const spy=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting) setActive(e.target.id); }),{rootMargin:"-38% 0px -55% 0px"});
+["overview","scenes","collections","spotlight","library","license"].forEach(id=>{ const s=document.getElementById(id); if(s) spy.observe(s); });
+addEventListener("resize",()=>{ const a=$(".nav-link.active"); if(a) setActive(a.dataset.sec); });
+setActive("overview");
+
+/* ---------------- 3D tilt + dynamic shadow ---------------- */
+$$(".tilt").forEach(card=>{
+  card.addEventListener("pointermove",e=>{
+    const r=card.getBoundingClientRect();
+    const px=(e.clientX-r.left)/r.width-.5, py=(e.clientY-r.top)/r.height-.5;
+    card.style.transform=`perspective(950px) rotateX(${(-py*9).toFixed(2)}deg) rotateY(${(px*11).toFixed(2)}deg) translateY(-4px)`;
+    card.style.setProperty("--shx",`${(-px*26).toFixed(1)}px`);
+    card.style.setProperty("--shy",`${(22+py*26).toFixed(1)}px`);
+  });
+  card.addEventListener("pointerleave",()=>{ card.style.transform=""; card.style.removeProperty("--shx"); card.style.removeProperty("--shy"); });
+});
+
+/* ---------------- magnetic buttons ---------------- */
+$$(".magnetic").forEach(btn=>{
+  btn.addEventListener("pointermove",e=>{
+    const r=btn.getBoundingClientRect();
+    const dx=e.clientX-(r.left+r.width/2), dy=e.clientY-(r.top+r.height/2);
+    btn.style.transform=`translate(${(dx*.26).toFixed(1)}px,${(dy*.26).toFixed(1)}px)`;
+  });
+  btn.addEventListener("pointerleave",()=>{ btn.style.transform="translate(0,0)"; });
+});
+
+/* ---------------- bottom sheet + FLIP ---------------- */
+const sheet=$("#sheet"), backdrop=$("#backdrop"),
+      sThumb=$("#sheetThumb"), sColl=$("#sheetColl"), sName=$("#sheetName"),
+      sDesc=$("#sheetDesc"), sMeta=$("#sheetMeta"), clipField=$("#clipField");
+let sheetClip=null, sheetSource=null;
+
+function fillSheet(c){
+  sThumb.className="sheet-thumb poster p-"+c.id;
+  sColl.textContent=c.coll+" · Plate";
+  sName.textContent=c.name;
+  sDesc.textContent=c.desc;
+  sMeta.innerHTML=c.meta.split("·").map(s=>`<span class="chip">${s.trim()}</span>`).join("");
+  clipField.value=c.name;
+}
+function flyTo(fromRect,toRect,dur,done){
+  const fly=document.createElement("div");
+  fly.className="poster p-"+sheetClip.id;
+  Object.assign(fly.style,{position:"fixed",left:fromRect.left+"px",top:fromRect.top+"px",
+    width:fromRect.width+"px",height:fromRect.height+"px",margin:"0",zIndex:125,
+    borderRadius:"16px",pointerEvents:"none",transformOrigin:"0 0"});
+  document.body.appendChild(fly);
+  const dx=toRect.left-fromRect.left, dy=toRect.top-fromRect.top,
+        sx=toRect.width/fromRect.width, sy=toRect.height/fromRect.height;
+  const anim=fly.animate(
+    [{transform:"translate(0px,0px) scale(1,1)"},
+     {transform:`translate(${dx}px,${dy}px) scale(${sx},${sy})`}],
+    {duration:dur,easing:"cubic-bezier(.3,1.25,.4,1)",fill:"forwards"});
+  anim.onfinish=()=>{ fly.remove(); done&&done(); };
+}
+function openSheet(clip,sourceEl){
+  sheetClip=clip; sheetSource=sourceEl;
+  fillSheet(clip);
+  const srcRect=sourceEl.getBoundingClientRect();
+  backdrop.classList.add("show");
+  /* measure the thumb's final position with the slide transition disabled,
+     then restart the slide so the FLIP flight runs in sync with the sheet */
+  sheet.style.transition="none";
+  sheet.classList.add("open");
+  sheet.setAttribute("aria-hidden","false");
+  sThumb.style.visibility="hidden";
+  const toRect=sThumb.getBoundingClientRect();
+  sheet.classList.remove("open");
+  void sheet.offsetWidth;
+  sheet.style.transition="";
+  sheet.classList.add("open");
+  document.body.style.overflow="hidden";
+  flyTo(srcRect,toRect,560,()=>{ sThumb.style.visibility=""; });
+}
+function closeSheet(){
+  if(!sheet.classList.contains("open")) return;
+  const toRect=(sheetSource&&document.contains(sheetSource))
+    ? sheetSource.getBoundingClientRect()
+    : {left:innerWidth/2-60,top:innerHeight-60,width:120,height:70};
+  const fromRect=sThumb.getBoundingClientRect();
+  sThumb.style.visibility="hidden";
+  sheet.classList.remove("open");
+  backdrop.classList.remove("show");
+  sheet.setAttribute("aria-hidden","true");
+  flyTo(fromRect,toRect,480,()=>{
+    sThumb.style.visibility="";
+    document.body.style.overflow="";
+  });
+}
+document.addEventListener("click",e=>{
+  const lic=e.target.closest("[data-lic]");
+  if(lic){ e.stopPropagation(); openSheet(byId(lic.dataset.lic), lic.closest("[data-clip]").querySelector(".poster")); return; }
+  const card=e.target.closest("[data-clip]");
+  if(card && !sheet.classList.contains("open")) openSheet(byId(card.dataset.clip), card.querySelector(".poster"));
+});
+$("#sheetClose").addEventListener("click",closeSheet);
+backdrop.addEventListener("click",closeSheet);
+addEventListener("keydown",e=>{ if(e.key==="Escape") closeSheet(); });
+
+/* ---------------- form + toast ---------------- */
+let toastT;
+function toast(msg){
+  const t=$("#toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),3000);
+}
+$("#licForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  toast("Request sent — we'll reply with the plate and license terms.");
+});
+
+/* ---------------- fx: scramble / count-up / loader / cursor / theme / toTop ---------------- */
+const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function scramble(el){
+  const orig=el.textContent;
+  if(reduced||orig.length>80) return;
+  const glyphs="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@$%&";
+  let f=0; const total=Math.max(26,orig.length*2);
+  const iv=setInterval(()=>{
+    f++;
+    const n=Math.floor(f/total*orig.length);
+    let out="";
+    for(let i=0;i<orig.length;i++){
+      const ch=orig[i];
+      out+=(i<n||ch===" ")?ch:glyphs[Math.random()*glyphs.length|0];
+    }
+    el.textContent=out;
+    if(f>=total){ el.textContent=orig; clearInterval(iv); }
+  },28);
+}
+function countUp(el){
+  const target=+el.dataset.n;
+  if(reduced){ el.textContent=target; return; }
+  const t0=performance.now(), D=1300;
+  (function step(t){
+    const p=Math.min((t-t0)/D,1), e=1-Math.pow(1-p,3);
+    el.textContent=Math.round(e*target);
+    if(p<1) requestAnimationFrame(step);
+  })(t0);
+}
+const statIO=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ countUp(e.target); statIO.unobserve(e.target); } }),{threshold:.5});
+$$(".num").forEach(el=>statIO.observe(el));
+
+/* loader */
+(function(){
+  const loader=$("#loader"), ldNum=$("#ldNum"), ldBar=$("#ldBar");
+  const lt0=performance.now(), LD=1300;
+  (function ldStep(t){
+    const p=Math.min((t-lt0)/LD,1), e=1-Math.pow(1-p,3), v=Math.round(e*100);
+    ldNum.textContent=v; ldBar.style.width=v+"%";
+    if(p<1) requestAnimationFrame(ldStep);
+    else{ loader.classList.add("done"); document.body.classList.remove("loading"); setTimeout(()=>loader.remove(),700); }
+  })(lt0);
+})();
+
+/* custom cursor (fine pointers only) */
+if(matchMedia("(pointer:fine)").matches){
+  document.body.classList.add("cur-on");
+  const dot=$("#curDot"), ring=$("#curRing");
+  let mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
+  addEventListener("pointermove",e=>{
+    mx=e.clientX; my=e.clientY;
+    dot.style.transform=`translate3d(${mx-3.5}px,${my-3.5}px,0)`;
+    const hov=e.target.closest&&e.target.closest("a,button,.tilt,.stack-card,input,textarea");
+    ring.classList.toggle("big",!!hov);
+  },{passive:true});
+  (function curLoop(){
+    rx=lerp(rx,mx,.16); ry=lerp(ry,my,.16);
+    const s=ring.classList.contains("big")?30:18;
+    ring.style.transform=`translate3d(${(rx-s).toFixed(1)}px,${(ry-s).toFixed(1)}px,0)`;
+    requestAnimationFrame(curLoop);
+  })();
+}
+
+/* theme */
+(function(){
+  const root=document.documentElement, themeBtn=$("#themeBtn");
+  try{ if(localStorage.getItem("plates-theme")==="dark") root.classList.add("dark"); }catch(_){}
+  themeBtn.addEventListener("click",()=>{
+    const dark=root.classList.toggle("dark");
+    try{ localStorage.setItem("plates-theme",dark?"dark":"light"); }catch(_){}
+  });
+})();
+
+/* back to top */
+toTop.addEventListener("click",()=>scrollTo({top:0,behavior:reduced?"auto":"smooth"}));
+
+})();
+</script>
 </body>
 </html>
