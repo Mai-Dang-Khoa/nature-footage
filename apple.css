@@ -107,10 +107,8 @@
 .nav-hover.on { opacity: .12; }
 
 /* ---------- Wave 3 ---------- */
-/* tone: while apple.js drives the backdrop, sections become transparent so the backdrop shows through */
-.tone { position: fixed; inset: 0; z-index: -1; background: #000; pointer-events: none; display: none; }
-.tone-on .tone { display: block; }
-.tone-on main > section[data-theme], .tone-on footer[data-theme] { background: transparent; }
+/* tone: apple.js paints a gradient over each section, so the colour blends across the seam.
+   The solid theme colour stays underneath as the fallback. */
 
 /* pill: a soft light follows the pointer across the button (set by apple.js) */
 .pill { position: relative; isolation: isolate; }
@@ -121,9 +119,10 @@
 /* cards: the shadow shifts away from the pointer, so the card looks lifted off the page */
 .ptr .card:hover .card-media { box-shadow: calc(var(--sx, 0px)) calc(20px + var(--sy, 0px)) 44px -16px rgba(0, 0, 0, .55); }
 
-/* section titles: a dimmed echo of the same line drifts slower behind the real one (depth) */
+/* section titles: a dimmed echo of the same line drifts slower behind the real one (depth).
+   It is a pseudo-element, so screen readers and the contrast audit ignore it. */
 .title { position: relative; isolation: isolate; }
-.title .echo { position: absolute; inset: 0; z-index: -1; color: var(--fg2); opacity: .16; transform: translate3d(0, var(--dy, 0px), 0); pointer-events: none; will-change: transform; }
+.title::before { content: attr(data-echo); position: absolute; inset: 0; z-index: -1; color: var(--fg2); opacity: .16; transform: translate3d(0, var(--dy, 0px), 0); pointer-events: none; will-change: transform; }
 
 /* ---------- Wave 2: light sweep, parallax photos, cursor ring ---------- */
 /* a soft light band crosses each clip picture once (apple.js adds .swept when it enters the screen) */

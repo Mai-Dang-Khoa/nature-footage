@@ -44,7 +44,7 @@ Bật cho mọi người, tắt hết khi người xem bật "giảm chuyển đ
 - **Thẻ clip:** hover phóng 1.03, bóng đổ mềm, 400ms. Có chuột: thẻ nghiêng nhẹ ≤ 4° theo chuột, có vệt sáng chạy theo con trỏ.
 - **Ghim và chữ sáng dần (GSAP):** section About ghim lại một màn, từng dòng sáng theo tiến độ cuộn.
 - **Parallax:** ảnh trong thẻ trôi chậm khác tốc độ theo cột; ảnh Free sample cũng trôi nhẹ.
-- **Nền đổi màu theo cuộn:** nền đen/trắng chuyển dần qua từng ranh giới section (chỉ khi không bật giảm chuyển động).
+- **Nền đổi màu theo cuộn:** mỗi section có gradient từ màu section trước sang màu section sau quanh ranh giới, nên không có vạch cắt đen/trắng. Khi bật giảm chuyển động, nền trở về màu đặc.
 - **Tiêu đề có lớp bóng:** một bản mờ của tiêu đề trôi chậm hơn phía sau, tạo chiều sâu.
 - **Nút và thẻ:** nút có ánh sáng theo con trỏ; thẻ clip đổ bóng ra xa con trỏ.
 - **Quét sáng:** một dải sáng lướt qua mỗi ảnh clip một lần khi vào khung hình.

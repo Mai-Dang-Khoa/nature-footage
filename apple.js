@@ -136,45 +136,46 @@
   const count = $("#shortlist-count");
   if (count) new MutationObserver(() => { count.classList.remove("pop"); void count.offsetWidth; count.classList.add("pop"); }).observe(count, { childList: true, characterData: true, subtree: true });
 
-  /* ---------- 9. wave 3: backdrop colour follows the scroll between sections ---------- */
-  const tone = $("#tone");
+  /* ---------- 9. wave 3: section colour blends across each seam as you scroll ---------- */
   const toneSecs = $$("main > section[data-theme], footer[data-theme]");
   const hex = (v, fb) => { const h = (v || fb).trim().replace("#", ""); const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
-  const themeRGB = (t) => (t === "light" ? hex(getComputedStyle(root).getPropertyValue("--white"), "#fff") : hex(getComputedStyle(root).getPropertyValue("--black"), "#000"));
-  let toneOn = false, lastTone = "";
-  function paintTone() {
-    if (!toneOn) return;
-    const vh = innerHeight, c = scrollY + vh * 0.5, band = vh * 0.6; // the colour turns over a band of 60% screen height around each seam
+  const cs0 = getComputedStyle(root);
+  const themeRGB = (t) => (t === "light" ? hex(cs0.getPropertyValue("--white"), "#fff") : hex(cs0.getPropertyValue("--black"), "#000"));
+  const toneBand = () => innerHeight * 0.6; // the colour turns over a band of 60% screen height around each seam
+  // colour of the page at document position y: starts with the first section's theme, then each seam mixes into the next
+  function toneAt(y) {
+    const band = toneBand();
     let col = themeRGB(toneSecs[0].dataset.theme);
     for (let k = 0; k + 1 < toneSecs.length; k++) {
       const seam = toneSecs[k].getBoundingClientRect().bottom + scrollY;
-      const t = clamp((c - (seam - band / 2)) / band), e = t * t * (3 - 2 * t);
+      const t = clamp((y - (seam - band / 2)) / band), e = t * t * (3 - 2 * t);
       const next = themeRGB(toneSecs[k + 1].dataset.theme);
       col = col.map((v, i) => v + (next[i] - v) * e);
     }
-    const str = `rgb(${col.map((v) => Math.round(v)).join(",")})`;
-    if (str !== lastTone) { lastTone = str; tone.style.background = str; }
+    return `rgb(${col.map((v) => Math.round(v)).join(",")})`;
   }
-  if (tone && toneSecs.length > 1) { toneOn = true; root.classList.add("tone-on"); }
+  const toneCache = new Map();
+  function paintTone() {
+    if (toneSecs.length < 2) return;
+    toneSecs.forEach((sec) => {
+      const r = sec.getBoundingClientRect(), top = r.top + scrollY, h = r.height;
+      if (h <= 0 || r.bottom < -innerHeight || r.top > 2 * innerHeight) return; // only sections near the screen
+      const stops = [0, 0.25, 0.5, 0.75, 1].map((f) => `${toneAt(top + h * f)} ${Math.round(f * 100)}%`).join(", ");
+      if (toneCache.get(sec) !== stops) { toneCache.set(sec, stops); sec.style.backgroundImage = `linear-gradient(to bottom, ${stops})`; }
+    });
+  }
+  if (toneSecs.length > 1) toneSecs.forEach((sec) => sec.dataset.tone = "1");
 
   /* ---------- 10. wave 3: pointer light on buttons, shadow away from the pointer on cards, depth echo on titles ---------- */
-  const echoes = []; // [title, echo] pairs, so the drift never depends on a DOM query
-  heads.filter((h) => h.classList.contains("title")).forEach((h) => {
-    const echo = document.createElement("span");
-    echo.className = "echo";
-    echo.setAttribute("aria-hidden", "true");
-    echo.textContent = h.textContent.replace(/\s+/g, " ").trim();
-    h.prepend(echo);
-    echoes.push([h, echo]);
-  });
+  const echoes = heads.filter((h) => h.classList.contains("title"));
+  echoes.forEach((h) => { h.dataset.echo = h.textContent.replace(/\s+/g, " ").trim(); });
   const updateEchoes = () => {
     const vh = innerHeight;
-    echoes.forEach(([h, e]) => {
-      if (!h.isConnected) return;
+    echoes.forEach((h) => {
       const r = h.getBoundingClientRect();
       if (r.bottom < -vh || r.top > 2 * vh) return;
       const p = (vh - r.top) / (vh + r.height);      // 0 as it enters from below, 1 as it leaves at the top
-      e.style.setProperty("--dy", `${((p - 0.5) * -90).toFixed(1)}px`);
+      h.style.setProperty("--dy", `${((p - 0.5) * -90).toFixed(1)}px`);
     });
   };
 
