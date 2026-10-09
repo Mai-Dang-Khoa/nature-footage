@@ -98,18 +98,17 @@
   }
   h1.hero-title .w{display:inline-block;opacity:0;animation:wIn 1s var(--ease) forwards}
   @keyframes wIn{from{opacity:0;transform:translateY(.55em);filter:blur(10px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
-  /* dreamy Apple text: gradient ink + soft luminous aura (static, GPU-cheap) */
-  h1.hero-title{
+  /* dreamy Apple text (static, GPU-cheap).
+     Gradient lives on the SAME element as any blur animation —
+     never on a parent of filtered children (breaks background-clip:text). */
+  h1.hero-title .w{
     background:linear-gradient(180deg,var(--ink) 15%,var(--ink) 55%,rgba(0,113,227,.72));
     -webkit-background-clip:text;background-clip:text;
     -webkit-text-fill-color:transparent;color:transparent;
-    filter:drop-shadow(0 4px 30px rgba(0,113,227,.16));
   }
-  .sec-head h2,h2.mask{
-    background:linear-gradient(180deg,var(--ink) 15%,var(--ink) 60%,rgba(0,113,227,.62));
-    -webkit-background-clip:text;background-clip:text;
-    -webkit-text-fill-color:transparent;color:transparent;
-    filter:drop-shadow(0 2px 22px rgba(0,113,227,.12));
+  h2.mask{
+    color:var(--ink);
+    text-shadow:0 0 26px rgba(0,113,227,.28),0 2px 18px rgba(0,113,227,.12);
   }
   .hero-sub{font-size:clamp(1.05rem,2vw,1.4rem);color:var(--sub);max-width:34ch;margin-bottom:44px;line-height:1.55}
   .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
@@ -125,6 +124,9 @@
   .sec-head p{color:var(--sub);font-size:1.1rem;max-width:52ch}
 
   /* masked titles */
+  /* dreamy scramble characters */
+  .sc{display:inline-block;opacity:.45;filter:blur(1.5px)}
+  .sc.lock{opacity:1;filter:blur(0);transition:opacity .5s ease,filter .6s ease}
   .mask{display:block;overflow:hidden}
   .mask .mi{display:block;transform:translateY(112%);transition:transform 1s var(--ease)}
   .in .mi{transform:translateY(0)}
@@ -148,6 +150,16 @@
   /* ---------- posters (pure CSS plates) ---------- */
   .poster{position:relative;overflow:hidden;background:#0b0d10}
   .poster::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(0,0,0,.5));pointer-events:none}
+  /* dreamy light drift over posters (GPU transform only) */
+  .poster::before{
+    content:"";position:absolute;inset:-25%;pointer-events:none;
+    background:
+      radial-gradient(42% 36% at 34% 30%,rgba(130,175,255,.15),transparent 70%),
+      radial-gradient(38% 32% at 70% 66%,rgba(196,158,255,.11),transparent 70%);
+    animation:posterDrift 18s ease-in-out infinite alternate;
+    will-change:transform;
+  }
+  @keyframes posterDrift{from{transform:translate3d(-5%,-4%,0)}to{transform:translate3d(5%,4%,0) scale(1.06)}}
   .p-fog-road{background:
     radial-gradient(90% 45% at 50% 118%, rgba(140,165,195,.4), transparent 62%),
     linear-gradient(180deg, transparent 60%, rgba(160,190,220,.16) 68%, transparent 76%),
@@ -794,18 +806,30 @@ function scramble(el){
   const orig=el.textContent;
   if(reduced||orig.length>80) return;
   const glyphs="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@$%&";
-  let f=0; const total=Math.max(26,orig.length*2);
+  el.setAttribute("aria-label",orig);
+  el.innerHTML="";
+  const spans=[];
+  [...orig].forEach(ch=>{
+    if(ch===" "){ el.appendChild(document.createTextNode(" ")); }
+    else{
+      const s=document.createElement("span");
+      s.className="sc"; s.dataset.c=ch; s.textContent=glyphs[Math.random()*glyphs.length|0];
+      el.appendChild(s); spans.push(s);
+    }
+  });
+  let f=0; const total=Math.max(36,Math.round(spans.length*2.6));
   const iv=setInterval(()=>{
     f++;
-    const n=Math.floor(f/total*orig.length);
-    let out="";
-    for(let i=0;i<orig.length;i++){
-      const ch=orig[i];
-      out+=(i<n||ch===" ")?ch:glyphs[Math.random()*glyphs.length|0];
+    const n=Math.floor(f/total*spans.length);
+    spans.forEach((s,i)=>{
+      if(i<n){ s.textContent=s.dataset.c; s.classList.add("lock"); }
+      else{ s.textContent=glyphs[Math.random()*glyphs.length|0]; }
+    });
+    if(f>=total){
+      spans.forEach(s=>{ s.textContent=s.dataset.c; s.classList.add("lock"); });
+      clearInterval(iv);
     }
-    el.textContent=out;
-    if(f>=total){ el.textContent=orig; clearInterval(iv); }
-  },28);
+  },32);
 }
 function countUp(el){
   const target=+el.dataset.n;
