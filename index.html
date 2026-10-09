@@ -124,12 +124,9 @@
   .sec-head p{color:var(--sub);font-size:1.1rem;max-width:52ch}
 
   /* masked titles */
-  /* dreamy scramble characters */
-  .sc{display:inline-block;opacity:.45;filter:blur(1.5px)}
-  .sc.lock{opacity:1;filter:blur(0);transition:opacity .5s ease,filter .6s ease}
   .mask{display:block;overflow:hidden}
-  .mask .mi{display:block;transform:translateY(112%);transition:transform 1s var(--ease)}
-  .in .mi{transform:translateY(0)}
+  .mask .mi{display:block;transform:translateY(112%);filter:blur(10px);transition:transform 1.05s var(--ease),filter 1.25s var(--ease)}
+  .in .mi{transform:translateY(0);filter:blur(0)}
   .rv{opacity:0;transform:translateY(36px);transition:opacity .9s var(--ease),transform .9s var(--ease);transition-delay:var(--d,0s)}
   .rv.in{opacity:1;transform:none}
 
@@ -680,7 +677,7 @@ $$(".rv").forEach(el=>{
   const sibs=[...el.parentNode.children].filter(c=>c.classList&&c.classList.contains("rv"));
   el.style.setProperty("--d",(sibs.indexOf(el)*.09).toFixed(2)+"s");
 });
-const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ const t=e.target; t.classList.add("in"); const mi=t.querySelector(".mi"); if(mi&&!mi.dataset.sc){ mi.dataset.sc="1"; scramble(mi); } io.unobserve(t); } }),{threshold:.18});
+const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } }),{threshold:.18});
 $$(".rv,.mask").forEach(el=>io.observe(el));
 
 const links=$$(".nav-link"), ink=$("#navInk"), navLinks=$("#navLinks");
@@ -800,37 +797,8 @@ $("#licForm").addEventListener("submit",e=>{
   toast("Request sent — we'll reply with the plate and license terms.");
 });
 
-/* ---------------- fx: scramble / count-up / loader / cursor / theme / toTop ---------------- */
+/* ---------------- fx: count-up / loader / cursor / theme / toTop ---------------- */
 const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
-function scramble(el){
-  const orig=el.textContent;
-  if(reduced||orig.length>80) return;
-  const glyphs="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@$%&";
-  el.setAttribute("aria-label",orig);
-  el.innerHTML="";
-  const spans=[];
-  [...orig].forEach(ch=>{
-    if(ch===" "){ el.appendChild(document.createTextNode(" ")); }
-    else{
-      const s=document.createElement("span");
-      s.className="sc"; s.dataset.c=ch; s.textContent=glyphs[Math.random()*glyphs.length|0];
-      el.appendChild(s); spans.push(s);
-    }
-  });
-  let f=0; const total=Math.max(36,Math.round(spans.length*2.6));
-  const iv=setInterval(()=>{
-    f++;
-    const n=Math.floor(f/total*spans.length);
-    spans.forEach((s,i)=>{
-      if(i<n){ s.textContent=s.dataset.c; s.classList.add("lock"); }
-      else{ s.textContent=glyphs[Math.random()*glyphs.length|0]; }
-    });
-    if(f>=total){
-      spans.forEach(s=>{ s.textContent=s.dataset.c; s.classList.add("lock"); });
-      clearInterval(iv);
-    }
-  },32);
-}
 function countUp(el){
   const target=+el.dataset.n;
   if(reduced){ el.textContent=target; return; }
