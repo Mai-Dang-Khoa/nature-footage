@@ -625,6 +625,56 @@
   .foot-sitemap a:hover{color:var(--ink)}
   .foot-updated{text-align:center;color:var(--sub);font-size:12px;margin-top:22px}
   @media(max-width:760px){.coll-cards{grid-template-columns:1fr}.foot-news{flex-direction:column}.tier-table{font-size:.82rem}.tier-table th,.tier-table td{padding:10px 8px}}
+  /* ---------- 10 open-source ideas ---------- */
+  /* 6: viewfinder on hero */
+  .hv-in{position:relative}
+  .hv-in::after{content:"";position:absolute;inset:12px;z-index:2;pointer-events:none;opacity:.9;
+    background:
+      linear-gradient(#fff,#fff) left top/20px 2px,linear-gradient(#fff,#fff) left top/2px 20px,
+      linear-gradient(#fff,#fff) right top/20px 2px,linear-gradient(#fff,#fff) right top/2px 20px,
+      linear-gradient(#fff,#fff) left bottom/20px 2px,linear-gradient(#fff,#fff) left bottom/2px 20px,
+      linear-gradient(#fff,#fff) right bottom/20px 2px,linear-gradient(#fff,#fff) right bottom/2px 20px;
+    background-repeat:no-repeat}
+  .hv-in::before{content:"4K • 24FPS";position:absolute;top:18px;left:22px;z-index:2;font-size:9px;font-weight:800;letter-spacing:.16em;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.7)}
+  .hv-in .rec{position:absolute;top:16px;right:22px;z-index:2;width:9px;height:9px;border-radius:50%;background:#ff3b30;box-shadow:0 0 10px #ff3b30;animation:recBlink 1.6s infinite}
+  @keyframes recBlink{0%,100%{opacity:1}50%{opacity:.25}}
+  /* 7: clickable collection marquee */
+  .mq-coll{margin-top:26px}
+  .mq-coll .mq-track button{font-size:clamp(1rem,2vw,1.4rem);font-weight:600;letter-spacing:.02em;color:var(--sub);white-space:nowrap;padding:6px 1.4em;flex-shrink:0;transition:color .3s;font-family:var(--font)}
+  .mq-coll .mq-track button:hover{color:var(--blue)}
+  .mq-coll .mq-track button i{color:var(--blue);font-style:normal;padding-left:2.8em}
+  /* 1: modal counter bar */
+  .pv-top{position:absolute;top:0;left:0;right:0;z-index:3;display:flex;justify-content:space-between;align-items:center;padding:20px 22px;pointer-events:none}
+  #pvCount{font-size:12.5px;font-weight:700;letter-spacing:.12em;color:#fff;background:rgba(10,12,16,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:8px 16px;border-radius:99px;border:1px solid rgba(255,255,255,.16)}
+  #pvCollTop{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#fff;opacity:.85;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+  #pvModal.morphing .pv-box{opacity:0 !important;transform:translateY(36px) scale(.94) !important}
+  /* 4: auto-hide chrome */
+  #pvModal .pv-top,#pvModal #pvClose,#pvModal .pv-nav,#pvModal .pv-share{transition:opacity .45s}
+  #pvModal.idle .pv-top,#pvModal.idle #pvClose,#pvModal.idle .pv-nav,#pvModal.idle .pv-share{opacity:0;pointer-events:none}
+  /* 8: blur-up */
+  .poster img{transition:filter .9s var(--ease),transform .9s var(--ease)}
+  .poster img:not(.sharp){filter:blur(16px) brightness(.92)}
+  /* 9: spring physics */
+  #sheet{transition:transform .55s cubic-bezier(.25,1.35,.35,1)}
+  #slDrawer{transition:transform .55s cubic-bezier(.25,1.35,.35,1)}
+  /* 10: list view */
+  .view-toggle{display:flex;gap:6px;margin-left:0}
+  .vt{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);color:var(--sub);font-size:17px;display:flex;align-items:center;justify-content:center;transition:all .3s}
+  .vt.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  #listView{display:none;margin-top:6px;border-top:1px solid var(--line)}
+  #listView.show{display:block}
+  #grid.list-hidden{display:none}
+  .lrow{display:grid;grid-template-columns:1fr auto auto auto 30px;gap:22px;align-items:center;width:100%;text-align:left;padding:19px 10px;border-bottom:1px solid var(--line);transition:background .3s,padding-left .3s;font-family:var(--font);color:var(--ink)}
+  .lrow:hover{background:var(--inksoft);padding-left:18px}
+  .lr-name{font-weight:700;font-size:1.05rem;letter-spacing:-.01em}
+  .lr-coll{color:var(--sub);font-size:.88rem}
+  .lr-dur{color:var(--sub);font-size:.88rem;font-variant-numeric:tabular-nums}
+  .lr-price{font-weight:700;font-size:.95rem;color:var(--blue)}
+  .lr-go{color:var(--sub);transition:transform .3s var(--spring)}
+  .lrow:hover .lr-go{transform:translateX(5px);color:var(--ink)}
+  #floatPrev{position:fixed;top:0;left:0;z-index:150;width:300px;border-radius:16px;overflow:hidden;pointer-events:none;opacity:0;transition:opacity .25s;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+  #floatPrev img{width:100%;height:170px;object-fit:cover;display:block}
+  @media(max-width:760px){.lrow{grid-template-columns:1fr auto 30px;gap:14px}.lr-coll,.lr-dur{display:none}}
   @media(max-width:760px){.lib-search{margin-left:0;width:100%}}
 
   /* ---------- toast ---------- */
@@ -687,9 +737,9 @@
       <a class="btn-ghost magnetic" href="#license">How licensing works</a>
     </div>
     <div class="hero-visual" aria-hidden="true">
-      <div class="hv-card hv-1"><div class="hv-in" data-base="-6" data-depth="14"><img src="assets/posters/valley-road.jpg" alt=""></div></div>
-      <div class="hv-card hv-2"><div class="hv-in" data-base="4" data-depth="26"><img src="assets/posters/data-center.jpg" alt=""></div></div>
-      <div class="hv-card hv-3"><div class="hv-in" data-base="-3" data-depth="38"><img src="assets/posters/deep-ocean.jpg" alt=""></div></div>
+      <div class="hv-card hv-1"><div class="hv-in" data-base="-6" data-depth="14"><img src="assets/posters/valley-road.jpg" alt=""><span class="rec"></span></div></div>
+      <div class="hv-card hv-2"><div class="hv-in" data-base="4" data-depth="26"><img src="assets/posters/data-center.jpg" alt=""><span class="rec"></span></div></div>
+      <div class="hv-card hv-3"><div class="hv-in" data-base="-3" data-depth="38"><img src="assets/posters/deep-ocean.jpg" alt=""><span class="rec"></span></div></div>
     </div>
   </div>
   <div class="scroll-hint">Scroll</div>
@@ -698,6 +748,8 @@
 <div class="marquee" aria-hidden="true"><div class="mq-track">
 <span>4K Ultra HD <i>·</i> 24 FPS <i>·</i> 3D Render <i>·</i> Unreal Engine 5 <i>·</i> Seamless Loops <i>·</i>&nbsp;</span><span>4K Ultra HD <i>·</i> 24 FPS <i>·</i> 3D Render <i>·</i> Unreal Engine 5 <i>·</i> Seamless Loops <i>·</i>&nbsp;</span>
 </div></div>
+
+<div class="marquee mq-coll" aria-label="Browse collections"><div class="mq-track" id="mqColl"></div></div>
 
 <div class="stats">
   <div class="stat rv"><b><span class="num" data-n="9">0</span></b><span class="lbl">Plates</span></div>
@@ -774,6 +826,10 @@
           </select>
         </label>
         <button id="surpriseBtn" title="Open a random plate">🎲 Surprise me</button>
+        <div class="view-toggle" role="group" aria-label="View mode">
+          <button class="vt on" data-v="grid" aria-label="Grid view" title="Grid view">▦</button>
+          <button class="vt" data-v="list" aria-label="List view" title="List view">☰</button>
+        </div>
         <label class="lib-search">
           <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.2" stroke="currentColor" stroke-width="1.8"/><path d="M11 11l3.4 3.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           <input id="libQ" type="search" placeholder="Search plates…" aria-label="Search plates">
@@ -781,6 +837,8 @@
       </div>
       <div id="recentWrap"><p class="lbl">Recently viewed</p><div id="recentTrack"></div></div>
       <div class="grid" id="grid"></div>
+      <div id="listView" role="list"></div>
+      <div id="floatPrev" aria-hidden="true"><img alt=""></div>
       <p class="no-result" id="noResult">No plates match — try another word or collection.</p>
     </div>
   </section>
@@ -939,6 +997,7 @@
 <div id="pvModal" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Clip preview">
   <div class="pv-box">
     <button id="pvClose" aria-label="Close preview">×</button>
+    <div class="pv-top"><span id="pvCount">1 / 9</span><span id="pvCollTop"></span></div>
     <button class="pv-nav" id="pvPrev" aria-label="Previous plate">‹</button>
     <button class="pv-nav" id="pvNext" aria-label="Next plate">›</button>
     <div class="pv-media"><img id="pvImg" alt=""><span class="pv-cap" id="pvCap"></span></div>
@@ -1414,11 +1473,16 @@ let fColl="all", fQ="";
 function applyFilter(){
   const q=fQ.trim().toLowerCase();
   let n=0;
+  const test=c=>(fColl==="all"||c.coll===fColl)&&(!q||(c.name+" "+c.desc+" "+c.coll).toLowerCase().includes(q));
   $$("#grid .card").forEach(card=>{
     const c=byId(card.dataset.clip); if(!c) return;
-    const ok=(fColl==="all"||c.coll===fColl)&&(!q||(c.name+" "+c.desc+" "+c.coll).toLowerCase().includes(q));
+    const ok=test(c);
     card.style.display=ok?"":"none";
     if(ok) n++;
+  });
+  $$("#listView .lrow").forEach(row=>{
+    const c=byId(row.dataset.clip); if(!c) return;
+    row.style.display=test(c)?"":"none";
   });
   $("#noResult").classList.toggle("show",n===0);
 }
@@ -1439,26 +1503,92 @@ function setClipParam(id){
     history.replaceState(null,"",u);
   }catch(_){}
 }
-function openPreview(id){
+function preloadAdjacent(id){
+  const i=CLIPS.findIndex(c=>c.id===id);
+  [CLIPS[(i+1)%CLIPS.length],CLIPS[(i-1+CLIPS.length)%CLIPS.length]].forEach(c=>{
+    const im=new Image(); im.src=COLL_POSTER[c.coll];
+  });
+}
+function updateCounter(id){
+  const i=CLIPS.findIndex(c=>c.id===id);
+  $("#pvCount").textContent=(i+1)+" / "+CLIPS.length;
+}
+function openPreview(id,sourceEl){
   const c=byId(id); if(!c) return;
-  pvModal.dataset.clip=id; setClipParam(id); pushRecent(id);
+  pvModal.dataset.clip=id; setClipParam(id); pushRecent(id); preloadAdjacent(id);
   const img=$("#pvImg");
   img.src=COLL_POSTER[c.coll]; img.alt=c.name+" — "+c.coll+" plate still";
   $("#pvCap").textContent=c.coll+" · Preview still";
   $("#pvColl").textContent=c.coll;
+  $("#pvCollTop").textContent=c.coll;
   $("#pvName").textContent=c.name;
   $("#pvDesc").textContent=c.desc;
   $("#pvMeta").textContent=c.meta;
   $("#pvLicense").dataset.lic=c.id;
+  updateCounter(id);
+  document.querySelector(".pv-media").classList.remove("zoomed");
   pvModal.classList.add("show"); pvModal.setAttribute("aria-hidden","false");
   backdrop.classList.add("show"); document.body.style.overflow="hidden";
+  resetIdle();
+  /* shared-element morph from the clicked card */
+  if(sourceEl&&sourceEl.getClientRects().length){
+    const target=document.querySelector(".pv-media").getBoundingClientRect();
+    const from=sourceEl.getBoundingClientRect();
+    const fly=sourceEl.cloneNode(true);
+    fly.removeAttribute("data-poster");
+    Object.assign(fly.style,{position:"fixed",left:from.left+"px",top:from.top+"px",width:from.width+"px",height:from.height+"px",margin:"0",zIndex:130,borderRadius:"18px",pointerEvents:"none",overflow:"hidden",transformOrigin:"0 0"});
+    const slb=fly.querySelector("[data-sl]"); if(slb) slb.remove();
+    document.body.appendChild(fly);
+    pvModal.classList.add("morphing");
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      const dx=target.left-from.left, dy=target.top-from.top;
+      fly.style.transition="transform .55s cubic-bezier(.3,1.15,.4,1),border-radius .55s";
+      fly.style.borderRadius="26px";
+      fly.style.transform=`translate(${dx}px,${dy}px) scale(${target.width/from.width},${target.height/from.height})`;
+      setTimeout(()=>{ fly.remove(); pvModal.classList.remove("morphing"); },580);
+    }));
+  }
 }
 function closePreview(){
   if(!pvModal.classList.contains("show")) return;
-  pvModal.classList.remove("show"); pvModal.setAttribute("aria-hidden","true");
+  pvModal.classList.remove("show","morphing","idle"); pvModal.setAttribute("aria-hidden","true");
+  clearTimeout(idleT);
+  pvBox.style.transition=""; pvBox.style.transform=""; backdrop.style.opacity="";
   setClipParam(null);
   backdrop.classList.remove("show"); document.body.style.overflow="";
+  $("#floatPrev").style.opacity=0;
 }
+/* auto-hide chrome on pointer idle */
+let idleT;
+function resetIdle(){
+  pvModal.classList.remove("idle");
+  clearTimeout(idleT);
+  idleT=setTimeout(()=>{ if(pvModal.classList.contains("show")) pvModal.classList.add("idle"); },2500);
+}
+pvModal.addEventListener("pointermove",resetIdle,{passive:true});
+/* swipe-down-to-dismiss on the poster */
+(function(){
+  const media=document.querySelector(".pv-media");
+  let sy0=null,sx0=null,vdrag=false;
+  media.addEventListener("touchstart",e=>{ sy0=e.touches[0].clientY; sx0=e.touches[0].clientX; vdrag=false; },{passive:true});
+  media.addEventListener("touchmove",e=>{
+    if(sy0===null) return;
+    const dy=e.touches[0].clientY-sy0, dx=e.touches[0].clientX-sx0;
+    if(!vdrag&&dy>12&&Math.abs(dy)>Math.abs(dx)*1.4) vdrag=true;
+    if(vdrag){
+      pvBox.style.transition="none";
+      pvBox.style.transform=`translateY(${dy}px) scale(${Math.max(.9,1-dy/1400)})`;
+      backdrop.style.opacity=Math.max(0,1-dy/420);
+    }
+  },{passive:true});
+  media.addEventListener("touchend",e=>{
+    if(!vdrag){ sy0=null; return; }
+    const dy=e.changedTouches[0].clientY-sy0;
+    pvBox.style.transition=""; pvBox.style.transform=""; backdrop.style.opacity="";
+    sy0=null; vdrag=false;
+    if(dy>130) closePreview(); else resetIdle();
+  },{passive:true});
+})();
 $("#pvCopy").addEventListener("click",e=>{
   e.stopPropagation();
   const id=pvModal.dataset.clip; if(!id) return;
@@ -1478,15 +1608,16 @@ $$("#grid .card").forEach(card=>{
 });
 function parseDur(c){ const m=c.meta.match(/(\d+)\s*s/); return m?+m[1]:0; }
 $("#sortSel").addEventListener("change",e=>{
-  const mode=e.target.value, cards=$$("#grid .card"), grid=$("#grid");
-  [...cards].sort((a,b)=>{
-    const ca=byId(a.dataset.clip), cb=byId(b.dataset.clip);
+  const mode=e.target.value, grid=$("#grid");
+  orderedClips=[...CLIPS].sort((ca,cb)=>{
     if(mode==="name") return ca.name.localeCompare(cb.name);
     if(mode==="dur") return parseDur(ca)-parseDur(cb);
     if(mode==="coll") return ca.coll.localeCompare(cb.coll)||ca.name.localeCompare(cb.name);
     return CLIPS.indexOf(ca)-CLIPS.indexOf(cb);
-  }).forEach(c=>grid.appendChild(c));
-  applyFilter();
+  });
+  const byIdEl={}; $$("#grid .card").forEach(el=>{ byIdEl[el.dataset.clip]=el; });
+  orderedClips.forEach(c=>{ if(byIdEl[c.id]) grid.appendChild(byIdEl[c.id]); });
+  if(viewMode==="list") renderList(); else applyFilter();
 });
 $("#surpriseBtn").addEventListener("click",()=>openPreview(CLIPS[Math.floor(Math.random()*CLIPS.length)].id));
 /* 4: collection quick cards */
@@ -1552,7 +1683,7 @@ function applyCurr(){
   try{ localStorage.setItem("plates-cur",cur); }catch(_){}
 }
 $("#curSel").value=cur;
-$("#curSel").addEventListener("change",e=>{ cur=e.target.value; applyCurr(); });
+$("#curSel").addEventListener("change",e=>{ cur=e.target.value; applyCurr(); if(viewMode==="list") renderList(); });
 applyCurr();
 /* 10: custom plate */
 const CUSTOM_CLIP={id:"custom",name:"Custom plate",coll:"Commission",meta:"4K · 24 fps · your brief",desc:"A plate rendered to your brief — mood, weather, camera move. Describe the scene in Notes."};
@@ -1581,6 +1712,60 @@ function trapFocus(container){
 }
 trapFocus(pvModal); trapFocus(sheet); trapFocus(drawer);
 
+/* 8: progressive blur-up */
+function sharpUp(scope){
+  $$(".poster img, .hv-in img, .coll-card img",(scope||document)).forEach(img=>{
+    if(img.complete&&img.naturalWidth) img.classList.add("sharp");
+    else img.addEventListener("load",()=>img.classList.add("sharp"),{once:true});
+  });
+}
+sharpUp();
+/* 7: clickable collection marquee */
+(function(){
+  const colls=["Valley Road","Data Center","Deep Ocean"];
+  const half=colls.map(c=>`<button data-mq="${c}">${c}<i>·</i></button>`).join("");
+  $("#mqColl").innerHTML=half+half;
+  $("#mqColl").addEventListener("click",e=>{
+    const b=e.target.closest("[data-mq]"); if(!b) return;
+    const f=b.dataset.mq;
+    $$(".fchip").forEach(x=>x.classList.toggle("on",x.dataset.f===f));
+    fColl=f; applyFilter();
+    $("#library").scrollIntoView({behavior:reduced?"auto":"smooth"});
+  });
+})();
+/* 10: list view */
+let orderedClips=[...CLIPS], viewMode="grid";
+function durShort(c){ return parseDur(c)+"s"; }
+function renderList(){
+  $("#listView").innerHTML=orderedClips.map(c=>`
+    <button class="lrow" role="listitem" data-clip="${c.id}">
+      <span class="lr-name">${c.name}</span>
+      <span class="lr-coll">${c.coll}</span>
+      <span class="lr-dur">${durShort(c)}</span>
+      <span class="lr-price">${fmtPrice(29)}</span>
+      <span class="lr-go">→</span>
+    </button>`).join("");
+  applyFilter();
+}
+$$(".vt").forEach(b=>b.addEventListener("click",()=>{
+  viewMode=b.dataset.v;
+  $$(".vt").forEach(x=>x.classList.toggle("on",x===b));
+  $("#listView").classList.toggle("show",viewMode==="list");
+  $("#grid").classList.toggle("list-hidden",viewMode==="list");
+  if(viewMode==="list") renderList();
+}));
+$("#listView").addEventListener("click",e=>{
+  const r=e.target.closest(".lrow"); if(r) openPreview(r.dataset.clip);
+});
+const floatPrev=$("#floatPrev"), floatImg=floatPrev.querySelector("img");
+$("#listView").addEventListener("pointermove",e=>{
+  const r=e.target.closest(".lrow");
+  if(r){ const c=byId(r.dataset.clip); if(floatImg.getAttribute("src")!==COLL_POSTER[c.coll]) floatImg.src=COLL_POSTER[c.coll]; floatPrev.style.opacity=1; }
+  else floatPrev.style.opacity=0;
+  floatPrev.style.transform=`translate(${e.clientX+20}px,${e.clientY-85}px)`;
+},{passive:true});
+$("#listView").addEventListener("pointerleave",()=>{ floatPrev.style.opacity=0; },{passive:true});
+
 /* deep link: ?clip=fog-road opens that plate on load */
 (function deepLink(){
   let id=null;
@@ -1603,7 +1788,7 @@ document.addEventListener("click",e=>{
     return;
   }
   const card=e.target.closest("[data-clip]");
-  if(card&&!sheet.classList.contains("open")&&!pvModal.classList.contains("show")) openPreview(card.dataset.clip);
+  if(card&&!sheet.classList.contains("open")&&!pvModal.classList.contains("show")) openPreview(card.dataset.clip,card.querySelector(".poster"));
 });
 $("#sheetClose").addEventListener("click",closeSheet);
 backdrop.addEventListener("click",()=>{ closePreview(); closeSheet(); closeDrawer(); });
