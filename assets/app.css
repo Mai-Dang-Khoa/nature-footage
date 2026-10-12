@@ -1,0 +1,266 @@
+/* ============================================================
+   Plates Luxury — improvement layer · run #9 (2026-10-13)
+   100-improvement batch: visual / micro-interaction / mobile-UX /
+   accessibility / performance. Pure additive layer on top of the
+   inline <style> in index.html. No AI credit anywhere.
+   Every animation below is disabled under prefers-reduced-motion.
+   ============================================================ */
+
+/* ---------- C4 · hard horizontal-overflow guard ---------- */
+html,body{overflow-x:clip}
+/* ---------- C2 · stop iOS text auto-inflation ---------- */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* ---------- C3 · crisper type ---------- */
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+/* ---------- C1 · kill double-tap zoom delay on tappables ---------- */
+button,a,input,select,textarea,label{touch-action:manipulation}
+
+/* ================= A · VISUAL (20) ================= */
+
+/* A2 · trim headline half-leading so hero type sits pixel-tight */
+.hero-title{text-box-trim:trim-both;text-box-edge:cap alphabetic}
+
+/* A3 · balanced headings, pretty body copy — no orphan words */
+h1,h2,h3{text-wrap:balance}
+.desc,.pv-desc,.sec-head p,.hero-sub,.tier-use{text-wrap:pretty}
+
+/* A4 · subgrid: the 3 license tier rows align across cards */
+@supports (grid-template-rows:subgrid){
+  .tiers{grid-template-rows:auto auto auto}
+  .tier-card{grid-row:span 3;grid-template-rows:subgrid;gap:2px}
+}
+
+/* A5 · gold shades derived from the token (one ramp, both themes) */
+.btn-ghost:hover{border-color:color-mix(in oklch,var(--gold),black 18%)}
+.tier-price{color:color-mix(in oklch,var(--gold-deep),black 6%)}
+html.dark .tier-price{color:color-mix(in oklch,var(--gold),white 8%)}
+
+/* A6 · soft edge fades instead of hard clipping */
+.marquee{-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.strip-view{-webkit-mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent);mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}
+
+/* A7 · pulsing gold dot before eyebrows */
+.eyebrow{display:flex;align-items:center;gap:9px}
+.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 0 rgba(201,162,75,.45);animation:eyebrowPulse 3.2s ease-out infinite;flex:none}
+@keyframes eyebrowPulse{0%{box-shadow:0 0 0 0 rgba(201,162,75,.45)}70%{box-shadow:0 0 0 9px rgba(201,162,75,0)}100%{box-shadow:0 0 0 0 rgba(201,162,75,0)}}
+
+/* A8 · cinematic vignette on every poster */
+.poster::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(10,8,4,.28) 100%)}
+html.dark .poster::after{background:radial-gradient(120% 90% at 50% 40%,transparent 50%,rgba(0,0,0,.45) 100%)}
+
+/* A9 · nav "scrolled" state (JS toggles .scrolled via IO sentinel) */
+#nav{transition:transform .45s var(--ease),background-color .35s,box-shadow .35s,backdrop-filter .35s}
+#nav.scrolled{background:color-mix(in srgb,var(--nav) 82%,var(--card));box-shadow:0 1px 0 var(--line),0 12px 32px rgba(0,0,0,.08);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3)}
+/* C7 · nav hides on scroll-down, returns on scroll-up (JS toggles .hide) */
+#nav.hide{transform:translateY(-110%)}
+
+/* A10 · hero collage idle float, staggered */
+.hv-in{animation:hvFloat 7s ease-in-out infinite alternate}
+.hv-2 .hv-in{animation-duration:8.6s;animation-delay:-2.4s}
+.hv-3 .hv-in{animation-duration:10.2s;animation-delay:-5.1s}
+@keyframes hvFloat{from{translate:0 -5px}to{translate:0 7px}}
+
+/* A11 · diamond ornament above tier names */
+.tier-card{position:relative}
+.tier-card::before{content:"◆";position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--gold);background:var(--card);padding:0 8px;line-height:1}
+
+/* A12 · collection index watermark via CSS counter */
+.coll-cards{counter-reset:collIdx}
+.coll-card{counter-increment:collIdx}
+.coll-card::before{content:"0" counter(collIdx);position:absolute;top:10px;right:14px;z-index:3;
+  font-size:11px;font-weight:700;letter-spacing:.18em;color:rgba(255,255,255,.85);
+  border:1px solid rgba(255,255,255,.35);border-radius:99px;padding:4px 10px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+
+/* A13 · process step numbers as gold-ringed badges */
+.step .n{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;
+  border:1.5px solid var(--gold);color:var(--gold-deep);font-size:13px !important;letter-spacing:.08em !important;margin-bottom:16px !important;background:color-mix(in srgb,var(--gold) 10%,transparent)}
+html.dark .step .n{color:var(--gold)}
+
+/* A14 · soft gold glow behind the newsletter */
+.foot-news{position:relative;isolation:isolate}
+.foot-news::before{content:"";position:absolute;inset:-26px -40px;z-index:-1;pointer-events:none;
+  background:radial-gradient(50% 60% at 50% 50%,color-mix(in srgb,var(--gold) 16%,transparent),transparent 70%)}
+
+/* A15 · marquee separators in gold */
+.mq-track i{color:var(--gold);font-style:normal;opacity:.9}
+
+/* A16 · stats numerals in gold gradient */
+.stat b{background:linear-gradient(135deg,var(--gold-deep),var(--gold) 60%,var(--gold-deep));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* A17 · hairline gold frame around the hero collage */
+.hero-visual{position:relative}
+.hero-visual::before{content:"";position:absolute;inset:-14px;border:1px solid color-mix(in srgb,var(--gold) 38%,transparent);border-radius:26px;pointer-events:none}
+
+/* A18 · shimmer placeholder behind posters while images load */
+.poster{background:linear-gradient(110deg,#e7e2d5 30%,#f4f0e4 45%,#e7e2d5 60%);background-size:200% 100%;animation:posterShimmer 2.4s linear infinite}
+html.dark .poster{background:linear-gradient(110deg,#15181d 30%,#1f232b 45%,#15181d 60%);background-size:200% 100%}
+@keyframes posterShimmer{to{background-position:-200% 0}}
+.poster.ld{animation:none;background:var(--card)}
+/* F5 · global backstop: shimmer off once the window finished loading */
+body.posters-in .poster{animation:none}
+
+/* A19 · section-title gold rule grows when the section reveals */
+.sec-head h2{position:relative;display:inline-block}
+.sec-head h2::after{content:"";position:absolute;left:2px;bottom:-12px;height:2px;width:64px;border-radius:2px;
+  background:linear-gradient(90deg,var(--gold),var(--gold-deep));transform:scaleX(0);transform-origin:left;transition:transform .9s var(--ease) .25s}
+.sec-head.in h2::after{transform:scaleX(1)}
+
+/* A20 · on-brand highlight for shared text-fragment links */
+::target-text{background:color-mix(in srgb,var(--gold) 42%,transparent);color:inherit}
+
+/* A1 · conic gold orbit on the "Surprise me" button (GPU, zero JS) */
+@property --spin{syntax:"<angle>";inherits:false;initial-value:0deg}
+@supports (background:conic-gradient(from var(--spin),red,blue)){
+  #surpriseBtn{position:relative;isolation:isolate}
+  #surpriseBtn::before{content:"";position:absolute;inset:-2px;border-radius:inherit;z-index:-1;opacity:.9;
+    background:conic-gradient(from var(--spin),transparent 0 68%,var(--gold) 80%,#fff8e7 86%,transparent 94%);
+    animation:spinOrbit 5.5s linear infinite}
+  @keyframes spinOrbit{to{--spin:360deg}}
+}
+
+/* ================= B · MICRO-INTERACTIONS (20) ================= */
+
+/* B1 · sibling spotlight: hovered card pops, siblings recede (pure :has) */
+#grid:has(.card:hover) .card:not(:hover){opacity:.55;filter:saturate(.8)}
+#grid .card{transition:opacity .35s var(--ease),filter .35s var(--ease),transform .45s var(--spring),box-shadow .45s}
+
+/* B2 · gold underline grows 0→100% on footer sitemap links */
+.foot-sitemap a{background:linear-gradient(var(--gold),var(--gold-deep)) left bottom/0% 1px no-repeat;transition:background-size .45s var(--ease),color .3s,transform .3s}
+.foot-sitemap a:hover{background-size:100% 1px}
+
+/* B4 · specular glare follows the pointer on tilted cards */
+.tilt{position:relative}
+.tilt::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;opacity:0;transition:opacity .35s;
+  background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.22),transparent 60%)}
+.tilt:hover::after{opacity:1}
+
+/* B5 · surprise dice wobble on click */
+@keyframes diceWobble{0%{transform:rotate(0)}25%{transform:rotate(-14deg) scale(1.06)}50%{transform:rotate(10deg)}75%{transform:rotate(-6deg) scale(1.02)}100%{transform:rotate(0)}}
+#surpriseBtn.wobble{animation:diceWobble .55s var(--ease)}
+
+/* B6 · gold ripple on filter chips */
+.fchip{position:relative;overflow:hidden}
+.fchip .ripple{position:absolute;border-radius:50%;background:color-mix(in srgb,var(--gold) 45%,transparent);transform:scale(0);animation:rippleGo .6s var(--ease);pointer-events:none}
+@keyframes rippleGo{to{transform:scale(3.2);opacity:0}}
+
+/* B7 · gold dot under the active nav link */
+.nav-link{position:relative}
+.nav-link[aria-current="page"]::after{content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--gold)}
+
+/* B8 · search-clear button springs in */
+#libClear{transform:scale(.4);opacity:0;transition:transform .35s var(--spring),opacity .25s}
+#libClear.show{transform:scale(1);opacity:1}
+
+/* B9 · sort control glows gold on focus */
+.sort-wrap{transition:box-shadow .3s}
+.sort-wrap:focus-within{box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 45%,transparent);border-radius:99px}
+
+/* B10 · preview modal springs open */
+#pvModal.show .pv-box{animation:modalSpring .55s var(--spring)}
+@keyframes modalSpring{from{opacity:0;transform:translateY(26px) scale(.95)}to{opacity:1;transform:none}}
+
+/* B11 · shortlist drawer items slide on hover */
+.sl-item{transition:transform .3s var(--ease),background-color .3s}
+.sl-item:hover{transform:translateX(5px)}
+
+/* B12 · toast with gold edge + slide-up entry */
+#toast{border-left:3px solid var(--gold);box-shadow:0 18px 50px rgba(0,0,0,.18)}
+#toast.show{animation:toastIn .45s var(--spring)}
+@keyframes toastIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+
+/* B13 · "→" nudges on License buttons */
+.btn-license::after{content:"→";display:inline-block;margin-left:6px;transition:transform .3s var(--ease)}
+.btn-license:hover::after{transform:translateX(4px)}
+
+/* B14 · tactile press state on every tappable control */
+.theme-btn:active,.sl-btn:active,.pv-nav:active,.sh-btn:active,.fchip:active,.coll-card:active,.pv-nav:active{scale:.93;transition:scale .12s}
+.theme-btn,.sl-btn,.pv-nav,.sh-btn,.fchip,.coll-card{transition:scale .12s}
+
+/* B15 · scroll hint fades once the user scrolls */
+.scroll-hint{transition:opacity .6s}
+.scroll-hint.gone{opacity:0}
+
+/* B16 · collection card arrow slides on hover */
+.coll-card .go{transition:transform .35s var(--ease)}
+.coll-card:hover .go{transform:translateX(7px)}
+
+/* B17 · timecode badge lifts + turns gold on card hover */
+.card .tc,.strip-card .tc{transition:transform .3s var(--ease),color .3s,border-color .3s}
+.card:hover .tc,.strip-card:hover .tc{transform:translateY(-3px);color:var(--gold-deep);border-color:color-mix(in srgb,var(--gold) 60%,transparent)}
+html.dark .card:hover .tc,html.dark .strip-card:hover .tc{color:var(--gold)}
+
+/* B18 · heart burst particles */
+.burst-p{position:fixed;z-index:200;pointer-events:none;width:7px;height:7px;border-radius:50%;background:var(--gold);animation:burstFly .8s var(--ease) forwards}
+@keyframes burstFly{to{transform:translate(var(--bx),var(--by)) scale(.2);opacity:0}}
+
+/* B19 · newsletter placeholder fades on focus */
+.foot-news input::placeholder{transition:opacity .3s}
+.foot-news input:focus::placeholder{opacity:.35}
+
+/* B20 · native open AND close animation for the shortcuts dialog */
+#scHelp{transition:opacity .3s var(--ease),transform .3s var(--ease),display .3s allow-discrete}
+@starting-style{#scHelp{opacity:0;transform:translateY(12px) scale(.98)}}
+
+/* ================= C · MOBILE / UX (15) ================= */
+
+/* C5 · anchors clear the sticky nav */
+section[id],header#overview{scroll-margin-top:96px}
+
+/* C6 · uniform 3-line card descriptions */
+.card .desc{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+/* C11 · no accidental callout menu on posters */
+.poster{-webkit-touch-callout:none}
+
+/* C12 · dvh-first sizing for modal + sheet (svh/vh fallbacks) */
+#pvModal .pv-box{max-height:94vh;max-height:94svh;max-height:94dvh}
+#sheet{max-height:94vh;max-height:94svh;max-height:94dvh}
+
+/* C13 · 48px heart targets on coarse pointers */
+@media(pointer:coarse){
+  .sl-btn{min-width:48px;min-height:48px;display:inline-flex;align-items:center;justify-content:center}
+}
+
+/* C14 · strip never chains scroll to the page */
+#stripTrack{overscroll-behavior-x:contain}
+
+/* E15 · 44px minimum for the shortlist heart (all pointers) */
+.sl-btn{min-width:44px;min-height:44px}
+
+/* ================= E · ACCESSIBILITY (15) ================= */
+
+/* E4 · honor data-saver-adjacent transparency preference */
+@media(prefers-reduced-transparency:reduce){
+  .glow,#cursorLight,.foot-news::before,.hero-visual::before{display:none !important}
+  #nav,#nav.scrolled{backdrop-filter:none;-webkit-backdrop-filter:none}
+  .marquee,.strip-view{-webkit-mask-image:none;mask-image:none}
+}
+
+/* E10 · :focus fallback for browsers without :focus-visible (progressive enhancement) */
+@supports not selector(:focus-visible){
+  a:focus,button:focus,input:focus,select:focus,textarea:focus,[tabindex]:focus{outline:2px solid var(--gold);outline-offset:3px}
+}
+
+/* E11 · no smooth scrolling for reduced-motion users */
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+}
+
+/* ================= F · PERFORMANCE (15) ================= */
+
+/* F9 · skip rendering work for the offscreen FAQ */
+.faq-list{content-visibility:auto;contain-intrinsic-size:auto 420px}
+
+/* F10 · skip rendering work for offscreen clip cards */
+.card,.strip-card{content-visibility:auto;contain-intrinsic-size:360px 500px}
+
+/* ================= REDUCED-MOTION MASTER GATE ================= */
+@media(prefers-reduced-motion:reduce){
+  .hv-in,.eyebrow::before,.poster,#surpriseBtn::before,.fchip .ripple,.burst-p,
+  #pvModal.show .pv-box,#toast.show,#surpriseBtn.wobble{animation:none !important}
+  #grid:has(.card:hover) .card:not(:hover){opacity:1;filter:none}
+  .tilt::after{display:none}
+  .sec-head h2::after{transform:scaleX(1);transition:none}
+  #nav{transition:none}
+}

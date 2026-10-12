@@ -26,7 +26,7 @@ const COLL_POSTER={"Valley Road":"assets/posters/valley-road.jpg","Data Center":
 /* ---------------- render cards ---------------- */
 function stripCard(c){
   return `<article class="strip-card tilt" role="listitem" tabindex="0" data-clip="${c.id}">
-    <div class="poster p-${c.id}" data-poster="${c.id}"><img src="${COLL_POSTER[c.coll]}" alt="${c.name} plate still" loading="lazy" decoding="async" width="1280" height="720"><span class="preview-pill">Preview</span><span class="tc">${tcOf(c)}</span><button class="sl-btn" data-sl="${c.id}" aria-label="Shortlist ${c.name}" title="Add to shortlist">♡</button></div>
+    <div class="poster p-${c.id}" data-poster="${c.id}"><img src="${COLL_POSTER[c.coll]}" alt="${c.name} plate still" loading="lazy" fetchpriority="low" decoding="async" draggable="false" width="1280" height="720"><span class="preview-pill">Preview</span><span class="tc">${tcOf(c)}</span><button class="sl-btn" data-sl="${c.id}" aria-label="Shortlist ${c.name}" title="Add to shortlist">♡</button></div>
     <div class="strip-body">
       <p class="eyebrow">${c.coll}</p><h3>${c.name}</h3><p>${c.desc}</p>
       <div class="meta-row"><span class="meta">${c.meta}</span>
@@ -35,7 +35,7 @@ function stripCard(c){
 }
 function gridCard(c){
   return `<article class="card tilt" role="listitem" tabindex="0" data-clip="${c.id}">
-    <div class="poster p-${c.id}" data-poster="${c.id}"><img src="${COLL_POSTER[c.coll]}" alt="${c.name} plate still" loading="lazy" decoding="async" width="1280" height="720"><span class="preview-pill">Preview</span><span class="tc">${tcOf(c)}</span><button class="sl-btn" data-sl="${c.id}" aria-label="Shortlist ${c.name}" title="Add to shortlist">♡</button></div>
+    <div class="poster p-${c.id}" data-poster="${c.id}"><img src="${COLL_POSTER[c.coll]}" alt="${c.name} plate still" loading="lazy" fetchpriority="low" decoding="async" draggable="false" width="1280" height="720"><span class="preview-pill">Preview</span><span class="tc">${tcOf(c)}</span><button class="sl-btn" data-sl="${c.id}" aria-label="Shortlist ${c.name}" title="Add to shortlist">♡</button></div>
     <div class="card-body">
       <p class="eyebrow">${c.coll}</p>
       <h3 class="mask"><span class="mi">${c.name}</span></h3>
@@ -47,7 +47,7 @@ function gridCard(c){
 function stackCard(c,i){
   return `<article class="stack-card" tabindex="0" data-clip="${c.id}">
     <span class="stack-num">0${i+1} / 04</span>
-    <div class="poster p-${c.id}" data-poster="${c.id}"><img src="${COLL_POSTER[c.coll]}" alt="${c.name} plate still" loading="lazy" decoding="async" width="1280" height="720"><span class="tc">${tcOf(c)}</span><button class="sl-btn" data-sl="${c.id}" aria-label="Shortlist ${c.name}" title="Add to shortlist">♡</button></div>
+    <div class="poster p-${c.id}" data-poster="${c.id}"><img src="${COLL_POSTER[c.coll]}" alt="${c.name} plate still" loading="lazy" fetchpriority="low" decoding="async" draggable="false" width="1280" height="720"><span class="tc">${tcOf(c)}</span><button class="sl-btn" data-sl="${c.id}" aria-label="Shortlist ${c.name}" title="Add to shortlist">♡</button></div>
     <div class="stack-info">
       <p class="eyebrow">${c.coll} · Spotlight</p><h3>${c.name}</h3><p>${c.desc}</p>
       <div class="meta-row" style="margin-top:18px"><span class="meta">${c.meta}</span>
@@ -250,11 +250,12 @@ addEventListener("scroll",()=>{
   if(y>lastY+6&&y>420) nav.classList.add("hide");
   else if(y<lastY-6) nav.classList.remove("hide");
   lastY=y;
+  const shEl=$(".scroll-hint"); if(shEl) shEl.classList.toggle("gone",y>140);
   needRead=true;
 },{passive:true});
 let needRead=false;
 let rzT=0; addEventListener("resize",()=>{ clearTimeout(rzT); rzT=setTimeout(()=>{ measure(); measureSections(); mqMeasure(); measureFill(); readTargets(); needApply=true; },150); });
-addEventListener("load",()=>{ measure(); measureSections(); mqMeasure(); measureFill(); readTargets(); needApply=true; });
+addEventListener("load",()=>{ measure(); measureSections(); mqMeasure(); measureFill(); readTargets(); needApply=true; document.body.classList.add("posters-in"); });
 measure(); measureSections(); mqMeasure(); measureFill(); readTargets(); render();
 
 /* cursor light follows (lerped) */
@@ -294,27 +295,39 @@ function setActive(id){
 }
 const spy=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting) setActive(e.target.id); }),{rootMargin:"-38% 0px -55% 0px"});
 ["overview","scenes","collections","spotlight","library","license","process","faq"].forEach(id=>{ const s=document.getElementById(id); if(s) spy.observe(s); });
-addEventListener("resize",()=>{ const a=$(".nav-link.active"); if(a) setActive(a.dataset.sec); });
+let rzT2=0; addEventListener("resize",()=>{ clearTimeout(rzT2); rzT2=setTimeout(()=>{ const a=$(".nav-link.active"); if(a) setActive(a.dataset.sec); },200); });
 setActive("overview");
 
-/* ---------------- 3D tilt + dynamic shadow ---------------- */
-$$(".tilt").forEach(card=>{
+/* ---------------- 3D tilt + dynamic shadow + glare (run #9: lazy IO, fine-pointer only) ---------------- */
+const tiltRM=matchMedia("(prefers-reduced-motion: reduce)").matches, tiltFine=matchMedia("(pointer:fine)").matches;
+function tiltBind(card){
+  if(card.dataset.tiltBound||!tiltFine||tiltRM) return; card.dataset.tiltBound="1";
   card.addEventListener("pointermove",e=>{
     const r=card.getBoundingClientRect();
     const px=(e.clientX-r.left)/r.width-.5, py=(e.clientY-r.top)/r.height-.5;
     card.style.transform=`perspective(950px) rotateX(${(-py*9).toFixed(2)}deg) rotateY(${(px*11).toFixed(2)}deg) translateY(-4px)`;
     card.style.setProperty("--shx",`${(-px*26).toFixed(1)}px`);
     card.style.setProperty("--shy",`${(22+py*26).toFixed(1)}px`);
+    card.style.setProperty("--mx",`${(px*100+50).toFixed(1)}%`);
+    card.style.setProperty("--my",`${(py*100+50).toFixed(1)}%`);
   });
-  card.addEventListener("pointerleave",()=>{ card.style.transform=""; card.style.removeProperty("--shx"); card.style.removeProperty("--shy"); });
-});
+  card.addEventListener("pointerleave",()=>{ card.style.transform=""; ["--shx","--shy","--mx","--my"].forEach(p=>card.style.removeProperty(p)); });
+}
+let tiltIO=null;
+function rebindTilt(){
+  if(!("IntersectionObserver" in window)){ $$(".tilt").forEach(tiltBind); return; }
+  if(!tiltIO){ tiltIO=new IntersectionObserver(es=>{es.forEach(en=>{ if(en.isIntersecting){ tiltBind(en.target); tiltIO.unobserve(en.target); } });},{rootMargin:"700px"}); window.__tiltIO=tiltIO; }
+  $$(".tilt").forEach(c=>{ if(!c.dataset.tiltBound) tiltIO.observe(c); });
+}
+rebindTilt();
 
 /* ---------------- magnetic buttons ---------------- */
 $$(".magnetic").forEach(btn=>{
+  const mag=parseFloat(btn.dataset.magnet||"1")||1;
   btn.addEventListener("pointermove",e=>{
     const r=btn.getBoundingClientRect();
     const dx=e.clientX-(r.left+r.width/2), dy=e.clientY-(r.top+r.height/2);
-    btn.style.transform=`translate(${(dx*.26).toFixed(1)}px,${(dy*.26).toFixed(1)}px)`;
+    btn.style.transform=`translate(${(dx*.26*mag).toFixed(1)}px,${(dy*.26*mag).toFixed(1)}px)`;
   });
   btn.addEventListener("pointerleave",()=>{ btn.style.transform="translate(0,0)"; });
 });
@@ -367,7 +380,7 @@ function openSheet(clips,sourceEl){
     /* no FLIP source (e.g. shortlist drawer) — open directly */
     backdrop.classList.add("show");
     sheet.classList.add("open");
-    sheet.setAttribute("aria-hidden","false");
+    sheet.setAttribute("aria-hidden","false"); setPageInert(true);
     document.body.style.overflow="hidden";
     return;
   }
@@ -377,7 +390,7 @@ function openSheet(clips,sourceEl){
      then restart the slide so the FLIP flight runs in sync with the sheet */
   sheet.style.transition="none";
   sheet.classList.add("open");
-  sheet.setAttribute("aria-hidden","false");
+  sheet.setAttribute("aria-hidden","false"); setPageInert(true);
   sThumb.style.visibility="hidden";
   const toRect=sThumb.getBoundingClientRect();
   sheet.classList.remove("open");
@@ -396,7 +409,7 @@ function closeSheet(){
   sThumb.style.visibility="hidden";
   sheet.classList.remove("open");
   backdrop.classList.remove("show");
-  sheet.setAttribute("aria-hidden","true");
+  sheet.setAttribute("aria-hidden","true"); setPageInert(false);
   flyTo(fromRect,toRect,480,()=>{
     sThumb.style.visibility="";
     document.body.style.overflow="";
@@ -424,25 +437,34 @@ function renderShortlist(){
   slItems.innerHTML=shortlist.map(id=>{
     const c=byId(id);
     return `<div class="sl-item">
-      <img class="thumb" src="${COLL_POSTER[c.coll]}" alt="${c.name} plate still" decoding="async" width="152" height="96">
+      <img class="thumb" src="${COLL_POSTER[c.coll]}" alt="${c.name} plate still" loading="lazy" decoding="async" width="152" height="96">
       <div><p class="nm">${c.name}</p><p class="mt">${c.coll} · ${c.meta}</p></div>
       <button class="rm" data-rm="${id}" aria-label="Remove ${c.name}">×</button>
     </div>`;
   }).join("");
 }
 function toggleShortlist(id,btn){
-  const i=shortlist.indexOf(id);
-  if(i>=0){ shortlist.splice(i,1); toast("Removed from shortlist."); }
+  const i=shortlist.indexOf(id), adding=i<0;
+  if(!adding){ shortlist.splice(i,1); toast("Removed from shortlist."); }
   else{ shortlist.push(id); toast("Added to shortlist.",{label:"View →",fn:openDrawer}); }
+  if(navigator.vibrate){ try{ navigator.vibrate(adding?12:8); }catch(_){} }
   saveShortlist(); renderShortlist();
+  $$("[data-sl]").forEach(b=>b.setAttribute("aria-pressed",shortlist.includes(b.dataset.sl)?"true":"false"));
+  if(adding&&btn&&!reduced&&btn.getClientRects().length){
+    const r=btn.getBoundingClientRect();
+    for(let k=0;k<7;k++){ const p=document.createElement("span"); p.className="burst-p";
+      const a=k/7*Math.PI*2; p.style.left=(r.left+r.width/2)+"px"; p.style.top=(r.top+r.height/2)+"px";
+      p.style.setProperty("--bx",Math.cos(a)*46+"px"); p.style.setProperty("--by",Math.sin(a)*46+"px");
+      document.body.appendChild(p); p.addEventListener("animationend",()=>p.remove(),{once:true}); }
+  }
   if(btn){ btn.classList.remove("pop"); void btn.offsetWidth; btn.classList.add("pop"); }
   const live=$("#slLive");
   if(live) live.textContent=shortlist.length?shortlist.length+" plate"+(shortlist.length>1?"s":"")+" in your shortlist":"Shortlist is empty.";
 }
-function openDrawer(){ trackFocus(); renderShortlist(); drawer.classList.add("open"); drawer.setAttribute("aria-hidden","false"); backdrop.classList.add("show"); document.body.style.overflow="hidden"; }
+function openDrawer(){ trackFocus(); renderShortlist(); drawer.classList.add("open"); drawer.setAttribute("aria-hidden","false"); setPageInert(true); backdrop.classList.add("show"); document.body.style.overflow="hidden"; }
 function closeDrawer(){
   if(!drawer.classList.contains("open")) return;
-  drawer.classList.remove("open"); drawer.setAttribute("aria-hidden","true");
+  drawer.classList.remove("open"); drawer.setAttribute("aria-hidden","true"); setPageInert(false);
   if(!pvModal.classList.contains("show")&&!sheet.classList.contains("open")){ backdrop.classList.remove("show"); document.body.style.overflow=""; }
   restoreFocus();
 }
@@ -480,6 +502,7 @@ function applyFilter(){
     row.style.display=test(c)?"":"none";
   });
   $("#noResult").classList.toggle("show",n===0);
+    const liveCnt=$("#slLive"); if(liveCnt) liveCnt.textContent=n+" of 9 plates shown.";
   };
   if(typeof document.startViewTransition==="function"&&!reduced){ try{ document.startViewTransition(run); return; }catch(_){} }
   run();
@@ -518,7 +541,7 @@ function openPreview(id,sourceEl){
   trackFocus();
   pvModal.dataset.clip=id; setClipParam(id); pushRecent(id); preloadAdjacent(id);
   const img=$("#pvImg");
-  img.src=COLL_POSTER[c.coll]; img.alt=c.name+" — "+c.coll+" plate still";
+  img.src=COLL_POSTER[c.coll]; img.alt=c.name+" — silent plate preview still";
   $("#pvCap").textContent=c.coll+" · Preview still";
   $("#pvColl").textContent=c.coll;
   $("#pvCollTop").textContent=c.coll;
@@ -528,7 +551,7 @@ function openPreview(id,sourceEl){
   $("#pvLicense").dataset.lic=c.id;
   updateCounter(id);
   document.querySelector(".pv-media").classList.remove("zoomed");
-  pvModal.classList.add("show"); pvModal.setAttribute("aria-hidden","false");
+  pvModal.classList.add("show"); pvModal.setAttribute("aria-hidden","false"); setPageInert(true);
   backdrop.classList.add("show"); document.body.style.overflow="hidden";
   resetIdle();
   /* shared-element morph from the clicked card */
@@ -552,7 +575,7 @@ function openPreview(id,sourceEl){
 }
 function closePreview(){
   if(!pvModal.classList.contains("show")) return;
-  pvModal.classList.remove("show","morphing","idle"); pvModal.setAttribute("aria-hidden","true");
+  pvModal.classList.remove("show","morphing","idle"); pvModal.setAttribute("aria-hidden","true"); setPageInert(false);
   clearTimeout(idleT);
   pvBox.style.transition=""; pvBox.style.transform=""; backdrop.style.opacity="";
   setClipParam(null);
@@ -560,6 +583,26 @@ function closePreview(){
   $("#floatPrev").style.opacity=0;
   restoreFocus();
 }
+
+/* run #9 · E2 focus trap + E3 inert page behind dialogs */
+function setPageInert(on){
+  ["#nav","#main","footer"].forEach(s=>{ const el=document.querySelector(s); if(!el) return;
+    try{ el.inert=!!on; }catch(_){ if(on) el.setAttribute("aria-hidden","true"); else el.removeAttribute("aria-hidden"); } });
+}
+function trapFocus(container){
+  if(container.dataset.trapped) return; container.dataset.trapped="1";
+  container.addEventListener("keydown",e=>{
+    if(e.key!=="Tab") return;
+    const f=[...container.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')]
+      .filter(el=>!el.disabled&&el.getClientRects().length);
+    if(!f.length) return;
+    const first=f[0],last=f[f.length-1];
+    if(e.shiftKey&&document.activeElement===first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey&&document.activeElement===last){ e.preventDefault(); first.focus(); }
+  });
+}
+trapFocus(pvModal); trapFocus(drawer); trapFocus(sheet);
+
 /* auto-hide chrome on pointer idle */
 let idleT;
 function resetIdle(){
@@ -721,15 +764,17 @@ trapFocus(pvModal); trapFocus(sheet); trapFocus(drawer);
 /* 8: progressive blur-up */
 function sharpUp(scope){
   $$(".poster img, .hv-in img, .coll-card img",(scope||document)).forEach(img=>{
-    if(img.complete&&img.naturalWidth) img.classList.add("sharp");
-    else img.addEventListener("load",()=>img.classList.add("sharp"),{once:true});
+    const sharpDone=()=>{ img.classList.add("sharp"); const p=img.closest(".poster"); if(p) p.classList.add("ld"); };
+    if(img.complete&&img.naturalWidth) sharpDone();
+    else img.addEventListener("load",sharpDone,{once:true});
   });
 }
 if("requestIdleCallback" in window){ requestIdleCallback(()=>sharpUp(),{timeout:1600}); }else{ setTimeout(()=>sharpUp(),40); }
-/* 7: clickable collection marquee */
+/* 7: clickable collection marquee (run #9 · F12 idle-deferred, below the fold) */
 (function(){
+  const buildMq=()=>{
   const colls=["Valley Road","Data Center","Deep Ocean"];
-  const half=colls.map(c=>`<button data-mq="${c}">${c}<i>·</i></button>`).join("");
+  const half=colls.map(c=>`<button data-mq="${c}">${c}<i aria-hidden="true">·</i></button>`).join("");
   $("#mqColl").innerHTML=half+'<span inert aria-hidden="true" style="display:contents">'+half+'</span>';
   $("#mqColl").addEventListener("click",e=>{
     const b=e.target.closest("[data-mq]"); if(!b) return;
@@ -738,6 +783,8 @@ if("requestIdleCallback" in window){ requestIdleCallback(()=>sharpUp(),{timeout:
     fColl=f; applyFilter();
     $("#library").scrollIntoView({behavior:reduced?"auto":"smooth"});
   });
+  };
+  if("requestIdleCallback" in window) requestIdleCallback(buildMq,{timeout:2500}); else buildMq();
 })();
 /* 10: list view */
 let orderedClips=[...CLIPS], viewMode="grid";
@@ -894,19 +941,24 @@ if(matchMedia("(pointer:fine)").matches){
   document.body.classList.add("cur-on");
   const dot=$("#curDot"), ring=$("#curRing"), curLabel=$("#curLabel");
   let mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
+  let curQueued=false,curEv=null; /* run #9 F13 · coalesce cursor writes into one rAF */
   addEventListener("pointermove",e=>{
-    document.body.classList.add("cur-moved");
-    mx=e.clientX; my=e.clientY;
-    hvtx=e.clientX/innerWidth-.5; hvty=e.clientY/innerHeight-.5;
-    dot.style.transform=`translate3d(${mx-3.5}px,${my-3.5}px,0)`;
-    const hov=e.target.closest&&e.target.closest("a,button,.tilt,.stack-card,input,textarea");
-    ring.classList.toggle("big",!!hov);
-    /* talking cursor: View on cards, Drag on the strip */
-    const card=e.target.closest&&e.target.closest(".card,.strip-card,.stack-card");
-    const strip=e.target.closest&&e.target.closest(".strip-view");
-    const tag=card?"View":(strip?"Drag":null);
-    ring.classList.toggle("tag",!!tag);
-    if(curLabel) curLabel.textContent=tag||"";
+    curEv=e; if(curQueued) return; curQueued=true;
+    requestAnimationFrame(()=>{
+      curQueued=false; const ev=curEv;
+      document.body.classList.add("cur-moved");
+      mx=ev.clientX; my=ev.clientY;
+      hvtx=ev.clientX/innerWidth-.5; hvty=ev.clientY/innerHeight-.5;
+      dot.style.transform=`translate3d(${mx-3.5}px,${my-3.5}px,0)`;
+      const hov=ev.target.closest&&ev.target.closest("a,button,.tilt,.stack-card,input,textarea");
+      ring.classList.toggle("big",!!hov);
+      /* talking cursor: View on cards, Drag on the strip */
+      const card=ev.target.closest&&ev.target.closest(".card,.strip-card,.stack-card");
+      const strip=ev.target.closest&&ev.target.closest(".strip-view");
+      const tag=card?"View":(strip?"Drag":null);
+      ring.classList.toggle("tag",!!tag);
+      if(curLabel) curLabel.textContent=tag||"";
+    });
   },{passive:true});
   (function curLoop(){
     rx=lerp(rx,mx,.16); ry=lerp(ry,my,.16);
@@ -1014,4 +1066,52 @@ document.addEventListener("keydown",e=>{
   const card=t.closest("[data-clip]");
   if(card){ e.preventDefault(); card.click(); }
 });
+
+/* run #9 · F6 disconnect observers on pagehide (no leaks across bfcache) */
+addEventListener("pagehide",()=>{ [glowIO,io,spy,statIO].forEach(o=>{ try{ o.disconnect(); }catch(_){} }); if(window.__tiltIO){ try{ window.__tiltIO.disconnect(); }catch(_){} } },{once:true});
+
+/* run #9 · remaining interaction layer */
+/* A9+F8 · nav "scrolled" state via IO sentinel on the hero (no scroll listener) */
+(function(){
+  const heroEl=document.querySelector("#overview"), navEl=document.querySelector("#nav");
+  if(!heroEl||!navEl||!("IntersectionObserver" in window)) return;
+  const scIO=new IntersectionObserver(es=>{ es.forEach(en=>{
+    navEl.classList.toggle("scrolled", !en.isIntersecting && en.boundingClientRect.top < 0);
+  }); },{threshold:0});
+  scIO.observe(heroEl);
+})();
+/* B6 · gold ripple on filter chips */
+document.addEventListener("click",e=>{
+  const chip=e.target&&e.target.closest?e.target.closest(".fchip"):null; if(!chip) return;
+  const r=chip.getBoundingClientRect(), s=document.createElement("span");
+  s.className="ripple"; const sz=Math.max(r.width,r.height);
+  s.style.cssText="width:"+sz+"px;height:"+sz+"px;left:"+(e.clientX-r.left-sz/2)+"px;top:"+(e.clientY-r.top-sz/2)+"px";
+  chip.appendChild(s); s.addEventListener("animationend",()=>s.remove(),{once:true});
+});
+/* B5 · surprise dice wobble on click */
+(function(){
+  const sb=document.querySelector("#surpriseBtn"); if(!sb) return;
+  sb.addEventListener("click",()=>{ sb.classList.remove("wobble"); void sb.offsetWidth; sb.classList.add("wobble"); });
+  sb.addEventListener("animationend",e=>{ if(e.animationName==="diceWobble") sb.classList.remove("wobble"); });
+})();
+/* C8 · horizontal swipe on the preview modal steps between clips */
+(function(){
+  let sx=null;
+  pvModal.addEventListener("touchstart",e=>{ sx=e.touches[0].clientX; },{passive:true});
+  pvModal.addEventListener("touchend",e=>{ if(sx===null) return;
+    const dx=e.changedTouches[0].clientX-sx; sx=null;
+    if(Math.abs(dx)>56) stepPreview(dx<0?1:-1);
+  },{passive:true});
+})();
+/* E8 · arrow keys scroll the strip carousel */
+(function(){
+  const st=document.querySelector("#stripTrack"); if(!st) return;
+  st.addEventListener("keydown",e=>{
+    if(e.key!=="ArrowRight"&&e.key!=="ArrowLeft") return;
+    e.preventDefault();
+    const card=st.querySelector(".strip-card");
+    const w=card?card.getBoundingClientRect().width+28:320;
+    st.scrollBy({left:(e.key==="ArrowRight"?1:-1)*w,behavior:reduced?"auto":"smooth"});
+  });
+})();
 })();

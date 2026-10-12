@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://mai-dang-khoa.github.io/nature-footage/</loc>
-    <changefreq>monthly</changefreq>
-    <priority>1.0</priority>
-  </url>
+  <url><loc>https://mai-dang-khoa.github.io/nature-footage/</loc><lastmod>2026-10-13</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://mai-dang-khoa.github.io/nature-footage/?clip=fog-road</loc><lastmod>2026-10-13</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://mai-dang-khoa.github.io/nature-footage/?clip=wet-asphalt</loc><lastmod>2026-10-13</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://mai-dang-khoa.github.io/nature-footage/?clip=mist-line</loc><lastmod>2026-10-13</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://mai-dang-khoa.github.io/nature-footage/?clip=cold-aisle</loc><lastmod>2026-10-13</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://mai-dang-khoa.github.io/nature-footage/?clip=immersion-tank</loc><lastmod>2026-10-13</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://mai-dang-khoa.github.io/nature-footage/?clip=subsea-cable</loc><lastmod>2026-10-13</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://mai-dang-khoa.github.io/nature-footage/?clip=black-smoker</loc><lastmod>2026-10-13</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://mai-dang-khoa.github.io/nature-footage/?clip=abyss-drift</loc><lastmod>2026-10-13</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://mai-dang-khoa.github.io/nature-footage/?clip=vent-field</loc><lastmod>2026-10-13</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
 </urlset>
