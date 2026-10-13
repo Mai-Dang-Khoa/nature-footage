@@ -1,0 +1,13 @@
+/* TEAM */
+Plates Studio — Cinematic plates for editors.
+
+/* SITE */
+Standards: HTML5, CSS3, ECMAScript 2026
+Components: Single-file storefront, 9 cinematic 3D plates
+Software: Unreal Engine 5 (renders), static site
+
+/* THANKS */
+To every editor who ever needed the perfect establishing shot.
+
+/* CONTACT */
+hello@plates.studio
