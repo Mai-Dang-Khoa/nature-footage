@@ -7,7 +7,33 @@
   "background_color": "#090908",
   "theme_color": "#090908",
   "icons": [
-    {"src":"https://files.catbox.moe/y71ohm.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
-    {"src":"https://files.catbox.moe/frp853.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+    {
+      "src": "https://files.catbox.moe/y71ohm.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://files.catbox.moe/frp853.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://files.catbox.moe/fh02wg.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Valley Road collection — cinematic rain plates"
+    },
+    {
+      "src": "https://files.catbox.moe/8d1i1o.jpg",
+      "sizes": "720x1280",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Plates Luxury library on mobile"
+    }
   ]
 }
