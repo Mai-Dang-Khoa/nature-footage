@@ -1,0 +1,242 @@
+/* plates-hunter-run38 — staged LOCAL, KHONG push GitHub (cho chu "up").
+   0 byte <head>. Moi query deu null-check; API moi deu feature-detect.
+   Tich hop khi "up": copy hunter38.css + hunter38.js -> assets/ + 2 dong
+   <link rel="stylesheet" href="assets/hunter38.css">
+   <script defer src="assets/hunter38.js"></script> (~110B) sau hunter37.
+   0 credit AI. Giu 9 clip + $29/$79/$199. RM + save-data + fine-pointer gate. */
+
+/* ============ H38-09 · micro-motion easing token ============ */
+:root{--h38-ease:cubic-bezier(.22,1,.36,1)}
+
+/* ============ H38-100 · kill-switch (JS gan .h38-nomotion khi RM) ============ */
+html.h38-nomotion .h38-motion,html.h38-nomotion .h38-motion *,
+html.h38-nomotion #heroVideo{animation:none!important;transition:none!important}
+
+/* ============ H38-02 · View Transition khong tu ke thua RM (dev.to/blog 2026) ============ */
+@media (prefers-reduced-motion:reduce){
+  ::view-transition-group(*){animation-duration:.01ms!important}
+  ::view-transition-old(*),::view-transition-new(*){animation-duration:.01ms!important}
+}
+
+/* ============ H38-05 · @property --h38-glow: hover glow animate duoc ============ */
+@property --h38-glow{syntax:"<length>";inherits:false;initial-value:0px}
+.clip-card{--h38-glow:0px;transition:--h38-glow .35s var(--h38-ease),box-shadow .35s var(--h38-ease)}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .clip-card:hover{--h38-glow:16px;box-shadow:0 18px 46px rgba(10,8,4,.26),0 0 var(--h38-glow) rgba(212,175,105,.32)}
+}
+html.h38-nomotion .clip-card{transition:none}
+
+/* ============ H38-06 · @property --h38-angle: orbit border card dau tien ============ */
+@property --h38-angle{syntax:"<angle>";inherits:false;initial-value:0deg}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  @supports (background:conic-gradient(from var(--h38-angle),red,blue)){
+    .clip-grid .clip-card:first-child{position:relative}
+    .clip-grid .clip-card:first-child::after{content:"";position:absolute;inset:-1px;
+      border-radius:inherit;pointer-events:none;padding:1px;
+      background:conic-gradient(from var(--h38-angle),transparent 0 68%,rgba(212,175,105,.95) 84%,transparent 100%);
+      -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+      mask-composite:exclude;animation:h38-orbit 7s linear infinite}
+    @keyframes h38-orbit{to{--h38-angle:360deg}}
+  }
+}
+
+/* ============ H38-07 · @property --h38-n: dem 00->09 tren .hero-index ============ */
+@property --h38-n{syntax:"<integer>";inherits:false;initial-value:0}
+@media (prefers-reduced-motion:no-preference){
+  @supports (animation-timeline:view()){
+    .hero-index strong{--h38-n:9;position:relative;color:transparent;
+      animation:h38-count 1.6s var(--h38-ease) .2s backwards;
+      animation-timeline:view();animation-range:entry 0% entry 80%}
+    @keyframes h38-count{from{--h38-n:0}}
+    .hero-index strong::after{content:counter(h38c,decimal-leading-zero);counter-reset:h38c var(--h38-n);
+      position:absolute;inset:0;font:500 1.5rem/1 var(--serif);color:var(--gold-2)}
+  }
+}
+html.h38-nomotion .hero-index strong,html.h38-counted .hero-index strong{animation:none;color:var(--gold-2)}
+html.h38-nomotion .hero-index strong::after,html.h38-counted .hero-index strong::after{content:none}
+
+/* ============ H38-03 · exit range: journal-card mo dan khi roi viewport ============ */
+/* ============ H38-11 · view-timeline-name: timeline dat ten cho journal ============ */
+.journal-grid{view-timeline-name:--h38-journal;view-timeline-axis:block}
+@media (prefers-reduced-motion:no-preference){
+  @supports (animation-timeline:view()){
+    .journal-card{animation:h38-jin .7s var(--h38-ease) both,h38-jexit linear both;
+      animation-timeline:--h38-journal,view();
+      animation-range:entry 10% entry 55%,exit 0% exit 100%}
+    @keyframes h38-jin{from{opacity:0;transform:translateY(26px)}}
+    @keyframes h38-jexit{from{opacity:1;transform:scale(1)}to{opacity:.2;transform:scale(.95)}}
+  }
+}
+html.h38-nomotion .journal-card{animation:none}
+
+/* ============ H38-04 · cover range: .fly-head cinematic scale theo scroll ============ */
+@media (prefers-reduced-motion:no-preference){
+  @supports (animation-timeline:view()){
+    .fly-head{animation:h38-fly linear both;animation-timeline:view();animation-range:cover 0% cover 100%}
+    @keyframes h38-fly{from{transform:scale(.94);opacity:.55}50%{transform:scale(1);opacity:1}to{transform:scale(.97);opacity:.75}}
+  }
+}
+html.h38-nomotion .fly-head{animation:none}
+
+/* ============ H38-08 · icon xoay -12 do + scale khi hover (utility-btn) ============ */
+.utility-btn{transition:rotate .22s var(--h38-ease),scale .22s var(--h38-ease)}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .utility-btn:hover{rotate:-12deg;scale:1.08}
+}
+html.h38-nomotion .utility-btn{transition:none}
+
+/* ============ H38-10 · text-wrap-style: pretty cho #articleTitle (PE) ============ */
+@supports (text-wrap-style:pretty){
+  #articleTitle{text-wrap-style:pretty}
+}
+
+/* ============ H38-12 · container-type tren .clip-card (nen cho cqi) ============ */
+.clip-card{container-type:inline-size}
+
+/* ============ H38-20 · @container: card hep thi stack clip-info ============ */
+@supports (container-type:inline-size){
+  @container (max-width:320px){
+    .clip-card .clip-info{grid-template-columns:1fr}
+    .clip-card .preview-btn{justify-self:start}
+  }
+}
+
+/* ============ H38-13 · hue-rotate nhe tren .stack-art khi hover ============ */
+.stack-art{transition:filter .5s var(--h38-ease)}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .stack-art:hover{filter:hue-rotate(-8deg) saturate(1.06)}
+}
+html.h38-nomotion .stack-art{transition:none}
+
+/* ============ H38-14 · marquee edge fade + -webkit- prefix (Safari) ============ */
+.marquee{-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+
+/* ============ H38-15 · footer-links: transition mau dung easing chuan ============ */
+.footer-links a{transition:color .18s var(--h38-ease)}
+
+/* ============ H38-17 · scroll-snap-stop tren rail journal (noi staged H37-03) ============ */
+/* ============ H38-18 · scroll-snap-align + scroll-padding cho journal rail ============ */
+@supports (scroll-marker-group:after){
+  @media (max-width:760px){
+    .journal-grid{scroll-snap-stop:always;scroll-padding-inline:16px}
+    .journal-card{scroll-snap-align:center}
+  }
+}
+
+/* ============ H38-19 · :has(video.is-ready): card sang khi preview san sang ============ */
+@supports selector(:has(*)){
+  .clip-card:has(video.is-ready){--h38-ready:1}
+  .clip-card:has(video.is-ready) .clip-visual{border-color:rgba(212,175,105,.55)}
+}
+
+/* ============ H38-21 · :autofill: nen vang nhat cho input tu dien ============ */
+input:autofill,.search-input:autofill,#newsletterEmail:autofill,#contactEmail:autofill{
+  -webkit-text-fill-color:var(--ink);
+  -webkit-box-shadow:0 0 0 40px rgba(212,175,105,.14) inset;
+  box-shadow:0 0 0 40px rgba(212,175,105,.14) inset}
+
+/* ============ H38-23 · cursor zoom-in tren .clip-visual ============ */
+@media (hover:hover) and (pointer:fine){
+  .clip-visual{cursor:zoom-in}
+}
+
+/* ============ H38-24 · utility-dock: backdrop blur + saturate ============ */
+@supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+  .utility-dock{-webkit-backdrop-filter:blur(10px) saturate(1.15);backdrop-filter:blur(10px) saturate(1.15)}
+}
+@media (prefers-reduced-transparency:reduce){
+  .utility-dock{-webkit-backdrop-filter:none;backdrop-filter:none}
+}
+
+/* ============ H38-25 · focus-visible ring doi tren .modal-close ============ */
+.modal-close:focus-visible{outline:2px solid var(--gold-2);outline-offset:3px;
+  box-shadow:0 0 0 5px rgba(212,175,105,.28)}
+
+/* ============ H38-26 · focus-within glow tren .search-wrap ============ */
+.search-wrap:focus-within{filter:drop-shadow(0 0 10px rgba(212,175,105,.35))}
+
+/* ============ H38-27 · #cartRequest aria-disabled khi gio trong ============ */
+#cartRequest[aria-disabled="true"]{opacity:.45;pointer-events:none}
+
+/* ============ H38-01 · hook sau moi View Transition (JS gan class) ============ */
+@media (prefers-reduced-motion:no-preference){
+  html.h38-vt-settled .clip-grid{animation:h38-vtsettle .18s ease-out}
+  @keyframes h38-vtsettle{from{filter:brightness(1.07)}to{filter:none}}
+}
+html.h38-nomotion.h38-vt-settled .clip-grid{animation:none}
+
+/* ================= MICRO SPACING/TYPE (H38-28..H38-99) ================= */
+/* H38-28 */ .voice cite{letter-spacing:.14em}
+/* H38-29 */ .nav-links{gap:26px}
+/* H38-30 */ .utility-dock{gap:8px}
+/* H38-31 */ .clip-grid{gap:48px 20px}
+/* H38-32 */ .clip-info{padding-top:20px}
+/* H38-33 */ .mood-chip{padding:0 16px}
+/* H38-34 */ .search-input{height:54px}
+/* H38-35 */ .license-table{line-height:1.7}
+/* H38-36 */ .license-scroll{max-height:min(72vh,680px)}
+/* H38-37 */ .faq{padding:150px 0}
+/* H38-38 */ .field{gap:10px}
+/* H38-39 */ .cart-row{gap:16px}
+/* H38-40 */ .cart-list{margin-bottom:20px}
+/* H38-41 */ .modal-card{width:min(1040px,100%)}
+/* H38-42 */ .gallery-tools{gap:10px}
+/* H38-43 */ .gallery-side{padding:52px 36px 32px}
+/* H38-44 */ .compare-tray{-webkit-backdrop-filter:blur(12px) saturate(1.1);backdrop-filter:blur(12px) saturate(1.1)}
+/* H38-45 */ .journal-card{padding:30px}
+/* H38-46 */ .num{font-size:.66rem}
+/* H38-47 */ .footer-mark{letter-spacing:.02em}
+/* H38-48 */ .footer-links{gap:28px}
+/* H38-49 */ .scroll-cue{right:6px}
+/* H38-50 */ .dial-face{width:min(100%,216px)}
+/* H38-51 */ .dial-medallion{inset:28%}
+/* H38-52 */ .dial-static-list{gap:10px}
+/* H38-53 */ .collection-num{font-size:.62rem}
+/* H38-54 */ .section-head{margin-bottom:68px}
+/* H38-55 */ .craft-step{gap:22px}
+/* H38-56 */ .btn{padding:0 26px}
+/* H38-57 */ .view-tab{height:54px;padding:0 20px}
+/* H38-58 */ .view-tabs{gap:6px}
+/* H38-59 */ .library-count{font-size:.72rem}
+/* H38-60 */ .feature-sheet{max-height:92svh}
+/* H38-61 */ .fly-head{max-width:10ch}
+/* H38-62 */ #contactTier{min-height:46px;padding:0 14px;font:inherit;color:var(--ink)}
+/* H38-63 */ .dial-copy{gap:14px}
+/* H38-64 */ .hero-actions{gap:16px}
+/* H38-65 */ .loader-label{letter-spacing:.3em}
+/* H38-66 */ #articleBody{text-wrap:pretty;line-height:1.78}
+/* H38-67 */ .empty-state{padding:60px 0}
+/* H38-68 */ .not-found-inner{max-width:640px}
+/* H38-69 */ .filter{padding:9px 16px}
+/* H38-70 */ .utility-btn{min-width:44px;height:44px}
+/* H38-71 */ .toast{padding:12px 20px}
+/* H38-72 */ .modal-media{min-height:460px}
+/* H38-73 */ .gallery-media{min-height:600px}
+/* H38-74 */ .journal-grid{gap:20px}
+/* H38-75 */ .search-panel{margin:-16px 0 40px}
+/* H38-76 */ .search-wrap{max-width:560px}
+/* H38-77 */ .cart-row{padding:16px 0}
+/* H38-78 */ .stack-panel{top:90px}
+/* H38-79 */ .license-scroll{margin-inline:-20px;padding-inline:20px}
+/* H38-80 */ @media (max-width:760px){.faq{padding:84px 0}}
+/* H38-81 */ @media (max-width:760px){.clip-grid{gap:44px}}
+/* H38-82 */ @media (max-width:760px){.mood-chip{padding:0 8px;font-size:.6rem}}
+/* H38-83 */ @media (max-width:760px){.view-tab{padding:0 10px}}
+/* H38-84 */ @media (max-width:760px){.dial-face{width:116px}}
+/* H38-85 */ .journal-card{min-height:330px}
+/* H38-86 */ @media (max-width:760px){.gallery-side{padding:24px 18px}}
+/* H38-87 */ @media (max-width:760px){.compare-tray{bottom:76px}}
+/* H38-88 */ @media (max-width:760px){.section-head{gap:24px}}
+/* H38-89 */ @media (max-width:760px){.craft-step{grid-template-columns:54px 1fr}}
+/* H38-90 */ .search-panel{gap:20px}
+/* H38-91 */ .collection-num{letter-spacing:.22em}
+/* H38-92 */ .scroll-cue{letter-spacing:.26em}
+/* H38-93 */ .hero-index{gap:32px}
+/* H38-94 */ .hero-index{padding-top:18px}
+/* H38-95 */ .utility-dock{top:calc(16px + env(safe-area-inset-top))}
+/* H38-96 */ .toast{bottom:max(30px,calc(20px + env(safe-area-inset-bottom)))}
+/* H38-97 */ .compare-tray{width:min(640px,calc(100% - 28px))}
+/* H38-98 */ .feature-sheet{width:min(1100px,100%)}
+/* H38-99 */ .search-input{padding:0 18px}
