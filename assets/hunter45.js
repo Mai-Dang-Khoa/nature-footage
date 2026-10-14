@@ -346,13 +346,7 @@ var shk=d.createElement("style");shk.textContent="@keyframes h45-shake{25%{trans
 d.head.appendChild(shk);
 
 /* H45-87 · filter count badges */
-function badgeFilters(){
-  $$(".filter").forEach(function(f){
-    var key=(f.getAttribute("data-filter")||f.textContent||"").trim().toLowerCase();
-    var n=$$("#clipGrid > *").length;
-    f.dataset.n=String(n);f.setAttribute("data-count",String(n));
-  });
-}
+function badgeFilters(){var all=$$("#clipGrid > *");$$(".filter").forEach(function(f){var key=(f.getAttribute("data-filter")||"all").trim().toLowerCase();var n=key==="all"?all.length:all.filter(function(c){return (c.getAttribute("data-group")||"").toLowerCase()===key;}).length;f.setAttribute("data-count",String(n));});}
 if(grid){badgeFilters();
   var st2=d.createElement("style");st2.textContent='.filter::after{content:attr(data-count);font-size:.62rem;background:rgba(212,175,55,.16);color:#d4af37;border-radius:99px;padding:.1rem .45rem;margin-left:.4rem;}';
   d.head.appendChild(st2);
