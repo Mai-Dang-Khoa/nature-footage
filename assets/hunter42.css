@@ -1,0 +1,313 @@
+/* hunter42.css — Plates Luxury · lượt #42 (CodePen + Awwwards research)
+   STAGED LOCAL ONLY — tuyệt đối KHÔNG push GitHub khi chưa có lệnh "up".
+   Mọi class/var/id mới prefix h42-. 0 byte thêm vào <head> lượt này.
+   RM: mọi phần tử chuyển động của lượt này mang class .h42-a;
+   html.h42-nomotion (JS live listener) hoặc prefers-reduced-motion sẽ tắt chúng. */
+
+/* ============ H42-92 · RM master gate (CSS) ============ */
+@media (prefers-reduced-motion: reduce){
+  .h42-a,.h42-a *,.h42-a *::before,.h42-a *::after{
+    animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important}
+}
+html.h42-nomotion .h42-a,html.h42-nomotion .h42-a *,
+html.h42-nomotion .h42-a *::before,html.h42-nomotion .h42-a *::after{
+  animation:none !important;transition:none !important}
+/* ============ H42-93 · save-data: tắt animation trang trí ============ */
+html.h42-savemode .h42-a{animation:none !important}
+html.h42-savemode .h42-a.h42-loop{opacity:1 !important;transform:none !important}
+
+/* ============ H42-01 · CP21 :has()+sin() magnifier — grid focus mode ============ */
+@media (hover:hover) and (pointer:fine){
+  .clip-grid.h42-focus .clip-card{
+    transition:filter .45s ease,opacity .45s ease,transform .45s ease}
+  .clip-grid.h42-focus:has(.clip-card:hover) .clip-card:not(:hover){
+    filter:blur(3px) saturate(.65);opacity:.5}
+  /* "vùng lân cận" mờ nhẹ hơn — xấp xỉ falloff sin() bằng 2 tầng :has() */
+  .clip-grid.h42-focus:has(.clip-card:hover) .clip-card:hover + .clip-card,
+  .clip-grid.h42-focus .clip-card:has(+ .clip-card:hover){
+    filter:blur(calc(3px - sin(60deg)*2px)) saturate(.85);opacity:.8}
+  .clip-grid.h42-focus .clip-card:hover{
+    filter:none;opacity:1;transform:translateY(-10px) scale(1.015);z-index:2}
+}
+
+/* ============ H42-02 · CP25 worm hopping radio — filter rail ============ */
+.filters{position:relative}
+.h42-worm{position:absolute;bottom:-7px;left:0;height:3px;width:36px;border-radius:99px;
+  background:linear-gradient(90deg,var(--gold),var(--gold-2));pointer-events:none;
+  transition:left .55s cubic-bezier(.3,1.5,.45,1),width .45s ease;z-index:1}
+.h42-worm::before{content:"";position:absolute;left:-4px;top:50%;width:11px;height:11px;
+  border-radius:50%;background:var(--gold);transform:translateY(-50%);
+  box-shadow:0 0 10px rgba(213,183,118,.8)}
+@media (prefers-reduced-motion:reduce){.h42-worm{transition:none}}
+
+/* ============ H42-03 · CP26 attr-text clip-path hover — nav/footer links ============ */
+.nav-links a,.footer-links a{position:relative}
+.nav-links a::before,.footer-links a::before{
+  content:attr(data-h42t);position:absolute;inset:0;color:var(--gold);
+  clip-path:polygon(0 100%,100% 100%,100% 100%,0 100%);
+  transition:clip-path .45s cubic-bezier(.22,1,.36,1);pointer-events:none;white-space:nowrap}
+.nav-links a:hover::before,.nav-links a:focus-visible::before,
+.footer-links a:hover::before,.footer-links a:focus-visible::before{
+  clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
+
+/* ============ H42-04 · CP41 radial-gradient mask quét qua footer-mark ============ */
+.footer-mark{position:relative;display:inline-block}
+.footer-mark.h42-mask{
+  -webkit-mask-image:radial-gradient(circle 90px at var(--h42-mx,50%) 50%,#000 30%,transparent 75%);
+  mask-image:radial-gradient(circle 90px at var(--h42-mx,50%) 50%,#000 30%,transparent 75%)}
+@keyframes h42-masksweep{0%{--h42-mx:-10%}100%{--h42-mx:110%}}
+@property --h42-mx{syntax:"<percentage>";inherits:false;initial-value:50%}
+@media (hover:hover) and (pointer:fine){
+  .footer-mark.h42-mask:hover{animation:h42-masksweep 1.6s ease-in-out infinite}
+}
+
+/* ============ H42-05 · CP47 elastic macOS traffic lights — cart close ============ */
+#cartModal .sheet-close{transition:transform .35s cubic-bezier(.2,1.6,.4,1),color .25s;
+  touch-action:none;cursor:grab}
+#cartModal .sheet-close:hover{color:#ff5f57}
+#cartModal .sheet-close:hover::before{content:"";position:absolute;inset:-7px;border-radius:50%;
+  background:radial-gradient(circle,#ff5f57 3px,transparent 4px),
+             radial-gradient(circle,#febc2e 3px,transparent 4px),
+             radial-gradient(circle,#28c840 3px,transparent 4px);
+  background-position:0 50%,50% 50%,100% 50%;background-repeat:no-repeat;opacity:.9}
+#cartModal .sheet-close.h42-drag{cursor:grabbing;transition:none}
+#cartModal .sheet-close.h42-snapback{transition:transform .6s cubic-bezier(.2,1.8,.35,1)}
+
+/* ============ H42-07 · CP35 toggle double-bounce overshoot ============ */
+#themeToggle .utility-label,#langToggle .utility-label{display:inline-block}
+#themeToggle:active .utility-label,#langToggle:active .utility-label{
+  animation:h42-doublebounce .5s cubic-bezier(.3,1.8,.4,1)}
+@keyframes h42-doublebounce{
+  0%{transform:scale(1)}35%{transform:scale(.86)}60%{transform:scale(1.08)}
+  80%{transform:scale(.97)}100%{transform:scale(1)}}
+
+/* ============ H42-08 · CP15 CSS landscape — poster vẽ bằng gradient ============ */
+.h42-scene{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:0;
+  transition:opacity .8s ease}
+.h42-scene.h42-on{opacity:1}
+.h42-scene::before{ /* bầu trời */
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,
+    hsl(var(--h42-hue,42) 45% 72%) 0%,
+    hsl(var(--h42-hue,42) 40% 55%) 45%,
+    hsl(calc(var(--h42-hue,42) + 18) 35% 30%) 78%,
+    hsl(calc(var(--h42-hue,42) + 10) 30% 18%) 100%)}
+.h42-scene::after{ /* mặt trời/mặt trăng + núi xa */
+  content:"";position:absolute;left:62%;top:16%;width:11%;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle,hsl(48 90% 88%) 0%,hsl(48 80% 70%) 55%,transparent 72%);
+  box-shadow:0 120px 0 -30px hsl(calc(var(--h42-hue,42) + 20) 25% 22%),
+             -140px 150px 0 -20px hsl(calc(var(--h42-hue,42) + 14) 28% 26%),
+             120px 165px 0 -25px hsl(calc(var(--h42-hue,42) + 8) 30% 20%)}
+html[data-theme="dark"] .h42-scene::before{
+  background:linear-gradient(180deg,
+    hsl(var(--h42-hue,42) 35% 22%) 0%,hsl(var(--h42-hue,42) 30% 14%) 60%,
+    hsl(calc(var(--h42-hue,42) + 10) 28% 9%) 100%)}
+
+/* ============ H42-09 · CP24 flip text — lang toggle label ============ */
+#langToggle{perspective:200px}
+#langToggle b{display:inline-block;transition:transform .45s cubic-bezier(.3,1.4,.4,1);
+  transform-style:preserve-3d}
+#langToggle.h42-flip b{transform:rotateX(360deg)}
+
+/* ============ H42-10 · AW01 text explosive — hero title vỡ khi cuộn ra ============ */
+.hero-title .h42-xchar{display:inline-block;will-change:transform,opacity}
+@supports (animation-timeline: view()){
+  .hero.h42-armed .hero-title .h42-xchar{
+    animation:h42-explode linear both;
+    animation-timeline:view();
+    animation-range:exit 0% exit 90%}
+}
+@keyframes h42-explode{
+  0%{transform:translate(0,0) rotate(0deg);opacity:1;filter:blur(0)}
+  100%{transform:translate(calc(var(--h42-dx,0)*70px),calc(var(--h42-dy,-1)*90px))
+    rotate(calc(var(--h42-rr,0)*40deg));opacity:0;filter:blur(6px)}}
+
+/* ============ H42-11 · AW03 staggered char rise — section heads ============ */
+.section-head h2 .h42-rchar{display:inline-block;opacity:0;transform:translateY(.6em);
+  filter:blur(4px)}
+.section-head h2.h42-rise .h42-rchar{opacity:1;transform:none;filter:blur(0);
+  transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1),
+  filter .7s ease;transition-delay:calc(var(--h42-i,0)*28ms)}
+
+/* ============ H42-12 · AW06 interactive typographic footer ============ */
+.footer-mark .h42-fchar{display:inline-block;transition:transform .3s cubic-bezier(.3,1.5,.4,1)}
+@media (hover:hover) and (pointer:fine){
+  .footer-mark.h42-live .h42-fchar:hover{transform:scale(1.35) translateY(-.12em);color:var(--gold)}}
+
+/* ============ H42-13 · AW07 hold-to-blast — charge ring trên #cartRequest ============ */
+#cartRequest{position:relative;overflow:hidden}
+#cartRequest .h42-ring{position:absolute;inset:0;display:grid;place-items:center;
+  pointer-events:none}
+#cartRequest .h42-ring svg{width:100%;height:100%}
+#cartRequest .h42-ring circle{fill:none;stroke:var(--gold);stroke-width:3;
+  stroke-dasharray:301.6;stroke-dashoffset:301.6;transform:rotate(-90deg);
+  transform-origin:center}
+#cartRequest.h42-charging{color:var(--gold-2)}
+#cartRequest.h42-charging .h42-ring circle{transition:stroke-dashoffset .8s linear;
+  stroke-dashoffset:0}
+#cartRequest.h42-done{border-color:var(--gold);background:rgba(213,183,118,.12)}
+
+/* ============ H42-14 · AW08 cinematic counter — % theo buffered thật ============ */
+.loader-label.h42-live{font-variant-numeric:tabular-nums}
+.loader-label.h42-live::after{content:attr(data-h42pct);margin-left:.6em;color:var(--gold)}
+
+/* ============ H42-15 · AW09 film title-card loader chapters ============ */
+#preloader .h42-chapter{position:absolute;inset:0;display:grid;place-items:center;
+  opacity:0;transition:opacity .5s ease;pointer-events:none;text-align:center}
+#preloader .h42-chapter.h42-show{opacity:1}
+#preloader .h42-chapter strong{display:block;font:500 clamp(1.6rem,4vw,2.6rem) var(--serif);
+  letter-spacing:.28em;color:var(--gold-2)}
+#preloader .h42-chapter small{letter-spacing:.4em;color:var(--faint);font-size:.62rem}
+
+/* ============ H42-16 · AW13 minimal slide-panel nav (mobile) ============ */
+@media (max-width:900px){
+  .nav.h42-panel .nav-links{position:fixed;top:0;right:0;bottom:0;width:min(320px,84vw);
+    flex-direction:column;align-items:flex-start;justify-content:center;gap:6px;
+    padding:80px 34px 40px;background:var(--panel);border-left:1px solid var(--line);
+    transform:translateX(102%);transition:transform .5s cubic-bezier(.22,1,.36,1);z-index:400}
+  .nav.h42-panel.open .nav-links{transform:none}
+  .nav.h42-panel.open .nav-links a{opacity:0;transform:translateX(26px);
+    animation:h42-panelin .5s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:calc(var(--h42-i,0)*60ms + 120ms);font-size:1.5rem}
+  @keyframes h42-panelin{to{opacity:1;transform:none}}
+}
+
+/* ============ H42-17 · AW14 marquee pause khi ngoài viewport ============ */
+.marquee-track.h42-paused{animation-play-state:paused}
+
+/* ============ H42-18 · AW15 oversized menu — Collections dropdown ============ */
+.nav-links{position:relative}
+.h42-mega{position:absolute;top:calc(100% + 14px);left:50%;transform:translate(-50%,8px);
+  min-width:340px;background:var(--panel);border:1px solid var(--line);padding:18px 22px;
+  opacity:0;pointer-events:none;transition:opacity .3s ease,transform .35s cubic-bezier(.22,1,.36,1);
+  z-index:300}
+.h42-mega.h42-open{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+.h42-mega a{display:block;font:500 clamp(1.4rem,2.4vw,2rem)/1.5 var(--serif);
+  color:var(--ink);text-decoration:none;padding:.15em 0;transition:color .25s,letter-spacing .35s}
+.h42-mega a:hover{color:var(--gold);letter-spacing:.04em}
+.h42-mega a small{display:block;font-size:.6rem;letter-spacing:.3em;color:var(--faint);
+  font-family:var(--sans)}
+@media (max-width:900px){.h42-mega{display:none}}
+
+/* ============ H42-19 · AW22 drag-to-preview — trạng thái kéo ============ */
+.clip-visual.h42-scrubbing{cursor:ew-resize}
+.clip-visual.h42-scrubbing .card-video{pointer-events:none}
+.clip-card.h42-dragging{user-select:none}
+
+/* ============ H42-20 · AW35 cursor-reactive hero type ============ */
+.hero-sub .h42-schar{display:inline-block;transition:transform .25s ease-out;will-change:transform}
+
+/* ============ H42-21 · AW39 clip-path reveal loop chip — .stack-kicker ============ */
+.stack-kicker{position:relative;display:inline-block;overflow:hidden}
+.stack-kicker.h42-loop::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(100deg,transparent 20%,rgba(213,183,118,.55) 50%,transparent 80%);
+  clip-path:polygon(0 0,18% 0,8% 100%,0 100%);
+  animation:h42-chipreveal 4.5s ease-in-out infinite}
+@keyframes h42-chipreveal{
+  0%{clip-path:polygon(-30% 0,-12% 0,-22% 100%,-30% 100%)}
+  55%,100%{clip-path:polygon(112% 0,130% 0,120% 100%,112% 100%)}}
+
+/* ============ H42-22 · AW40 card action bar trượt lên khi hover ============ */
+@media (hover:hover) and (pointer:fine){
+  .clip-card .card-actions{transform:translateY(8px);opacity:.35;
+    transition:transform .4s cubic-bezier(.22,1,.36,1),opacity .4s ease}
+  .clip-card:hover .card-actions,.clip-card:focus-within .card-actions{
+    transform:none;opacity:1}
+}
+
+/* ============ H42-23 · AW41 rotating active indicator — nav ============ */
+.nav-links a{position:relative}
+.nav-links a.h42-active{color:var(--gold-2)}
+.nav-links a.h42-active::before{content:"";position:absolute;left:50%;top:-11px;
+  width:7px;height:7px;background:var(--gold);transform:translateX(-50%) rotate(45deg);
+  animation:h42-spin 5s linear infinite}
+@keyframes h42-spin{to{transform:translateX(-50%) rotate(405deg)}}
+/* lưu ý: ::before của .nav-links a đã dùng cho H42-03 attr-text; H42-23 dùng chung
+   ::before nhưng chỉ khi .h42-active (không xung đột vì content khác nhau theo state) */
+
+/* ============ H42-24 · AW02 focus-pull scroll-driven (không cần variable font) ============ */
+@supports (animation-timeline: view()){
+  .section-head h2.h42-pull{animation:h42-focuspull linear both;animation-timeline:view();
+    animation-range:entry 0% entry 60%}
+}
+@keyframes h42-focuspull{
+  0%{letter-spacing:.12em;filter:blur(3px);opacity:.55}
+  100%{letter-spacing:0;filter:blur(0);opacity:1}}
+
+/* ============ H42-25 · AW50 idle drift — collection videos (retarget, tránh H22-46) ============ */
+.collection-video.h42-drift{animation:h42-idledrift 26s ease-in-out infinite alternate}
+@keyframes h42-idledrift{
+  0%{transform:scale(1) translate(0,0)}100%{transform:scale(1.07) translate(-1.5%,1%)}}
+
+/* ============ H42-26 · AW16 lerp float — collection cards ============ */
+.collection.h42-float{transition:transform .18s linear;will-change:transform}
+@media (hover:hover) and (pointer:fine){
+  .collection.h42-float:hover{box-shadow:0 24px 60px rgba(0,0,0,.35)}}
+
+/* ============ H42-06 · CP18 color picker customizer ============ */
+.h42-picker{position:fixed;z-index:500;right:16px;bottom:76px;background:var(--panel);
+  border:1px solid var(--line);padding:14px 16px;border-radius:12px;display:none;gap:10px;
+  align-items:center;box-shadow:0 18px 50px rgba(0,0,0,.4)}
+.h42-picker.h42-open{display:flex}
+.h42-picker label{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.h42-picker input[type=color]{width:40px;height:40px;border:1px solid var(--line);
+  border-radius:8px;background:none;padding:2px;cursor:pointer}
+.h42-picker button{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  background:none;border:1px solid var(--line-soft);color:var(--muted);border-radius:8px;
+  padding:.5rem .8rem;cursor:pointer}
+.h42-fab{position:fixed;z-index:500;right:16px;bottom:16px;width:44px;height:44px;
+  border-radius:50%;border:1px solid var(--gold);background:var(--panel);color:var(--gold);
+  font-size:1.1rem;cursor:pointer;display:grid;place-items:center}
+@media (max-width:900px){.h42-fab{bottom:calc(16px + env(safe-area-inset-bottom))}}
+
+/* ===== C. CSS micro H42-27→H42-64 (mỗi mục 1 selector, additive) ===== */
+/* H42-27 */ .cart-row{border-block-end:1px solid var(--line-soft);padding-block:.7rem}
+/* H42-28 */ .gallery-side{scrollbar-width:thin;scrollbar-color:var(--gold) transparent}
+/* H42-29 */ .preview-btn{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  background:rgba(10,8,5,.45)}
+/* H42-30 */ .icon-action{transition:transform .22s ease,background-color .25s ease,
+  color .25s ease,border-color .25s ease}
+/* H42-31 */ .menu-btn{letter-spacing:.18em}
+/* H42-32 */ .nav-links a{padding-block:.55rem}
+/* H42-33 */ .hero-sub{max-width:56ch}
+/* H42-34 */ .compare-meta{font-size:.68rem;letter-spacing:.1em}
+/* H42-35 */ .empty-state{text-wrap:balance}
+/* H42-36 */ .library-tools{display:flex;gap:.8rem;flex-wrap:wrap;align-items:center}
+/* H42-37 */ .sheet-close{transition:transform .35s cubic-bezier(.2,1.6,.4,1),color .25s ease}
+.sheet-close:hover{transform:rotate(90deg)}
+/* H42-38 */ @media print{
+  #particles,.cursor-dot,.cursor-ring,.marquee,#backToTop,.h42-fab,.h42-picker{display:none !important}
+  .hero-video{display:none}}
+/* H42-39 */ .cine-cta i{display:inline-block;transition:transform .3s cubic-bezier(.22,1,.36,1)}
+.cine-cta:hover i{transform:translate(3px,-3px)}
+/* H42-40 */ .stack-panel ul{display:grid;row-gap:.45rem;padding-inline-start:1.1rem;margin-block:.9rem}
+/* H42-41 */ .not-found-inner p{max-width:44ch;margin-inline:auto}
+/* H42-42 */ .btn:active{transform:translateY(1px)}
+/* H42-43 */ .mood-row{margin-block:-1.25rem 2.75rem}
+/* H42-44 */ .modal-card{border-radius:14px}
+/* H42-45 */ .compare-tray{border-radius:12px}
+/* H42-46 */ .craft-steps{row-gap:1.2rem}
+/* H42-47 */ .contact-form{max-width:560px;margin-inline:auto}
+/* H42-48 */ .loader-line{height:2px;border-radius:99px}
+/* H42-49 */ .marquee-track{gap:2.5rem}
+/* H42-50 */ .clip-no{user-select:all;-webkit-user-select:all}
+/* H42-51 */ .gallery-nav{display:flex;gap:.6rem}
+/* H42-52 */ #clipSearch{border-radius:999px}
+/* H42-53 */ .compare-slots{gap:.75rem}
+/* H42-54 */ .card-actions{margin-top:1rem}
+/* H42-55 */ .utility-btn{min-height:44px}
+/* H42-56 */ .gallery-tools{align-items:center}
+/* H42-57 */ .modal-media{border-radius:12px;overflow:hidden}
+/* H42-58 */ .journal-card img{border-radius:8px}
+/* H42-59 */ .faq{max-width:860px;margin-inline:auto}
+/* H42-60 */ .hero-copy{max-width:660px}
+/* H42-61 */ .footer-copy{line-height:1.9}
+/* H42-62 */ .eyebrow{column-gap:.8rem}
+/* H42-63 */ .stack-price{letter-spacing:-.01em;line-height:1}
+/* H42-64 */ .cine-grain{opacity:.5}
+
+/* tôn trọng coarse pointer: tắt hiệu ứng hover-only */
+@media (hover:none){
+  .clip-grid.h42-focus:has(.clip-card:hover) .clip-card:not(:hover){filter:none;opacity:1}
+}
