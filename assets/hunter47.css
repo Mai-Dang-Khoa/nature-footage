@@ -1,0 +1,240 @@
+/* ============================================================
+   plates-effect-hunter — LƯỢT #47 (STAGED, CHƯA PUSH)
+   Nguồn (luân phiên): dev.to + blog thiết kế web (50+50 ý thô).
+   Quy ước: mọi selector đều verify trực tiếp trên live index.html
+   125.153B (14/10/2026). 0 byte <head>. Namespace: .h47-* / #h47-*.
+   RM: class .h47-nomotion trên <html> (JS matchMedia) + media query.
+   ============================================================ */
+
+/* ---------- H47-48 · RM audit: tắt animation trang trí (CSS safety net) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track, .velocity-marquee .marquee-track, #particles,
+  .h47-trail, .h47-swipehint { animation: none !important; }
+  .hero-title, .hero-media, .fly-section h2, body::after,
+  #collections .collection, #journal .journal-card, #craft .craft-step, #voices .voice,
+  #themeToggle.h47-spin span, .h47-pulse, .modal-close { animation: none !important; }
+  html { scroll-behavior: auto !important; } /* H47-43 */
+  ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; } /* H47-17 DEV16 */
+}
+html.h47-nomotion .marquee-track, html.h47-nomotion #particles,
+html.h47-nomotion .h47-trail, html.h47-nomotion .h47-swipehint,
+html.h47-nomotion .hero-title, html.h47-nomotion .hero-media, html.h47-nomotion .fly-section h2,
+html.h47-nomotion body::after { animation: none !important; }
+html.h47-nomotion ::view-transition-old(*), html.h47-nomotion ::view-transition-new(*) { animation: none !important; }
+
+/* ---------- H47-53 · font-smoothing / H47-54 · text-size-adjust ---------- */
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* ---------- H47-55 · selection trong suốt trên media ---------- */
+img::selection, video::selection { background: transparent; }
+
+/* ---------- H47-69 · visually-hidden cho nội dung SR-only do JS chèn ---------- */
+.h47-vh { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ---------- H47-01 · DEV02: hero title mờ dần khi cuộn ---------- */
+@supports (animation-timeline: scroll()) {
+  .hero-title { animation: h47-titlefade linear both; animation-timeline: scroll(root); animation-range: 0 55vh; }
+  @keyframes h47-titlefade { to { opacity: 0; transform: translateY(-12%); } }
+}
+/* ---------- H47-02 · DEV06: hero grade ấm dần theo scroll ---------- */
+@supports (animation-timeline: scroll()) {
+  .hero-media { animation: h47-grade linear both; animation-timeline: scroll(root); animation-range: 0 90vh; }
+  @keyframes h47-grade { to { filter: sepia(.22) saturate(1.08); } }
+}
+/* ---------- H47-03 · DEV08: multi-step keyframes cho fly statement ---------- */
+@supports (animation-timeline: scroll()) {
+  .fly-section h2 { animation: h47-multistep linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
+  @keyframes h47-multistep {
+    0% { opacity: 0; transform: translateY(36px); }
+    18% { opacity: 1; transform: none; }
+    70% { opacity: 1; transform: none; }
+    100% { opacity: .35; transform: translateY(-18px); }
+  }
+}
+/* ---------- H47-04 · DEV09: @supports guard (ghi chú kỹ thuật, bọc ở trên) ---------- */
+/* Mọi animation-timeline trong file này đều nằm trong @supports; fallback = hiện bình thường. */
+
+/* ---------- H47-05 · DEV11 + H47-26 · DSG34: view transitions theo type ---------- */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .38s; }
+:active-view-transition-type(h47-theme) ::view-transition-old(root),
+:active-view-transition-type(h47-theme) ::view-transition-new(root) { animation-duration: .55s; }
+:active-view-transition-type(h47-modal) ::view-transition-old(h47-modal) { animation: h47-vt-out .28s ease both; }
+:active-view-transition-type(h47-modal) ::view-transition-new(h47-modal) { animation: h47-vt-in .32s cubic-bezier(.2,.9,.25,1.2) both; }
+@keyframes h47-vt-in { from { opacity: 0; transform: scale(.92) translateY(16px); } }
+@keyframes h47-vt-out { to { opacity: 0; transform: scale(.96); } }
+/* H47-10 · DEV17: fallback khi thiếu View Transitions */
+@supports not (view-transition-name: test) {
+  .feature-modal { transition: opacity .22s ease; }
+}
+
+/* ---------- H47-11 · DEV18: card lift hover ---------- */
+@media (hover: hover) and (pointer: fine) {
+  .clip-card { transition: transform .28s cubic-bezier(.2,.7,.3,1.2), box-shadow .28s ease; }
+  .clip-card:hover { transform: translateY(-5px); box-shadow: 0 18px 44px -18px rgba(213,183,118,.45); }
+}
+
+/* ---------- H47-12 · DEV22: entrance cascade theo section ---------- */
+@supports (animation-timeline: view()) {
+  #collections .collection, #journal .journal-card, #craft .craft-step, #voices .voice {
+    animation: h47-rise .7s cubic-bezier(.2,.7,.3,1) both; animation-timeline: view(); animation-range: entry 0% entry 28%;
+  }
+  #collections .collection:nth-child(2), #journal .journal-card:nth-child(2),
+  #craft .craft-step:nth-child(2), #voices .voice:nth-child(2) { animation-delay: .12s; }
+  #collections .collection:nth-child(3), #journal .journal-card:nth-child(3),
+  #craft .craft-step:nth-child(3), #voices .voice:nth-child(3) { animation-delay: .24s; }
+  #craft .craft-step:nth-child(4) { animation-delay: .36s; }
+  @keyframes h47-rise { from { opacity: 0; transform: translateY(26px); } }
+}
+
+/* ---------- H47-09 · DEV15: list view cho clip grid ---------- */
+.h47-viewbtn { margin-inline-start: auto; }
+.clip-grid.h47-list { display: flex; flex-direction: column; gap: 14px; max-width: 780px; }
+.clip-grid.h47-list .clip-card { max-width: none; }
+.clip-grid { view-transition-name: h47-grid; }
+
+/* ---------- H47-13 · DEV30r: popover "more actions" trong gallery ---------- */
+#h47-more { anchor-name: --h47-more; }
+#h47-morepop { position: fixed; position-anchor: --h47-more; position-area: block-end span-inline-end;
+  margin: 8px 0 0; padding: 8px; min-width: 210px; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--panel); box-shadow: 0 18px 50px -12px rgba(0,0,0,.6); }
+#h47-morepop:popover-open { animation: h47-popin .18s ease both; }
+@keyframes h47-popin { from { opacity: 0; transform: translateY(-6px) scale(.97); } }
+#h47-morepop button { display: flex; width: 100%; gap: 10px; align-items: center; padding: 10px 12px;
+  background: none; border: 0; border-radius: 8px; color: var(--ink); font: inherit; cursor: pointer; text-align: start; }
+#h47-morepop button:hover { background: rgba(213,183,118,.12); }
+@media (prefers-reduced-motion: no-preference) {
+  #h47-morepop { transition: opacity .15s ease, transform .15s ease, display .15s allow-discrete, overlay .15s allow-discrete; }
+}
+
+/* ---------- H47-14 · DEV40: card phát sáng khi đã thích ---------- */
+.clip-card:has(.favorite[aria-pressed="true"]) {
+  box-shadow: 0 0 0 1px rgba(213,183,118,.55), 0 10px 34px -12px rgba(213,183,118,.5);
+}
+
+/* ---------- H47-15 · DEV41: search tự mở rộng khi focus ---------- */
+.search-wrap { transition: max-width .3s ease; }
+.search-wrap:has(.search-input:focus) { max-width: min(430px, 100%); }
+
+/* ---------- H47-16 · DEV49: preloader luôn dark ---------- */
+#preloader { color-scheme: only dark; }
+
+/* ---------- H47-18 · DSG02: khung điện ảnh lộ dần theo scroll ---------- */
+@supports (animation-timeline: scroll()) {
+  body::after { content: ""; position: fixed; inset: 14px; z-index: 60; pointer-events: none;
+    border: 1px solid rgba(213,183,118,.5); opacity: 0;
+    animation: h47-frame linear both; animation-timeline: scroll(root); animation-range: 0 40vh; }
+  @keyframes h47-frame { to { opacity: 1; border-radius: 22px; } }
+}
+/* ---------- H47-19 · DSG04: trigger-scope cô lập theo section ---------- */
+@supports (trigger-scope: --h47-t) {
+  #collections, #pricing, #journal, #craft, #voices { trigger-scope: --h47-t; }
+}
+/* ---------- H47-21 · DSG10: skip-ink all cho link footer ---------- */
+.footer-links a { text-decoration-skip-ink: all; }
+/* ---------- H47-22 · DSG12: canvas cursor trail trên hero ---------- */
+.h47-trail { position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: .8; }
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .h47-trail { display: none; } }
+/* ---------- H47-27 · DSG45: swipe hint bounce một lần ---------- */
+.h47-swipehint { animation: h47-nudge 1.1s ease 1; }
+@keyframes h47-nudge { 0%,100% { transform: none; } 30% { transform: translateX(10px); } 60% { transform: translateX(-6px); } }
+/* ---------- H47-28 · DSG47: highlight hàng compare khác nhau ---------- */
+.compare-card.h47-diff { outline: 1px dashed rgba(213,183,118,.65); outline-offset: 4px; }
+.compare-card.h47-diff::after { content: attr(data-h47-diff); display: block; margin-top: 10px;
+  font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gold-2); }
+
+/* ================= MICRO CSS ================= */
+/* H47-29 · C17: mask fade cạnh .license-scroll khi cuộn được */
+.license-scroll.h47-scrollable {
+  -webkit-mask-image: linear-gradient(to right, #000 92%, transparent);
+  mask-image: linear-gradient(to right, #000 92%, transparent); }
+/* H47-30 · C22: marker ＋/－ cho FAQ */
+.faq-list summary::marker { content: "＋ "; color: var(--gold-2); }
+.faq-list details[open] summary::marker { content: "－ "; }
+/* H47-31 · C25: ellipsis cho .clip-meta */
+.clip-meta { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* H47-32 · C30: squircle cho modal-card */
+@supports (corner-shape: superellipse(2)) { .modal-card { corner-shape: superellipse(2.4); } }
+/* H47-33 · C31: focus-visible cho footer links */
+.footer-links a:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 4px; text-decoration: underline; }
+/* H47-34 · C32: toast gọn trên mobile */
+#toast { max-width: min(92vw, 430px); }
+#toast span { overflow-wrap: break-word; }
+/* H47-35 · C34: landscape phone thu gọn hero */
+@media (max-height: 520px) {
+  .hero-content { padding-block: 14px; }
+  .hero-actions { margin-top: 10px; }
+}
+/* H47-36 · C36: radius clip-visual theo theme */
+[data-theme="light"] .clip-visual { border-radius: 14px; }
+[data-theme="dark"] .clip-visual { border-radius: 9px; }
+/* H47-37 · C38: balance cho journal h3 */
+.journal-card h3 { text-wrap: balance; }
+/* H47-38 · C39: đánh số FAQ 01–09 */
+.faq-list { counter-reset: h47faq; }
+.faq-list summary::before { counter-increment: h47faq; content: counter(h47faq, decimal-leading-zero);
+  margin-inline-end: 10px; font-size: .72rem; letter-spacing: .1em; color: var(--gold-2); }
+/* H47-39 · C40: thead sticky trong license-scroll */
+.license-scroll { max-height: 72vh; }
+.license-table thead th { position: sticky; top: 0; z-index: 2; background: var(--panel, #1c1b17); }
+/* H47-40 · C47: chừa chỗ nút clear trong search */
+.search-input { padding-inline-end: 2.6rem; }
+/* H47-41 · C48: divider hairline giữa cart rows */
+#cartList .cart-row + .cart-row { border-top: 1px solid rgba(213,183,118,.1); }
+/* H47-42 · C49: tabular-nums cho cart total */
+.cart-total { font-variant-numeric: tabular-nums; }
+/* H47-44 · C53: letterbox cho gallery media */
+#galleryMedia { background: #000; }
+/* H47-45 · C56: 404 căn giữa (chỉ khi .show, không đè display:none gốc) */
+#notFound.show { min-height: 60vh; padding-block: 40px; }
+/* H47-46 · C57: toast tránh home indicator */
+#toast { bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
+/* H47-47 · C58: modal tránh notch */
+.modal-card { max-width: calc(100vw - 2 * max(14px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px))); }
+/* H47-49 · C60: chặn iOS zoom khi focus input */
+@media (max-width: 768px) {
+  #contactForm input, #contactForm textarea, #newsletterEmail, #clipSearch { font-size: 16px; }
+}
+/* H47-50 · C61: placeholder opacity Firefox */
+#contactForm input::placeholder, #contactForm textarea::placeholder,
+#newsletterEmail::placeholder, #clipSearch::placeholder { opacity: 1; }
+/* H47-51 · C62: license table xếp chồng trên mobile */
+@media (max-width: 640px) {
+  .license-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .license-table, .license-table tbody, .license-table tr, .license-table td { display: block; width: 100%; }
+  .license-table tr { border: 1px solid var(--line-soft); border-radius: 12px; margin-bottom: 12px; padding: 6px 4px; }
+  .license-table td { border-bottom: 0; padding: 8px 14px; }
+  .license-table td::before { content: attr(data-h47-label); display: block;
+    font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gold-2); margin-bottom: 2px; }
+  .license-table td:first-child { font-weight: 600; }
+}
+/* H47-52 · C63: toast text-wrap stable */
+@supports (text-wrap: stable) { #toast { text-wrap: stable; } }
+/* H47-56 · C67: label sáng khi field focus */
+.field:focus-within > label { color: var(--gold-2); }
+/* H47-57: modal-close xoay khi hover */
+.modal-close { transition: transform .25s ease; }
+.modal-close:hover { transform: rotate(90deg); }
+/* H47-58: toast không gạch nối, vỡ từ URL dài */
+#toast { hyphens: none; overflow-wrap: break-word; }
+/* H47-99: aspect-ratio chống CLS cho modal/gallery image */
+#modalImage, #galleryImage { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+/* H47-98: icon themeToggle xoay khi đổi theme */
+#themeToggle.h47-spin span { display: inline-block; animation: h47-spin .5s ease; }
+@keyframes h47-spin { to { transform: rotate(360deg); } }
+
+/* ---------- bổ sung cho JS ---------- */
+/* H47-61/62 · pulse badge */
+.h47-pulse { animation: h47-pulse .6s ease; }
+@keyframes h47-pulse { 30% { transform: scale(1.35); } }
+/* H47-71 · newsletter valid */
+#newsletterEmail.h47-valid { border-color: #7fb069; }
+/* H47-08 · DEV14: đảo hướng khi đóng modal */
+:active-view-transition-type(h47-back) ::view-transition-old(h47-modal) { animation: h47-vt-in .28s ease both; }
+:active-view-transition-type(h47-back) ::view-transition-new(h47-modal) { animation: h47-vt-out .24s ease both; }
+/* H47-59 · gợi ý 404 */
+.h47-suggest { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 22px; }
+/* H47-60 · gợi ý search rỗng */
+.h47-nores { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px;
+  font-size: .82rem; color: var(--muted); }
