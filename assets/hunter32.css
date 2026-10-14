@@ -331,7 +331,7 @@ html:lang(en) .hero-title, html:lang(en) .section-head h2{
 .footer-links{ counter-reset: h32foot; }
 .footer-links a{ counter-increment: h32foot; position: relative; }
 .footer-links a::before{
-  content: "0" counter(h32foot);
+  content: counter(h32foot, decimal-leading-zero);
   font-family: var(--sans); font-size: .58rem; letter-spacing: .08em;
   color: var(--faint); margin-right: .45em; vertical-align: .1em;
 }
