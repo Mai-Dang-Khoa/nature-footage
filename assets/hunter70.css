@@ -1,0 +1,144 @@
+/* hunter70.css — plates-effect-hunter run 70 (STAGED, not pushed).
+   10 verified-new improvements (H70-01 is a head JSON-LD block staged separately
+   as seo-videoobject70.html; 0 static <head> bytes in this file).
+   Every rule: feature-detected (@supports), additive only, respects
+   prefers-reduced-motion, keeps 9 clips / $29/$79/$199 / core features intact. */
+
+/* ============ H70-03 · Scroll-drawn collection hairline ============
+   Base: #collections > .collection.reveal-card::before is a static 2px hairline
+   (H69-13, hunter69.css). This draws it left->right as the section scrolls
+   into view via animation-timeline: view(). Without support: static hairline. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    #collections > .collection.reveal-card::before {
+      transform-origin: 0 50%;
+      animation: h70-hairline linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+    @keyframes h70-hairline {
+      from { transform: scaleX(0); }
+      to { transform: scaleX(1); }
+    }
+  }
+}
+
+/* ============ H70-04 · View-transition cross-fade for Grid/Index toggle ============
+   JS (hunter70.js) wraps the H69-02 toggle in document.startViewTransition.
+   Naming only the grid keeps the cross-fade local instead of flashing the page. */
+#clipGrid { view-transition-name: h70-grid; }
+::view-transition-old(h70-grid),
+::view-transition-new(h70-grid) {
+  animation-duration: 260ms;
+  animation-timing-function: ease;
+}
+::view-transition-old(h70-grid) { animation-name: h70-grid-out; }
+::view-transition-new(h70-grid) { animation-name: h70-grid-in; }
+@keyframes h70-grid-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes h70-grid-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(h70-grid),
+  ::view-transition-new(h70-grid) { animation-duration: 1ms; }
+}
+
+/* ============ H70-05 · CSS anchor positioning for .h69-pop ============
+   Replaces H69-01's manual place() clamping with platform anchor positioning
+   when supported. JS clears the inline top/left that place() sets and adds
+   .h70-anchored; the popover then flips natively near viewport edges. */
+@supports (position-anchor: --h70acc) {
+  .h69-accent-btn { anchor-name: --h70acc; }
+  .h69-pop.h70-anchored {
+    position-anchor: --h70acc;
+    position-area: bottom span-right;
+    position-try-fallbacks: flip-block, flip-inline;
+    top: auto; left: auto; right: auto; bottom: auto;
+    margin-top: 10px;
+  }
+}
+
+/* ============ H70-06 · Card exit shrink/fade (animation-range: exit) ============
+   As a clip card scrolls out of view it eases to 30% opacity and 96.5% scale —
+   a "film running past" feel in the Collections section.
+   Guard: skipped where H12-C07's sibling-index() entrance runs, so the two
+   never fight over the `animation` property. Uses the individual `scale`
+   property (not `transform`) to compose with the entrance's translateY. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) and (not (animation-delay: sibling-index())) {
+    #clipGrid .clip-card {
+      animation: h70-exit linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+    @keyframes h70-exit {
+      from { opacity: 1; scale: 1; }
+      to { opacity: .3; scale: .965; }
+    }
+  }
+}
+
+/* ============ H70-07 · Footer ghost trail ============
+   .footer-mark leaves two outline "ghost" copies that drift at different
+   scroll rates (parallax) plus a barely-there idle drift. RM: ghosts hidden,
+   plain crossfade only. Ghosts are aria-hidden (JS) and pointer-events:none. */
+.footer-mark { position: relative; }
+.h70-ghost {
+  position: absolute; inset: 0; pointer-events: none; user-select: none;
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--gold, #d5b776) 55%, transparent);
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .h70-ghost { opacity: .5; animation: h70-ghost linear both; animation-timeline: view(); }
+    .h70-ghost.g1 { animation-range: entry 100% exit 0%; --h70dy: -14px; }
+    .h70-ghost.g2 { animation-range: entry 100% exit 0%; --h70dy: -30px; opacity: .28; }
+    @keyframes h70-ghost {
+      from { transform: translateY(0); }
+      to { transform: translateY(var(--h70dy, -18px)); }
+    }
+  }
+  .h70-ghost.idle { animation: h70-idle 7s ease-in-out infinite alternate; }
+  @keyframes h70-idle {
+    from { transform: translateY(0); }
+    to { transform: translateY(-4px); }
+  }
+}
+
+/* ============ H70-08 · Dual-entry card hover ============
+   Title rises from above, meta/desc rise from below; exit is snappier than
+   enter (0.28s vs 0.5s) so the card feels light. Fine-pointer hover only,
+   RM-safe (no motion). Pure text choreography — not a magnetic effect. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .clip-card .clip-info h3,
+  .clip-card .clip-info .clip-meta,
+  .clip-card .clip-info p {
+    transition: transform .28s ease, opacity .28s ease;
+  }
+  .clip-card:hover .clip-info h3,
+  .clip-card:hover .clip-info .clip-meta,
+  .clip-card:hover .clip-info p {
+    transition-duration: .5s;
+  }
+  .clip-card:hover .clip-info h3 { transform: translateY(-4px); }
+  .clip-card:hover .clip-info .clip-meta,
+  .clip-card:hover .clip-info p { transform: translateY(4px); }
+}
+
+/* ============ H70-09 · Email typo hint ============
+   "Did you mean …?" hint for common domain typos (JS toggles .h70-show). */
+.h70-mailhint {
+  display: none; margin-top: .35em; font-size: .8rem; opacity: .85;
+}
+.h70-mailhint.h70-show { display: block; }
+.h70-mailhint button {
+  background: none; border: none; padding: 0; cursor: pointer;
+  color: var(--gold, #d5b776); text-decoration: underline; font: inherit;
+}
+
+/* ============ H70-10 · Copy-failure recovery note ============
+   Shown by JS when clipboard write fails after the H30-13 copy button. */
+.h70-copyfail {
+  margin-top: .6em; font-size: .82rem; line-height: 1.5;
+  border: 1px dashed color-mix(in srgb, var(--gold, #d5b776) 55%, transparent);
+  border-radius: 10px; padding: .6em .8em;
+}
