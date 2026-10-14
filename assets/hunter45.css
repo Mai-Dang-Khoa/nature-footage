@@ -1,0 +1,431 @@
+/* plates-effect-hunter run45 — staged, NOT pushed. 100 improvements: H45-01..H45-100.
+   Sections: CP research (01-15) · AW research (16-30) · self CSS (31-66).
+   All new classes prefixed h45-. 0 bytes in <head>. Integrates as assets/hunter45.css. */
+
+/* ============ H45-09 · CP10 wave divider via CSS shape() ============ */
+.h45-wave{display:block;height:26px;margin:0;
+  background:linear-gradient(90deg,transparent,gold,transparent) 0 0/100% 1px no-repeat;}
+@supports (shape-outside: shape(from 0 0)) {
+  .h45-wave{background:none;position:relative;overflow:hidden;}
+  .h45-wave::before{content:"";position:absolute;inset:0;
+    background:gold;opacity:.5;
+    clip-path:shape(from 0 50%,curve to 25% 20% with 12% 50%/38% 50%,curve to 50% 50% with 62% 50%/88% 50%,curve to 75% 80% with 62% 50%/88% 50%,curve to 100% 50% with 88% 50%/112% 50%);}
+}
+
+/* ============ H45-13 · CP27 corner-rotating caption overlay ============ */
+.clip-visual{position:relative;overflow:hidden;}
+.clip-visual .h45-corner{position:absolute;right:10px;bottom:10px;z-index:3;
+  background:rgba(10,8,4,.82);color:#f5e9cf;border:1px solid rgba(212,175,55,.5);
+  font-size:.68rem;letter-spacing:.06em;padding:.45rem .7rem;border-radius:2px;
+  transform-origin:100% 100%;transform:rotate(8deg) translateY(140%);opacity:0;
+  transition:transform .38s cubic-bezier(.2,.9,.25,1.2),opacity .3s;pointer-events:none;
+  backdrop-filter:blur(6px);}
+#clipGrid > *:hover .h45-corner,#clipGrid > *:focus-within .h45-corner{transform:none;opacity:1;}
+
+/* ============ H45-14 · CP18 hypnotic line spiral backdrop (hero) ============ */
+.hero{position:relative;}
+.hero .h45-spiral{position:absolute;inset:-12%;z-index:0;pointer-events:none;opacity:.10;
+  background:repeating-radial-gradient(circle at 50% 42%,transparent 0 34px,rgba(212,175,55,.55) 34px 35px);
+  -webkit-mask-image:radial-gradient(circle at 50% 42%,#000 0%,transparent 62%);
+  mask-image:radial-gradient(circle at 50% 42%,#000 0%,transparent 62%);
+  animation:h45-spin 90s linear infinite;}
+@keyframes h45-spin{to{transform:rotate(360deg);}}
+
+/* ============ H45-07 · CP09 sibling-index() stagger grid ============ */
+@supports (transition-delay: calc(sibling-index() * 1ms)) {
+  #clipGrid > *{transition-delay:calc(sibling-index() * 70ms);}
+}
+
+/* ============ H45-03 · CP33 doodle skeleton loader (leaf ripples) ============ */
+#clipGrid > :not(.h45-ready) .clip-visual::before{content:"";position:absolute;inset:0;z-index:2;
+  background:
+    radial-gradient(ellipse 22px 8px at 50% 58%,rgba(212,175,55,.5),transparent 70%),
+    radial-gradient(ellipse 34px 12px at 50% 58%,rgba(212,175,55,.22),transparent 70%),
+    radial-gradient(ellipse 48px 16px at 50% 58%,rgba(212,175,55,.10),transparent 70%),
+    linear-gradient(#141210,#141210);
+  animation:h45-ripple 2.2s ease-in-out infinite;}
+@keyframes h45-ripple{0%,100%{opacity:.55;}50%{opacity:1;}}
+
+/* ============ H45-01 · CP25 slab-built tooltips ============ */
+.icon-action{position:relative;}
+.icon-action::after{content:attr(aria-label);position:absolute;left:50%;bottom:calc(100% + 10px);
+  transform:translateX(-50%) translateY(6px);white-space:nowrap;z-index:50;
+  font-size:.68rem;letter-spacing:.08em;color:#0d0b07;
+  padding:.4rem .7rem;border-radius:2px;opacity:0;pointer-events:none;
+  background:
+    linear-gradient(rgba(212,175,55,0),rgba(212,175,55,0)) 0 0/100% 33% no-repeat,
+    linear-gradient(rgba(212,175,55,0),rgba(212,175,55,0)) 0 33%/100% 34% no-repeat,
+    linear-gradient(#e8c76a,#e8c76a);
+  transition:opacity .22s,transform .3s cubic-bezier(.2,.9,.3,1.2),background .3s steps(3);}
+.icon-action:hover::after,.icon-action:focus-visible::after{opacity:1;transform:translateX(-50%);
+  background:
+    linear-gradient(#e8c76a,#e8c76a) 0 0/100% 33% no-repeat,
+    linear-gradient(#e8c76a,#e8c76a) 0 33%/100% 34% no-repeat,
+    linear-gradient(#e8c76a,#e8c76a);}
+
+/* ============ H45-02 · CP19 speed-reactive marquee ============ */
+.velocity-marquee{--h45-vel:1;}
+.velocity-marquee .marquee-track{animation-duration:calc(28s / var(--h45-vel));}
+
+/* ============ H45-08 · CP16 light-dot preloader clock ============ */
+#preloader .h45-dots{display:flex;gap:8px;justify-content:center;margin-top:14px;}
+#preloader .h45-dots i{width:9px;height:9px;border-radius:50%;background:#3a332a;
+  transition:background .3s,box-shadow .3s;}
+#preloader .h45-dots i.lit{background:#e8c76a;box-shadow:0 0 10px rgba(232,199,106,.9);}
+
+/* ============ H45-06 · CP49 film-reel scroll-spin (footer) ============ */
+.h45-reel{display:inline-block;width:34px;height:34px;border:2px solid rgba(212,175,55,.7);
+  border-radius:50%;position:relative;vertical-align:-9px;margin-right:.6rem;}
+.h45-reel::before{content:"";position:absolute;inset:6px;border-radius:50%;
+  background:
+    conic-gradient(rgba(212,175,55,.9) 0 12deg,transparent 12deg 72deg,rgba(212,175,55,.9) 72deg 84deg,transparent 84deg 144deg,rgba(212,175,55,.9) 144deg 156deg,transparent 156deg 216deg,rgba(212,175,55,.9) 216deg 228deg,transparent 228deg 288deg,rgba(212,175,55,.9) 288deg 300deg,transparent 300deg 360deg);}
+@supports (animation-timeline: view()) {
+  .h45-reel::before{animation:h45-spin 1s linear;animation-timeline:view();animation-range:entry exit;}
+}
+
+/* ============ H45-11 · CP45 circular carousel (collections alt path) ============ */
+.h45-circular .collection-grid{display:flex;gap:1.2rem;overflow-x:auto;scroll-snap-type:x mandatory;
+  padding:2rem 5vw;perspective:900px;}
+.h45-circular .collection{scroll-snap-align:center;flex:0 0 min(78vw,420px);
+  transform:rotateY(calc((var(--h45-off,0)) * 6deg));}
+
+/* ============ H45-12 · CP48 3D extruded hero title ============ */
+.hero-title{--h45-ex:1px;}
+@supports (animation-composition: add) {
+  .hero-title{text-shadow:
+    var(--h45-ex) var(--h45-ex) 0 rgba(120,85,20,.55),
+    calc(var(--h45-ex)*2) calc(var(--h45-ex)*2) 0 rgba(120,85,20,.35),
+    calc(var(--h45-ex)*3) calc(var(--h45-ex)*3) 0 rgba(120,85,20,.18);}
+}
+
+/* ============ H45-15 · CP17 regenerating accent palette ============ */
+.h45-surprise{font-size:.68rem;letter-spacing:.12em;color:#b9ac8d;background:none;
+  border:1px solid rgba(212,175,55,.35);border-radius:99px;padding:.45rem 1rem;cursor:pointer;
+  transition:border-color .3s,color .3s;}
+.h45-surprise:hover{border-color:#e8c76a;color:#e8c76a;}
+html{--h45-accent:#d4af37;transition:--h45-accent .8s;}
+@property --h45-accent{syntax:"<color>";inherits:true;initial-value:#d4af37;}
+
+/* ============ H45-10 · CP07 keyboard-operable CSS-art 404 ============ */
+#notFound .h45-scene{position:relative;height:180px;overflow:hidden;border-radius:4px;
+  background:linear-gradient(#0d0f1a 0%,#1a1430 60%,#0a0805 100%);margin-bottom:1.2rem;}
+#notFound .h45-moon{position:absolute;top:22px;left:50%;width:54px;height:54px;margin-left:-27px;
+  border-radius:50%;background:radial-gradient(circle at 35% 35%,#fdf6dd,#d9c98f 70%);
+  box-shadow:0 0 34px rgba(240,220,160,.55);}
+#notFound .h45-hill{position:absolute;bottom:-30px;width:130%;height:110px;background:#060503;
+  border-radius:50% 50% 0 0;left:-15%;}
+#notFound .h45-hill.h2{left:5%;background:#0b0906;height:90px;}
+#notFound .h45-star{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;opacity:.8;}
+#notFound .h45-scene:focus{outline:2px solid #e8c76a;outline-offset:4px;}
+
+/* ============ H45-30 · AW29 gradients as light sources (hero) ============ */
+.hero::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(60% 45% at 50% 62%,rgba(232,199,106,.14),transparent 70%),
+    radial-gradient(120% 90% at 50% 110%,rgba(20,40,50,.35),transparent 60%),
+    radial-gradient(140% 100% at 50% 50%,transparent 55%,rgba(0,0,0,.5) 100%);}
+
+/* ============ H45-29 · AW28 exaggerated type hierarchy ============ */
+.section-head h2{font-size:clamp(2.6rem,7.5vw,5.4rem);line-height:1.02;letter-spacing:-.015em;}
+.section-head .eyebrow{font-size:.62rem;}
+
+/* ============ H45-16 · AW40 compare screening room ============ */
+#compareModal.h45-screen{background:#050403;}
+#compareModal.h45-screen .compare-grid{gap:0;border-top:14px solid #000;border-bottom:14px solid #000;}
+#compareModal.h45-screen .h45-scrub{width:100%;accent-color:#e8c76a;margin-top:1rem;}
+
+/* ============ H45-17 · AW50 "lost footage" 404 slate ============ */
+#notFound .h45-slate{border:1px solid rgba(212,175,55,.5);border-radius:3px;padding:1rem 1.4rem;
+  background:repeating-linear-gradient(-45deg,rgba(212,175,55,.06) 0 12px,transparent 12px 24px);
+  font-family:ui-monospace,monospace;letter-spacing:.14em;color:#e8c76a;margin-bottom:1rem;}
+#notFound .h45-rewind{background:#e8c76a;color:#0d0b07;border:0;border-radius:2px;
+  padding:.7rem 1.6rem;letter-spacing:.1em;cursor:pointer;font-weight:600;}
+
+/* ============ H45-18 · AW09 spotlit grid (neighbors dim) ============ */
+#clipGrid.h45-spot > *:not(:hover):not(:focus-within){filter:brightness(.55) saturate(.85);
+  transition:filter .45s;}
+#clipGrid.h45-spot > *{transition:filter .45s;}
+
+/* ============ H45-26 · AW42 price reveal on scroll ============ */
+.stack-price{filter:blur(7px);opacity:.55;transition:filter .7s,opacity .7s;}
+.stack-price.h45-clear{filter:none;opacity:1;}
+
+/* ============ H45-27 · AW46 spotlight focus rings ============ */
+@supports (box-shadow: 0 0 0 1px #000) {
+  :focus-visible{outline:none;box-shadow:0 0 0 2px #0d0b07,0 0 0 4px rgba(232,199,106,.85),
+    0 0 22px rgba(232,199,106,.35);border-radius:2px;}
+}
+
+/* ============ H45-28 · AW48 hover-scrub affordance ============ */
+.clip-visual.h45-scrubable{cursor:ew-resize;}
+.clip-visual.h45-scrubable::after{content:"◂ SCRUB ▸";position:absolute;left:50%;bottom:10px;
+  transform:translateX(-50%);font-size:.6rem;letter-spacing:.22em;color:#f5e9cf;
+  background:rgba(10,8,4,.7);padding:.3rem .7rem;border-radius:99px;opacity:0;transition:opacity .3s;
+  pointer-events:none;}
+#clipGrid > *:hover .clip-visual.h45-scrubable::after{opacity:1;}
+
+/* ============ H45-23 · AW14 render-only-when-interacting ============ */
+body[data-h45-idle="1"] .h45-spiral,body[data-h45-idle="1"] .h45-reel::before,
+body[data-h45-idle="1"] .velocity-marquee .marquee-track{animation-play-state:paused;}
+
+/* ============ H45-24 · AW05 invisible transitions ============ */
+.modal{transition:opacity .18s ease;}
+.modal .modal-card{transform:none;transition:opacity .18s ease;}
+
+/* ============ H45-25 · AW21 section-aware nav context ============ */
+.nav-inner .h45-ctx{font-size:.62rem;letter-spacing:.18em;color:#8d8168;text-transform:uppercase;
+  border-left:1px solid rgba(212,175,55,.3);padding-left:.9rem;margin-left:.9rem;white-space:nowrap;}
+
+/* ============ H45-19 · AW27 director mode overlay ============ */
+.h45-director{position:fixed;inset:0;z-index:200;pointer-events:none;display:none;
+  border:26px solid transparent;
+  border-image:repeating-linear-gradient(-45deg,#111 0 18px,#e8c76a 18px 36px) 26;}
+.h45-director.on{display:block;}
+.h45-director .h45-tc{position:absolute;top:34px;right:44px;font-family:ui-monospace,monospace;
+  color:#ff5a4e;font-size:1rem;letter-spacing:.12em;background:rgba(0,0,0,.6);padding:.3rem .7rem;}
+.h45-director .h45-tc::before{content:"● ";animation:h45-blink 1s steps(2) infinite;}
+@keyframes h45-blink{50%{opacity:.15;}}
+
+/* ============ H45-20 · AW33 message-first inquiry ============ */
+#contactForm .h45-defer{max-height:0;opacity:0;overflow:hidden;margin:0;
+  transition:max-height .5s ease,opacity .4s,margin .4s;}
+#contactForm.h45-typing .h45-defer{max-height:120px;opacity:1;}
+
+/* ============ H45-21 · AW34 list-left / open-card-right ============ */
+.h45-favpanel{display:grid;grid-template-columns:minmax(180px,240px) 1fr;gap:1.2rem;
+  max-height:60vh;overflow:hidden;}
+.h45-favpanel .h45-favlist{overflow-y:auto;display:flex;flex-direction:column;gap:.4rem;}
+.h45-favpanel .h45-favlist button{text-align:left;background:none;border:1px solid rgba(212,175,55,.25);
+  color:#e9dfc6;border-radius:2px;padding:.55rem .8rem;cursor:pointer;font-size:.8rem;}
+.h45-favpanel .h45-favlist button[aria-selected="true"]{border-color:#e8c76a;background:rgba(232,199,106,.08);}
+.h45-favpanel .h45-favview{min-height:220px;border:1px solid rgba(212,175,55,.25);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;color:#8d8168;padding:1rem;text-align:center;}
+
+/* ============ H45-22 · AW49 timelapse theme transition ============ */
+html.h45-timelapse body{transition:filter .6s ease;}
+html.h45-timelapse.h45-to-dark body{filter:sepia(.25) brightness(.82) hue-rotate(-12deg);}
+html.h45-timelapse.h45-to-light body{filter:sepia(.1) brightness(1.04);}
+
+/* ============ H45-31 · hero-media letterbox shimmer ============ */
+.hero-media{position:relative;}
+.hero-media.h45-loading::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:linear-gradient(100deg,transparent 20%,rgba(232,199,106,.10) 45%,rgba(232,199,106,.22) 50%,rgba(232,199,106,.10) 55%,transparent 80%);
+  background-size:220% 100%;animation:h45-shimmer 1.8s linear infinite;}
+@keyframes h45-shimmer{to{background-position:-220% 0;}}
+
+/* ============ H45-32 · eyebrow dash rule ============ */
+.section-head .eyebrow{display:flex;align-items:center;gap:.7rem;}
+.section-head .eyebrow::before{content:"";width:24px;height:1px;background:#d4af37;
+  transition:width .5s cubic-bezier(.2,.9,.3,1);}
+.section-head.h45-inview .eyebrow::before{width:52px;}
+
+/* ============ H45-33c · clip ken-burns idle (biến thể H21-12) ============ */
+#clipGrid .clip-visual video{transform:scale(1);}
+@media (hover:hover) and (prefers-reduced-motion: no-preference) {
+  #clipGrid > :not(:hover):not(:focus-within) .clip-visual video{animation:h45-kb 26s ease-in-out infinite alternate;}
+}
+@keyframes h45-kb{from{transform:scale(1);}to{transform:scale(1.06);}}
+
+/* ============ H45-34c · arrow slide into clip title (biến thể H18-86) ============ */
+.clip-info h3{position:relative;}
+.clip-info h3::after{content:"→";margin-left:.45em;opacity:0;transform:translateX(-8px);
+  transition:opacity .25s,transform .3s;color:#d4af37;display:inline-block;}
+#clipGrid > *:hover .clip-info h3::after,#clipGrid > *:focus-within .clip-info h3::after{opacity:1;transform:none;}
+
+/* ============ H45-35 · library-tools sticky blur ============ */
+.library-tools.h45-stuck{position:sticky;top:0;z-index:40;backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);background:color-mix(in srgb,#0d0b07 72%,transparent);
+  padding-top:.7rem;padding-bottom:.7rem;border-bottom:1px solid rgba(212,175,55,.18);}
+
+/* ============ H45-36 · mood chip selected glow + tick ============ */
+.mood-chip[aria-pressed="true"]{box-shadow:0 0 0 1px #d4af37,0 0 16px rgba(212,175,55,.35);}
+.mood-chip[aria-pressed="true"]::before{content:"✓ ";color:#e8c76a;}
+
+/* ============ H45-37 · clip-meta mono micro-type ============ */
+.clip-meta{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.66rem;
+  letter-spacing:.05em;font-variant-numeric:tabular-nums;color:#a99c7e;}
+
+/* ============ H45-38 · collection hover vignette + play glyph ============ */
+.collection-video{position:relative;}
+.collection-video::after{content:"▶";position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;font-size:2.2rem;color:#f5e9cf;opacity:0;transform:scale(.7);
+  transition:opacity .35s,transform .4s cubic-bezier(.2,.9,.3,1.3);pointer-events:none;
+  background:radial-gradient(circle,rgba(0,0,0,.45),transparent 65%);}
+.collection:hover .collection-video::after,.collection:focus-within .collection-video::after{opacity:1;transform:scale(1);}
+
+/* ============ H45-39 · stack-price flash on change ============ */
+.stack-price[data-changed="1"]{animation:h45-flash .45s ease;}
+@keyframes h45-flash{0%{color:#fff7e0;text-shadow:0 0 18px rgba(232,199,106,.9);}100%{}}
+.stack-price{font-variant-numeric:tabular-nums;}
+
+/* ============ H45-40 · license table column highlight (biến thể H29-63) ============ */
+.license-table td:nth-child(3),.license-table th:nth-child(3){box-shadow:inset 0 0 0 1px rgba(212,175,55,.4);
+  background:rgba(212,175,55,.05);}
+
+/* ============ H45-41 · newsletter focus-within lift ============ */
+.newsletter-form{transition:transform .3s,box-shadow .3s;}
+.newsletter-form:focus-within{transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,.35);}
+.newsletter-form:focus-within .btn{box-shadow:inset 0 -2px 0 #d4af37;}
+
+/* ============ H45-42b · footer-mark fill sweep ============ */
+.footer-mark{background:linear-gradient(100deg,#6f6350 40%,#e8c76a 50%,#6f6350 60%) 0 0/220% 100% no-repeat;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  transition:background-position .8s;}
+.footer-mark:hover{background-position:100% 0;}
+
+/* ============ H45-43 · nav scrolled hairline + blur ============ */
+.nav{transition:backdrop-filter .35s,border-color .35s,background-color .35s;border-bottom:1px solid transparent;}
+.nav.h45-scrolled{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom-color:rgba(212,175,55,.22);background:color-mix(in srgb,#0d0b07 78%,transparent);}
+
+/* ============ H45-44 · menu-btn morph stagger ============ */
+.menu-btn span{display:block;transition:transform .35s,opacity .25s;}
+.menu-btn span:nth-child(2){transition-delay:40ms;}
+.menu-btn span:nth-child(3){transition-delay:80ms;}
+.menu-btn[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.menu-btn[aria-expanded="true"] span:nth-child(2){opacity:0;}
+.menu-btn[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+/* ============ H45-45 · utility-dock tooltips ============ */
+.utility-dock .utility-btn{position:relative;}
+.utility-dock .utility-btn::after{content:attr(aria-label);position:absolute;bottom:calc(100% + 8px);
+  left:50%;transform:translateX(-50%) translateY(4px);white-space:nowrap;font-size:.62rem;
+  letter-spacing:.1em;background:rgba(12,10,6,.92);color:#e8c76a;border:1px solid rgba(212,175,55,.4);
+  padding:.32rem .6rem;border-radius:2px;opacity:0;pointer-events:none;transition:opacity .2s,transform .25s;}
+.utility-dock .utility-btn:hover::after,.utility-dock .utility-btn:focus-visible::after{opacity:1;transform:translateX(-50%);}
+
+/* ============ H45-46 · preloader wipe exit ============ */
+#preloader{transition:clip-path .6s cubic-bezier(.7,0,.3,1),opacity .4s;}
+#preloader.h45-done{clip-path:inset(0 0 100% 0);opacity:0;pointer-events:none;}
+
+/* ============ H45-47 · cart-row remove reveal (biến thể H25-70) ============ */
+.cart-row .h45-remove{opacity:0;transition:opacity .25s;}
+.cart-row:hover .h45-remove,.cart-row:focus-within .h45-remove,.h45-remove:focus-visible{opacity:1;}
+.cart-row [data-remove]{min-width:34px;min-height:34px;}
+
+/* ============ H45-48c · compare tray peek at 1 item ============ */
+.compare-tray[data-count="1"]{transform:translateY(-6px);box-shadow:0 -6px 24px rgba(212,175,55,.18);}
+
+/* ============ H45-49b · tier-select custom arrow ============ */
+.tier-select{appearance:none;-webkit-appearance:none;padding-right:2.2rem;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23d4af37' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right .9rem center;}
+.tier-select:focus-visible{outline:2px solid #e8c76a;outline-offset:2px;}
+
+/* ============ H45-50b · search clear button (biến thể H43-29) ============ */
+.search-wrap{position:relative;}
+.search-wrap .h45-clear{display:none;position:absolute;right:.7rem;top:50%;transform:translateY(-50%);
+  background:none;border:0;color:#8d8168;font-size:1rem;cursor:pointer;padding:.3rem;}
+.search-wrap.h45-hastext .h45-clear{display:block;}
+.search-wrap .h45-clear:hover{color:#e8c76a;}
+
+/* ============ H45-51 · journal date badge ============ */
+.journal-card{position:relative;}
+.journal-card .h45-date{position:absolute;top:.8rem;right:.8rem;z-index:2;
+  font-family:ui-monospace,monospace;font-size:.62rem;letter-spacing:.1em;color:#0d0b07;
+  background:#e8c76a;padding:.28rem .6rem;border-radius:2px;}
+
+/* ============ H45-52 · empty-state dashed frame ============ */
+.empty-state{border:1px dashed rgba(212,175,55,.45);border-radius:6px;padding:2.4rem 1.4rem;text-align:center;}
+.empty-state::before{content:"◌";display:block;font-size:2rem;color:#d4af37;margin-bottom:.8rem;
+  animation:h45-pulse 2.6s ease-in-out infinite;}
+@keyframes h45-pulse{50%{opacity:.35;}}
+
+/* ============ H45-53 · search-wrap expand on focus ============ */
+.search-wrap .search-input{width:180px;transition:width .4s cubic-bezier(.2,.9,.3,1);}
+.search-wrap .search-input:focus{width:min(320px,72vw);}
+
+/* ============ H45-54 · contact-box corner ticks ============ */
+.contact-box{position:relative;}
+.contact-box::before,.contact-box::after{content:"";position:absolute;width:18px;height:18px;
+  border:1px solid #d4af37;pointer-events:none;}
+.contact-box::before{top:-1px;left:-1px;border-right:0;border-bottom:0;}
+.contact-box::after{bottom:-1px;right:-1px;border-left:0;border-top:0;}
+
+/* ============ H45-55 · craft-step connecting line ============ */
+.craft-steps{position:relative;}
+.craft-step{position:relative;padding-left:2.6rem;}
+.craft-step:not(:last-child)::before{content:"";position:absolute;left:.85rem;top:2.2rem;bottom:-.6rem;
+  width:1px;background:linear-gradient(rgba(212,175,55,.6),rgba(212,175,55,.08));}
+.craft-step .num{position:absolute;left:0;top:.2rem;}
+
+/* ============ H45-56 · collection-num watermark ============ */
+.collection{position:relative;}
+.collection-num{position:absolute;top:.4rem;left:.8rem;z-index:2;font-size:3.4rem;font-weight:800;
+  color:transparent;-webkit-text-stroke:1px rgba(232,199,106,.4);pointer-events:none;line-height:1;}
+
+/* ============ H45-57 · not-found film grain ============ */
+#notFound{position:relative;}
+#notFound.h45-grain::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;z-index:1;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.83 0 0 0 0 0.69 0 0 0 0 0.22 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+/* ============ H45-58 · newsletter-note states ============ */
+#newsletterNote[data-state="ok"]{color:#9fd08a;}
+#newsletterNote[data-state="err"]{color:#e88a7a;}
+#newsletterNote::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:currentColor;margin-right:.5em;vertical-align:1px;}
+
+/* ============ H45-59 · btn loading spinner ============ */
+.btn[data-loading="1"]{position:relative;color:transparent !important;pointer-events:none;}
+.btn[data-loading="1"]::after{content:"";position:absolute;top:50%;left:50%;width:16px;height:16px;
+  margin:-8px 0 0 -8px;border:2px solid rgba(232,199,106,.35);border-top-color:#e8c76a;
+  border-radius:50%;animation:h45-spin 0.8s linear infinite;}
+
+/* ============ H45-60 · toast mobile position ============ */
+@media (max-width:640px){
+  .toast{left:50% !important;right:auto !important;transform:translateX(-50%) translateY(16px);
+    bottom:calc(1rem + env(safe-area-inset-bottom)) !important;max-width:min(92vw,380px);}
+  .toast.show{transform:translateX(-50%);}
+}
+
+/* ============ H45-61 · tilt glare highlight ============ */
+.tilt-target{position:relative;}
+.tilt-target::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:radial-gradient(420px circle at var(--h45-gx,50%) var(--h45-gy,50%),rgba(255,244,214,.14),transparent 60%);
+  opacity:0;transition:opacity .35s;}
+.tilt-target:hover::after{opacity:1;}
+
+/* ============ H45-62 · dial-name-track ticker ============ */
+.dial-name-track{overflow:hidden;white-space:nowrap;}
+.dial-name-track .h45-tick{display:inline-block;padding-left:100%;animation:h45-tick 26s linear infinite;}
+@keyframes h45-tick{to{transform:translateX(-100%);}}
+
+/* ============ H45-63 · journal featured card ============ */
+@media (min-width:900px){
+  .journal-grid .journal-card:first-child{grid-column:span 2;}
+  .journal-grid .journal-card:first-child .h45-date{background:#0d0b07;color:#e8c76a;border:1px solid #e8c76a;}
+}
+
+/* ============ H45-64 · gallery-side mono micro-labels (retarget: .gallery-meta không tồn tại trong base) ============ */
+.gallery-side{font-family:ui-monospace,monospace;font-size:.64rem;letter-spacing:.08em;
+  text-transform:uppercase;color:#a99c7e;}
+.gallery-side b{color:#e8c76a;font-weight:600;}
+
+/* ============ H45-65 · margin-trim ============ */
+@supports (margin-trim: block) {
+  .cart-list,.h45-favlist,.faq-list{margin-trim:block;}
+}
+
+/* ============ H45-66 · reveal exit fade ============ */
+@supports (animation-timeline: view()) {
+  .reveal{animation:h45-exit linear;animation-timeline:view();animation-range:exit 0% exit 60%;}
+  @keyframes h45-exit{to{opacity:.25;}}
+}
+
+/* ============ RM / save-data / coarse gates ============ */
+.h45-nomotion .h45-spiral,.h45-nomotion .h45-reel::before,.h45-nomotion .h45-tick,
+.h45-nomotion .hero-media.h45-loading::after,.h45-nomotion #clipGrid .clip-visual::before,
+.h45-nomotion .empty-state::before,.h45-nomotion .h45-director .h45-tc::before{animation:none !important;}
+.h45-nomotion .reveal{animation:none;}
+@media (prefers-reduced-motion: reduce){
+  .h45-spiral,.h45-reel::before,.h45-tick,.hero-media.h45-loading::after,
+  #clipGrid .clip-visual::before,.empty-state::before,.h45-director .h45-tc::before{animation:none !important;}
+  .reveal{animation:none;}
+  .stack-price{filter:none;opacity:1;}
+  #clipGrid > *{transition-delay:0ms;}
+}
+@media (prefers-reduced-data: reduce){
+  .hero .h45-spiral{display:none;}
+}
+@media (pointer: coarse){
+}
